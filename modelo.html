@@ -458,6 +458,39 @@ select,input[type=search],input[type=date]{border:2px solid var(--bd);border-rad
 /* fonte de jogo (Jersey 15): só tem peso normal e é mais baixa que a anterior, então ajusto o tamanho pela altura das letras */
 h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{font-weight:400;font-synthesis:none;font-size-adjust:0.5;letter-spacing:0}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+/* mapa de afinidade: cores das bordas por partido (contraste de 4,5 para 1 ou mais nos dois temas) */
+:root{--pt0:#7a7068;--pt1:#7a4eb6;--pt2:#c2410c;--pt3:#1d4ed8;--pt4:#15803d;--pt5:#be185d;--pt6:#a16207;--pt7:#0f766e;--pt8:#b91c1c;--pt9:#4d3f36}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pt0:#a89a8e;--pt1:#b79bf0;--pt2:#fb923c;--pt3:#7aa7ff;--pt4:#4ade80;--pt5:#f472b6;--pt6:#facc15;--pt7:#2dd4bf;--pt8:#ff6b5a;--pt9:#f4ece4}}
+:root[data-theme="dark"]{--pt0:#a89a8e;--pt1:#b79bf0;--pt2:#fb923c;--pt3:#7aa7ff;--pt4:#4ade80;--pt5:#f472b6;--pt6:#facc15;--pt7:#2dd4bf;--pt8:#ff6b5a;--pt9:#f4ece4}
+.amapa .am-sub{font-size:1.1rem;margin:.6rem 0 .2rem}
+.amapa .am-como{max-width:70ch;margin:0 0 .4rem}
+.amapa .filters{margin:.8rem 0 .4rem}
+.amapa .am-num{margin:.4rem 0}
+.abox{position:relative;margin-top:.6rem;background:var(--bg);border:2px solid var(--bd);min-width:0}
+.abox .empty{margin:1rem;box-shadow:none}
+.asvg{display:block;width:100%;height:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.apt{cursor:pointer;outline:none}
+.apt .aring{fill:none;stroke:transparent;stroke-width:3}
+.apt:focus-visible .aring,.apt.on .aring{stroke:var(--focus)}
+.apt .ash{fill:var(--sh)}
+.apt .afr{fill:var(--surface);stroke-width:3.5}
+.apt.poucos .afr{stroke-dasharray:5 3}
+.apt .ainit{font-family:var(--display);fill:var(--ink)}
+.apt:hover .afr{stroke-width:5}
+.alab{font-family:var(--body);font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round;pointer-events:none}
+.am-ocultos{margin:.2rem .7rem .5rem}
+.atip{position:absolute;z-index:4;width:max-content;max-width:min(18rem,calc(100% - 8px));background:var(--surface);color:var(--ink);border:2px solid var(--bd);box-shadow:4px 4px 0 var(--sh);padding:.6rem .8rem;font-size:.9rem;line-height:1.4}
+.atip h3{font-size:1.25rem;margin:0}
+@media (max-width:560px){.atip{font-size:.84rem;padding:.5rem .65rem}}
+.atip p{margin:.25rem 0}
+.atip ul{margin:0 0 .3rem;padding-left:1.1rem}
+.atip .btn{margin-top:.3rem}
+.aleg{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem 1rem;font-size:.88rem;margin:.7rem 0 0}
+.aleg span{display:inline-flex;align-items:center}
+.aleg i{display:inline-block;width:1rem;height:1rem;border:3px solid var(--c);background:var(--surface);margin-right:.35rem;box-sizing:border-box}
+.aleg i.trac{border:3px dashed var(--muted)}
+#atab{margin-top:.8rem}
+#atab td{font-size:.92rem}
 </style>
 </head>
 <body>
@@ -756,8 +789,10 @@ function viewVotacoes(){
   <p class="lede">Escolha um dia no calendário para ver o que foi votado e quem estava presente.</p>
   ${segVot('s')}
   <section class="gchart" id="gchart" role="group" aria-labelledby="h-g"></section>
+  <section class="gchart amapa" id="amapa" aria-labelledby="h-am"></section>
   <div class="sessions"><div class="cal" id="cal"></div><div><h2 class="sr">Sessões</h2><div class="slist" id="slist" aria-live="polite"></div></div></div>`;
   graficoPresenca();
+  mapaAfinidade();
   calendario(document.getElementById('cal'), {lista: (L, filtrado, limpar) => {
     const el = document.getElementById('slist');
     el.innerHTML = (filtrado ? `<button class="btn ghost" id="todas" type="button">Mostrar todas as sessões do mês</button>` : '') + L.slice().sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id).map(itemSessao).join('');
@@ -832,6 +867,213 @@ function graficoPresenca(){
     drag = false; down = null;
   });
   box.addEventListener('mouseleave', () => { if (drag) { S.done = true; pintar(); } drag = false; down = null; });
+}
+
+/* ---------- Votações: mapa de afinidade entre vereadores ----------
+   Só votações nominais com divisão real (20+ votos Sim/Não e 3+ no lado minoritário).
+   Afinidade de um par = votos iguais / votações em que os dois votaram Sim ou Não (mínimo de 15 em comum).
+   Distância = 1 − afinidade; pares sem o mínimo recebem a média das distâncias conhecidas.
+   Posições pelo escalonamento multidimensional clássico (MDS), com autovetores pelo método de Jacobi. */
+const AF_MIN_SN = 20, AF_MIN_MINOR = 3, AF_MIN_PAR = 15, AF_MIN_VOT = 10;
+const AF_BASE = Object.entries(NOM).map(([vid, m]) => {
+  const v = VTid[vid]; if (!v || !v.d) return null;
+  let s = 0, n = 0; for (const c of Object.values(m)) { if (c === 'S') s++; else if (c === 'N') n++; }
+  return s + n >= AF_MIN_SN && Math.min(s, n) >= AF_MIN_MINOR ? {d:v.d, cat:v.cat, m} : null;
+}).filter(Boolean);
+const AF_REF = (() => { const c = {}; AF_BASE.forEach(x => { for (const [p, k] of Object.entries(x.m)) if ((k === 'S' || k === 'N') && V[p] && V[p].ativo) c[p] = (c[p] || 0) + 1; });
+  let best = null; for (const p in c) if (best === null || c[p] > c[best]) best = p; return best === null ? null : +best; })();
+const FA = {anos:[], cat:'todos', sairam:false, tabela:false};
+function jacobiSim(A){ // autovalores e autovetores de uma matriz simétrica
+  const n = A.length, a = A.map(r => r.slice()), vec = A.map((_, i) => A.map((_, j) => i === j ? 1 : 0));
+  for (let volta = 0; volta < 100; volta++) {
+    let fora = 0; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) fora += a[i][j] * a[i][j];
+    if (fora < 1e-18) break;
+    for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+      if (Math.abs(a[p][q]) < 1e-15) continue;
+      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = (th < 0 ? -1 : 1) / (Math.abs(th) + Math.sqrt(th * th + 1));
+      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < n; k++) { const x = a[k][p], y = a[k][q]; a[k][p] = c * x - s * y; a[k][q] = s * x + c * y; }
+      for (let k = 0; k < n; k++) { const x = a[p][k], y = a[q][k]; a[p][k] = c * x - s * y; a[q][k] = s * x + c * y; }
+      for (let k = 0; k < n; k++) { const x = vec[k][p], y = vec[k][q]; vec[k][p] = c * x - s * y; vec[k][q] = s * x + c * y; }
+    }
+  }
+  return {val: a.map((r, i) => r[i]), vec};
+}
+function calcAfinidade(f){
+  const vs = AF_BASE.filter(x => (!f.anos.length || f.anos.includes(x.d.slice(0, 4))) && passaCat(x, f.cat));
+  const cont = {}; vs.forEach(x => { for (const [p, k] of Object.entries(x.m)) if (k === 'S' || k === 'N') cont[p] = (cont[p] || 0) + 1; });
+  const ids = Object.keys(cont).map(Number).filter(id => V[id] && (f.sairam || V[id].ativo));
+  if (vs.length < AF_MIN_VOT || ids.length < 3) return {erro:true, nVot:vs.length, nVer:ids.length};
+  const n = ids.length, ig = ids.map(() => new Array(n).fill(0)), tot = ids.map(() => new Array(n).fill(0));
+  vs.forEach(x => { const k = ids.map(id => x.m[id]);
+    for (let i = 0; i < n; i++) { const a = k[i]; if (a !== 'S' && a !== 'N') continue;
+      for (let j = i + 1; j < n; j++) { const b = k[j]; if (b !== 'S' && b !== 'N') continue; tot[i][j]++; tot[j][i]++; if (a === b) { ig[i][j]++; ig[j][i]++; } } } });
+  const dist = ids.map(() => new Array(n).fill(null)); let soma = 0, conhecidos = 0;
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (tot[i][j] >= AF_MIN_PAR) { dist[i][j] = dist[j][i] = 1 - ig[i][j] / tot[i][j]; soma += dist[i][j]; conhecidos++; }
+  if (!conhecidos) return {erro:true, nVot:vs.length, nVer:ids.length};
+  const media = soma / conhecidos, faltam = ids.map(() => 0);
+  for (let i = 0; i < n; i++) { dist[i][i] = 0; for (let j = 0; j < n; j++) if (dist[i][j] === null) { dist[i][j] = media; faltam[i]++; } }
+  // MDS clássico: B = −½·J·D²·J; posições = autovetores × √autovalor dos dois maiores autovalores
+  const D2 = dist.map(r => r.map(x => x * x)), ml = D2.map(r => r.reduce((a, b) => a + b, 0) / n), mg = ml.reduce((a, b) => a + b, 0) / n;
+  const {val, vec} = jacobiSim(D2.map((r, i) => r.map((x, j) => -0.5 * (x - ml[i] - ml[j] + mg))));
+  const ord = val.map((_, i) => i).sort((a, b) => val[b] - val[a]);
+  const pos = val.filter(x => x > 1e-12).reduce((a, b) => a + b, 0) || 1;
+  const XY = ids.map((_, i) => [0, 1].map(e => vec[i][ord[e]] * Math.sqrt(Math.max(val[ord[e]], 0))));
+  // eixos estáveis: o vereador de referência (o que mais votou) fica à esquerda e na metade de cima
+  let r = ids.indexOf(AF_REF); if (r < 0) r = ids.reduce((b, id, i) => cont[id] > cont[ids[b]] ? i : b, 0);
+  [0, 1].forEach(e => { if (e === 0 ? XY[r][0] > 0 : XY[r][1] < 0) XY.forEach(p => { p[e] = -p[e]; }); });
+  const dm = [], dr = [];
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { dm.push(Math.hypot(XY[i][0] - XY[j][0], XY[i][1] - XY[j][1])); dr.push(dist[i][j]); }
+  const mA = dm.reduce((a, b) => a + b, 0) / dm.length, mB = dr.reduce((a, b) => a + b, 0) / dr.length;
+  let sab = 0, saa = 0, sbb = 0; dm.forEach((x, k) => { sab += (x - mA) * (dr[k] - mB); saa += (x - mA) ** 2; sbb += (dr[k] - mB) ** 2; });
+  const corr = saa && sbb ? sab / Math.sqrt(saa * sbb) : 0;
+  const pts = ids.map((id, i) => {
+    const par = []; for (let j = 0; j < n; j++) if (j !== i && tot[i][j] >= AF_MIN_PAR) par.push({id:ids[j], af:ig[i][j] / tot[i][j], n:tot[i][j]});
+    par.sort((a, b) => b.af - a.af || b.n - a.n || nomeV(a.id).localeCompare(nomeV(b.id), 'pt-BR'));
+    return {id, x:XY[i][0], y:XY[i][1], votos:cont[id], poucos: faltam[i] > (n - 1) / 2, parecidos:par.slice(0, 3), diferentes:par.slice(-2).reverse().filter(p => !par.slice(0, 3).includes(p))};
+  });
+  return {pts, nVot:vs.length, corr, e1:Math.max(val[ord[0]], 0) / pos, e2:Math.max(val[ord[1]], 0) / pos};
+}
+const pctAf = a => Math.round(100 * a) + '%';
+const nomeCurto = n => n.length <= 16 ? n : (p => p.length > 1 ? p[0] + ' ' + p[p.length - 1][0] + '.' : n.slice(0, 15) + '…')(n.split(/\s+/));
+const listaAf = L => L.length ? L.map(p => `${esc(nomeV(p.id))} (${pctAf(p.af)})`).join(', ') : 'sem votações suficientes em comum';
+function mapaAfinidade(){
+  const box = document.getElementById('amapa'); if (!box) return;
+  if (!AF_BASE.length) { box.remove(); return; }
+  const TIPOS_AF = [['proj','Projetos e emendas'],['req','Requerimentos'],['moc','Moções']];
+  const tiposOk = TIPOS_AF.filter(([k]) => AF_BASE.some(x => passaCat(x, k))), tiposFora = TIPOS_AF.filter(t => !tiposOk.includes(t));
+  if (!tiposOk.some(([k]) => k === FA.cat)) FA.cat = 'todos';
+  const anos = [...new Set(AF_BASE.map(x => x.d.slice(0, 4)))].sort().reverse();
+  box.innerHTML = `<h2 id="h-am">Mapa de afinidade entre vereadores</h2>
+    <h3 class="am-sub">Como ler este mapa</h3>
+    <p class="note am-como">Cada quadrado é um vereador. Quem vota parecido fica perto; quem vota diferente fica longe. A posição só vale em relação aos outros pontos: os lados e as direções do mapa não têm significado próprio. O cálculo usa só votações nominais (com o voto de cada vereador registrado), e só as que tiveram divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} do lado que perdeu. Abstenções e ausências não entram.</p>
+    <div class="filters">
+      <div class="frow">${caixasAno('aano', anos, FA.anos)}</div>
+      <div class="frow" id="acat"><span class="flabel">Tipo</span>${chips('Tipo de proposta', [['todos','Todos'], ...tiposOk], FA.cat)}${tiposFora.length ? `<span class="note">${tiposFora.map((t, i) => i ? t[1].toLowerCase() : t[1]).join(' e ')} não aparecem porque não tiveram votação nominal com divisão real.</span>` : ''}</div>
+      <div class="frow"><label class="check"><input type="checkbox" id="asai" ${FA.sairam ? 'checked' : ''}>Incluir quem já saiu</label></div>
+    </div>
+    <div id="ainfo" aria-live="polite"></div>
+    <div class="abox" id="abox"></div>
+    <div class="aleg" id="aleg"></div>
+    <div class="linkrow" style="margin-top:.9rem"><button type="button" class="btn ghost" id="atabbtn" aria-expanded="${FA.tabela}" aria-controls="atab">${FA.tabela ? 'Esconder tabela' : 'Ver em tabela'}</button></div>
+    <div id="atab" ${FA.tabela ? '' : 'hidden'}></div>`;
+  let R = null;
+  const desenhar = () => {
+    const info = box.querySelector('#ainfo'), area = box.querySelector('#abox'), leg = box.querySelector('#aleg'), tab = box.querySelector('#atab');
+    R = calcAfinidade(FA);
+    if (R.erro) {
+      info.innerHTML = ''; leg.innerHTML = ''; tab.innerHTML = '';
+      area.innerHTML = `<div class="empty">Poucos dados para montar o mapa com esses filtros: ${num(R.nVot)} ${R.nVot === 1 ? 'votação' : 'votações'} com divisão real${R.nVer < 3 ? ` e ${R.nVer} ${R.nVer === 1 ? 'vereador' : 'vereadores'}` : ''}. São necessárias pelo menos ${AF_MIN_VOT} votações e 3 vereadores. Marque mais anos ou escolha “Todos” no tipo.</div>`;
+      box.querySelector('#atabbtn').hidden = true; return;
+    }
+    box.querySelector('#atabbtn').hidden = false;
+    const fmt = x => x.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const expl = Math.round(100 * (R.e1 + R.e2));
+    const nivel = R.corr >= 0.9 && expl >= 60 ? 'boa' : R.corr >= 0.75 && expl >= 40 ? 'razoável' : 'baixa';
+    const nPoucos = R.pts.filter(p => p.poucos).length;
+    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> com divisão real e <strong>${R.pts.length} vereadores</strong>. Qualidade do mapa: <strong>${nivel}</strong>. As distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo).</p>`
+      + (nivel === 'baixa' ? `<div class="callout am-aviso"><p><strong>Atenção:</strong> com esses filtros o mapa resume mal as diferenças de voto. Use as distâncias só como uma ideia geral e confira a tabela.</p></div>` : '')
+      + (nPoucos ? `<p class="note">${nPoucos === 1 ? '1 vereador tem' : nPoucos + ' vereadores têm'} poucos votos em comum com os demais (borda tracejada): a posição deles é aproximada.</p>` : '');
+    // cores por partido (as maiores bancadas primeiro); a partir da 10ª, cinza
+    const bancada = {}; R.pts.forEach(p => { const s = V[p.id].partido || 'Sem partido'; bancada[s] = (bancada[s] || 0) + 1; });
+    const siglas = Object.keys(bancada).sort((a, b) => bancada[b] - bancada[a] || a.localeCompare(b, 'pt-BR'));
+    const cor = {}; siglas.forEach((s, i) => { cor[s] = i < 9 ? `var(--pt${i + 1})` : 'var(--pt0)'; });
+    const corDe = id => cor[V[id].partido || 'Sem partido'];
+    leg.innerHTML = `<span class="flabel">Partidos</span>` + siglas.map(s => `<span><i style="--c:${cor[s]}"></i>${esc(s)} (${bancada[s]})</span>`).join('') + (nPoucos ? `<span><i class="trac"></i>Poucos votos para analisar</span>` : '');
+    pintarMapa(area, R, corDe);
+    tab.innerHTML = `<div class="tablewrap"><table class="t"><caption class="sr">Mais parecidos e mais diferentes de cada vereador</caption><thead><tr><th scope="col">Vereador</th><th scope="col">Partido</th><th scope="col" class="ev">Votações usadas</th><th scope="col">Mais parecidos</th><th scope="col">Mais diferentes</th></tr></thead><tbody>${R.pts.slice().sort((a, b) => nomeV(a.id).localeCompare(nomeV(b.id), 'pt-BR')).map(p => `<tr><td><a href="#v-${p.id}">${esc(nomeV(p.id))}</a>${p.poucos ? '<br><span class="note">poucos votos para analisar</span>' : ''}</td><td>${esc(V[p.id].partido || '')}</td><td class="ev">${num(p.votos)}</td><td>${listaAf(p.parecidos)}</td><td>${p.diferentes.length ? listaAf(p.diferentes) : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+  };
+  ligaCaixasAno('aano', s => { FA.anos = s; desenhar(); });
+  ligarChips('#acat', k => { FA.cat = k; desenhar(); });
+  box.querySelector('#asai').addEventListener('change', e => { FA.sairam = e.target.checked; desenhar(); });
+  box.querySelector('#atabbtn').addEventListener('click', e => { FA.tabela = !FA.tabela; e.currentTarget.setAttribute('aria-expanded', FA.tabela); e.currentTarget.textContent = FA.tabela ? 'Esconder tabela' : 'Ver em tabela'; box.querySelector('#atab').hidden = !FA.tabela; });
+  desenhar();
+  let largura = box.querySelector('#abox').clientWidth, espera = null;
+  const aoRedim = () => { if (!document.contains(box)) { window.removeEventListener('resize', aoRedim); return; }
+    clearTimeout(espera); espera = setTimeout(() => { const w = box.querySelector('#abox').clientWidth; if (w && Math.abs(w - largura) > 20 && R && !R.erro) { largura = w; desenhar(); } }, 200); };
+  window.addEventListener('resize', aoRedim);
+}
+function pintarMapa(area, R, corDe){
+  const W = Math.max(area.clientWidth || 800, 280), estreito = W < 560;
+  const T = estreito ? 24 : 38, fs = estreito ? 11 : 12.5, H = Math.round(estreito ? Math.max(W * 1.15, 360) : Math.min(Math.max(W * 0.62, 360), 600));
+  const mg = T / 2 + 10;
+  const xs = R.pts.map(p => p.x), ys = R.pts.map(p => p.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  // mesma escala nos dois eixos, para não exagerar o segundo eixo
+  const esc1 = Math.min((W - 2 * mg - (estreito ? 20 : 60)) / ((x1 - x0) || 1), (H - 2 * mg) / ((y1 - y0) || 1));
+  const cx = (W - (x1 - x0) * esc1) / 2, cy = (H - (y1 - y0) * esc1) / 2;
+  const P = R.pts.map((p, i) => ({p, i, x: cx + (p.x - x0) * esc1, y: H - (cy + (p.y - y0) * esc1)}));
+  // afasta um pouco os pontos que se cobririam (a posição calculada não muda; é só para enxergar)
+  const minD = T + 4;
+  for (let it = 0; it < 200; it++) { let mexeu = false;
+    for (let a = 0; a < P.length; a++) for (let b = a + 1; b < P.length; b++) {
+      let dx = P[b].x - P[a].x, dy = P[b].y - P[a].y; let d = Math.hypot(dx, dy);
+      if (d >= minD) continue; mexeu = true;
+      if (d < 0.01) { const ang = (a * 2.39996 + b) % (2 * Math.PI); dx = Math.cos(ang); dy = Math.sin(ang); d = 1; }
+      const em = (minD - Math.max(d, 0.01)) / 2 + 0.3, ux = dx / d, uy = dy / d;
+      P[a].x -= ux * em; P[a].y -= uy * em; P[b].x += ux * em; P[b].y += uy * em;
+    }
+    P.forEach(q => { q.x = Math.min(Math.max(q.x, mg), W - mg); q.y = Math.min(Math.max(q.y, mg), H - mg); });
+    if (!mexeu) break;
+  }
+  // rótulos: tenta à direita, à esquerda, embaixo e em cima; se não couber, o nome aparece só ao passar o mouse
+  const caixas = P.map(q => [q.x - T / 2 - 2, q.y - T / 2 - 2, q.x + T / 2 + 5, q.y + T / 2 + 5]);
+  const bate = (r, s) => r[0] < s[2] && r[2] > s[0] && r[1] < s[3] && r[3] > s[1];
+  const rot = [];
+  [...P].sort((a, b) => a.x - b.x).forEach(q => {
+    const txt = nomeCurto(nomeV(q.p.id)), w = txt.length * fs * 0.56, h = fs + 2;
+    const op = [[q.x + T / 2 + 6, q.y + fs / 3, 'start', [q.x + T / 2 + 5, q.y - h / 2, q.x + T / 2 + 7 + w, q.y + h / 2]],
+                [q.x - T / 2 - 6, q.y + fs / 3, 'end', [q.x - T / 2 - 7 - w, q.y - h / 2, q.x - T / 2 - 5, q.y + h / 2]],
+                [q.x, q.y + T / 2 + fs + 3, 'middle', [q.x - w / 2, q.y + T / 2 + 4, q.x + w / 2, q.y + T / 2 + 6 + h]],
+                [q.x, q.y - T / 2 - 6, 'middle', [q.x - w / 2, q.y - T / 2 - 7 - h, q.x + w / 2, q.y - T / 2 - 4]]];
+    const ok = op.find(o => o[3][0] >= 2 && o[3][2] <= W - 2 && o[3][1] >= 2 && o[3][3] <= H - 2 && !caixas.some(c => bate(o[3], c)) && !rot.some(r => bate(o[3], r[3])));
+    if (ok) rot.push([...ok, txt]);
+  });
+  const desc = q => { const p = q.p, v = V[p.id];
+    return `${v.nome}${v.partido ? ', ' + v.partido : ''}. Mais parecidos: ${p.parecidos.length ? p.parecidos.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') : 'sem dados suficientes'}.${p.diferentes.length ? ' Mais diferentes: ' + p.diferentes.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') + '.' : ''} ${p.votos} votações usadas.${p.poucos ? ' Poucos votos para analisar.' : ''} Abre a página do vereador.`; };
+  area.innerHTML = `<svg class="asvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Mapa de afinidade: ${R.pts.length} vereadores. Use Tab para percorrer os pontos e Enter para abrir a página do vereador.">
+    ${P.map(q => { const v = V[q.p.id], x = q.x - T / 2, y = q.y - T / 2, c = corDe(q.p.id);
+      return `<a href="#v-${v.id}" class="apt${q.p.poucos ? ' poucos' : ''}" data-i="${q.i}" aria-label="${esc(desc(q))}">
+        <rect class="aring" x="${x - 5}" y="${y - 5}" width="${T + 10}" height="${T + 10}"></rect>
+        <rect class="ash" x="${x + 3}" y="${y + 3}" width="${T}" height="${T}"></rect>
+        <rect class="afr" x="${x}" y="${y}" width="${T}" height="${T}" style="stroke:${c}"></rect>
+        ${FOTOS[v.id] ? `<image href="${FOTOS[v.id]}" x="${x + 3}" y="${y + 3}" width="${T - 6}" height="${T - 6}" preserveAspectRatio="xMidYMid slice"${q.p.poucos ? ' opacity=".55"' : ''}></image>`
+          : `<text class="ainit" x="${q.x}" y="${q.y + T * 0.16}" text-anchor="middle" font-size="${T * 0.42}">${esc(iniciais(v.nome))}</text>`}
+      </a>`; }).join('')}
+    ${rot.map(r => `<text class="alab" x="${r[0]}" y="${r[1]}" text-anchor="${r[2]}" font-size="${fs}" aria-hidden="true">${esc(r[4])}</text>`).join('')}
+  </svg><div class="atip" id="atip" hidden></div>`;
+  const ocultos = P.length - rot.length;
+  if (ocultos) area.insertAdjacentHTML('beforeend', `<p class="note am-ocultos">${ocultos === 1 ? '1 nome ficou escondido' : ocultos + ' nomes ficaram escondidos'} para não se sobreporem: passe o mouse, toque ou use Tab nos pontos para ver.</p>`);
+  const tip = area.querySelector('#atip'); let fixo = null, ultimoPtr = 'mouse';
+  const mostra = (el, comLink) => {
+    const q = P[+el.dataset.i], p = q.p, v = V[p.id];
+    area.querySelectorAll('.apt.on').forEach(x => x.classList.remove('on')); el.classList.add('on');
+    tip.innerHTML = `<h3>${esc(v.nome)}</h3><p class="note">${esc(v.partido || 'Sem partido')}${v.completo && v.completo !== v.nome ? ' · ' + esc(v.completo) : ''}</p>
+      <p><strong>Mais parecidos</strong> <span class="note">(concordância)</span></p><ul>${p.parecidos.length ? p.parecidos.map(x => `<li>${esc(nomeV(x.id))}: ${pctAf(x.af)}</li>`).join('') : '<li>Sem votações suficientes em comum</li>'}</ul>
+      ${p.diferentes.length ? `<p><strong>Mais diferentes</strong></p><ul>${p.diferentes.map(x => `<li>${esc(nomeV(x.id))}: ${pctAf(x.af)}</li>`).join('')}</ul>` : ''}
+      <p class="note">${num(p.votos)} ${p.votos === 1 ? 'votação usada' : 'votações usadas'}.${p.poucos ? ' <strong>Poucos votos para analisar:</strong> a posição é aproximada.' : ''}</p>
+      ${comLink ? `<a class="btn sm" href="#v-${v.id}">Abrir a página</a>` : ''}`;
+    tip.hidden = false;
+    const k = area.clientWidth / W, tw = tip.offsetWidth, th = tip.offsetHeight;
+    const px = q.x * k, py = q.y * k, r = T * k / 2 + 10, aw = area.clientWidth, ah = H * k;
+    let left = px + r, top = Math.min(Math.max(py - th / 2, 4), Math.max(4, ah - th - 4));
+    if (left + tw > aw - 4) left = px - r - tw;
+    if (left < 4) { left = Math.min(Math.max(px - tw / 2, 4), Math.max(4, aw - tw - 4)); top = py + r + th <= ah - 4 || py - r - th < 4 ? py + r : py - r - th; }
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  };
+  const esconde = () => { tip.hidden = true; fixo = null; area.querySelectorAll('.apt.on').forEach(x => x.classList.remove('on')); };
+  area.querySelector('svg').addEventListener('pointerdown', e => { ultimoPtr = e.pointerType || 'mouse'; });
+  area.querySelectorAll('.apt').forEach(el => {
+    el.addEventListener('mouseenter', () => { if (ultimoPtr !== 'touch' && !fixo) mostra(el, false); });
+    el.addEventListener('mouseleave', () => { if (!fixo) esconde(); });
+    el.addEventListener('focus', () => { if (ultimoPtr === 'touch') return; if (fixo !== el) { fixo = null; mostra(el, false); } });
+    el.addEventListener('blur', () => { if (!fixo) esconde(); });
+    el.addEventListener('click', e => { // no toque, o primeiro toque mostra a caixa; o segundo (ou o botão) abre a página
+      if (ultimoPtr === 'touch' && fixo !== el) { e.preventDefault(); fixo = el; mostra(el, true); }
+    });
+  });
+  area.addEventListener('keydown', e => { ultimoPtr = 'teclado'; if (e.key === 'Escape' && !tip.hidden) { esconde(); } });
+  area.addEventListener('click', e => { if (fixo && !e.target.closest('.apt') && !e.target.closest('.atip')) esconde(); });
 }
 
 /* ---------- Votações: busca com período ---------- */
