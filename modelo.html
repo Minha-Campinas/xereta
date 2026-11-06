@@ -490,6 +490,13 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 .aleg i{display:inline-block;width:1rem;height:1rem;border:3px solid var(--c);background:var(--surface);margin-right:.35rem;box-sizing:border-box}
 .aleg i.trac{border:3px dashed var(--muted)}
 #atab{margin-top:.8rem}
+.avers{border:2px solid var(--bd);background:var(--surface);box-shadow:3px 3px 0 var(--sh)}
+.avers>summary{cursor:pointer;font-weight:700;padding:.6rem .85rem;min-height:2.75rem;display:flex;align-items:center}
+.avers[open]>summary{border-bottom:2px solid var(--bd)}
+.avers-in{padding:.6rem .85rem .8rem;display:grid;gap:.5rem}
+.avers-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:0 1rem}
+.avers-lista .check{min-height:2.4rem}
+.avers-lista .note{font-size:.82rem}
 #atab td{font-size:.92rem}
 </style>
 </head>
@@ -783,16 +790,14 @@ function viewInicio(){
 }
 
 /* ---------- Votações: por sessão ---------- */
-const segVot = atual => `<nav class="segnav" aria-label="Modo de ver as votações"><a href="#votacoes" ${atual==='s'?'aria-current="page"':''}>Por sessão</a><a href="#busca" ${atual==='b'?'aria-current="page"':''}>Todas as votações</a></nav>`;
+const segVot = atual => `<nav class="segnav" aria-label="Modo de ver as votações"><a href="#votacoes" ${atual==='s'?'aria-current="page"':''}>Por sessão</a><a href="#busca" ${atual==='b'?'aria-current="page"':''}>Todas as votações</a>${AF_BASE.length ? `<a href="#afinidade" ${atual==='a'?'aria-current="page"':''}>Mapa de afinidade</a>` : ''}</nav>`;
 function viewVotacoes(){
   app.innerHTML = `<h1>Sessões e votações</h1>
   <p class="lede">Escolha um dia no calendário para ver o que foi votado e quem estava presente.</p>
   ${segVot('s')}
   <section class="gchart" id="gchart" role="group" aria-labelledby="h-g"></section>
-  <section class="gchart amapa" id="amapa" aria-labelledby="h-am"></section>
   <div class="sessions"><div class="cal" id="cal"></div><div><h2 class="sr">Sessões</h2><div class="slist" id="slist" aria-live="polite"></div></div></div>`;
   graficoPresenca();
-  mapaAfinidade();
   calendario(document.getElementById('cal'), {lista: (L, filtrado, limpar) => {
     const el = document.getElementById('slist');
     el.innerHTML = (filtrado ? `<button class="btn ghost" id="todas" type="button">Mostrar todas as sessões do mês</button>` : '') + L.slice().sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id).map(itemSessao).join('');
@@ -882,7 +887,10 @@ const AF_BASE = Object.entries(NOM).map(([vid, m]) => {
 }).filter(Boolean);
 const AF_REF = (() => { const c = {}; AF_BASE.forEach(x => { for (const [p, k] of Object.entries(x.m)) if ((k === 'S' || k === 'N') && V[p] && V[p].ativo) c[p] = (c[p] || 0) + 1; });
   let best = null; for (const p in c) if (best === null || c[p] > c[best]) best = p; return best === null ? null : +best; })();
-const FA = {anos:[], cat:'todos', sairam:false, tabela:false};
+const FA = {anos:[], cat:'todos', sairam:false, tabela:false, partidos:[], vers:[]};
+const partidoAf = id => V[id].partido || 'Sem partido';
+// todos os vereadores com voto em alguma votação dividida (base estável para cores e listas de filtro)
+const AF_POOL = (() => { const s = new Set(); AF_BASE.forEach(x => { for (const [p, k] of Object.entries(x.m)) if ((k === 'S' || k === 'N') && V[p]) s.add(+p); }); return [...s]; })();
 function jacobiSim(A){ // autovalores e autovetores de uma matriz simétrica
   const n = A.length, a = A.map(r => r.slice()), vec = A.map((_, i) => A.map((_, j) => i === j ? 1 : 0));
   for (let volta = 0; volta < 100; volta++) {
@@ -902,7 +910,7 @@ function jacobiSim(A){ // autovalores e autovetores de uma matriz simétrica
 function calcAfinidade(f){
   const vs = AF_BASE.filter(x => (!f.anos.length || f.anos.includes(x.d.slice(0, 4))) && passaCat(x, f.cat));
   const cont = {}; vs.forEach(x => { for (const [p, k] of Object.entries(x.m)) if (k === 'S' || k === 'N') cont[p] = (cont[p] || 0) + 1; });
-  const ids = Object.keys(cont).map(Number).filter(id => V[id] && (f.sairam || V[id].ativo));
+  const ids = Object.keys(cont).map(Number).filter(id => V[id] && (f.sairam || V[id].ativo) && (!f.partidos.length || f.partidos.includes(partidoAf(id))) && (!f.vers.length || f.vers.includes(id)));
   if (vs.length < AF_MIN_VOT || ids.length < 3) return {erro:true, nVot:vs.length, nVer:ids.length};
   const n = ids.length, ig = ids.map(() => new Array(n).fill(0)), tot = ids.map(() => new Array(n).fill(0));
   vs.forEach(x => { const k = ids.map(id => x.m[id]);
@@ -930,27 +938,38 @@ function calcAfinidade(f){
   const pts = ids.map((id, i) => {
     const par = []; for (let j = 0; j < n; j++) if (j !== i && tot[i][j] >= AF_MIN_PAR) par.push({id:ids[j], af:ig[i][j] / tot[i][j], n:tot[i][j]});
     par.sort((a, b) => b.af - a.af || b.n - a.n || nomeV(a.id).localeCompare(nomeV(b.id), 'pt-BR'));
-    return {id, x:XY[i][0], y:XY[i][1], votos:cont[id], poucos: faltam[i] > (n - 1) / 2, parecidos:par.slice(0, 3), diferentes:par.slice(-2).reverse().filter(p => !par.slice(0, 3).includes(p))};
+    const kp = Math.max(1, Math.min(3, Math.floor(par.length / 2))), kd = Math.min(2, par.length - kp); // em grupos pequenos, divide entre parecidos e diferentes
+    return {id, x:XY[i][0], y:XY[i][1], votos:cont[id], poucos: faltam[i] > (n - 1) / 2, parecidos:par.slice(0, kp), diferentes:kd > 0 ? par.slice(-kd).reverse() : []};
   });
   return {pts, nVot:vs.length, corr, e1:Math.max(val[ord[0]], 0) / pos, e2:Math.max(val[ord[1]], 0) / pos};
 }
 const pctAf = a => Math.round(100 * a) + '%';
 const nomeCurto = n => n.length <= 16 ? n : (p => p.length > 1 ? p[0] + ' ' + p[p.length - 1][0] + '.' : n.slice(0, 15) + '…')(n.split(/\s+/));
 const listaAf = L => L.length ? L.map(p => `${esc(nomeV(p.id))} (${pctAf(p.af)})`).join(', ') : 'sem votações suficientes em comum';
+function viewAfinidade(){
+  app.innerHTML = `<h1>Mapa de afinidade entre vereadores</h1>
+  <p class="lede">Quem vota parecido com quem na Câmara, a partir das votações com o voto de cada vereador.</p>
+  ${segVot('a')}
+  <section class="gchart amapa" id="amapa" aria-labelledby="h-am"></section>`;
+  mapaAfinidade();
+}
 function mapaAfinidade(){
   const box = document.getElementById('amapa'); if (!box) return;
-  if (!AF_BASE.length) { box.remove(); return; }
+  if (!AF_BASE.length) { box.outerHTML = '<div class="empty" style="margin-top:1.5rem">Ainda não há votações nominais com divisão suficiente para montar o mapa.</div>'; return; }
   const TIPOS_AF = [['proj','Projetos e emendas'],['req','Requerimentos'],['moc','Moções']];
   const tiposOk = TIPOS_AF.filter(([k]) => AF_BASE.some(x => passaCat(x, k))), tiposFora = TIPOS_AF.filter(t => !tiposOk.includes(t));
   if (!tiposOk.some(([k]) => k === FA.cat)) FA.cat = 'todos';
   const anos = [...new Set(AF_BASE.map(x => x.d.slice(0, 4)))].sort().reverse();
-  box.innerHTML = `<h2 id="h-am">Mapa de afinidade entre vereadores</h2>
-    <h3 class="am-sub">Como ler este mapa</h3>
+  box.innerHTML = `<h2 class="am-sub" id="h-am">Como ler este mapa</h2>
     <p class="note am-como">Cada quadrado é um vereador. Quem vota parecido fica perto; quem vota diferente fica longe. A posição só vale em relação aos outros pontos: os lados e as direções do mapa não têm significado próprio. O cálculo usa só votações nominais (com o voto de cada vereador registrado), e só as que tiveram divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} do lado que perdeu. Abstenções e ausências não entram.</p>
     <div class="filters">
       <div class="frow">${caixasAno('aano', anos, FA.anos)}</div>
       <div class="frow" id="acat"><span class="flabel">Tipo</span>${chips('Tipo de proposta', [['todos','Todos'], ...tiposOk], FA.cat)}${tiposFora.length ? `<span class="note">${tiposFora.map((t, i) => i ? t[1].toLowerCase() : t[1]).join(' e ')} não aparecem porque não tiveram votação nominal com divisão real.</span>` : ''}</div>
       <div class="frow"><label class="check"><input type="checkbox" id="asai" ${FA.sairam ? 'checked' : ''}>Incluir quem já saiu</label></div>
+      <div class="frow" id="apartbox"></div>
+      <details class="avers" id="avers"><summary></summary><div class="avers-in">
+        <div class="linkrow"><button type="button" class="btn ghost sm" id="avtodos">Marcar todos</button><button type="button" class="btn ghost sm" id="avnenhum">Desmarcar todos</button></div>
+        <div class="avers-lista" id="avlista" role="group" aria-label="Vereadores no mapa"></div></div></details>
     </div>
     <div id="ainfo" aria-live="polite"></div>
     <div class="abox" id="abox"></div>
@@ -963,7 +982,7 @@ function mapaAfinidade(){
     R = calcAfinidade(FA);
     if (R.erro) {
       info.innerHTML = ''; leg.innerHTML = ''; tab.innerHTML = '';
-      area.innerHTML = `<div class="empty">Poucos dados para montar o mapa com esses filtros: ${num(R.nVot)} ${R.nVot === 1 ? 'votação' : 'votações'} com divisão real${R.nVer < 3 ? ` e ${R.nVer} ${R.nVer === 1 ? 'vereador' : 'vereadores'}` : ''}. São necessárias pelo menos ${AF_MIN_VOT} votações e 3 vereadores. Marque mais anos ou escolha “Todos” no tipo.</div>`;
+      area.innerHTML = R.nVot >= AF_MIN_VOT && R.nVer < 3 ? `<div class="empty">Escolha pelo menos 3 vereadores para montar o mapa${R.nVer ? ` (agora ${R.nVer === 1 ? 'há 1' : 'há ' + R.nVer} com votos nesse período)` : ''}. Use os filtros de partido e de vereadores acima.</div>` : `<div class="empty">Poucos dados para montar o mapa com esses filtros: ${num(R.nVot)} ${R.nVot === 1 ? 'votação' : 'votações'} com divisão real${R.nVer < 3 ? ` e ${R.nVer} ${R.nVer === 1 ? 'vereador' : 'vereadores'}` : ''}. São necessárias pelo menos ${AF_MIN_VOT} votações e 3 vereadores. Marque mais anos ou escolha “Todos” no tipo.</div>`;
       box.querySelector('#atabbtn').hidden = true; return;
     }
     box.querySelector('#atabbtn').hidden = false;
@@ -971,21 +990,46 @@ function mapaAfinidade(){
     const expl = Math.round(100 * (R.e1 + R.e2));
     const nivel = R.corr >= 0.9 && expl >= 60 ? 'boa' : R.corr >= 0.75 && expl >= 40 ? 'razoável' : 'baixa';
     const nPoucos = R.pts.filter(p => p.poucos).length;
-    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> com divisão real e <strong>${R.pts.length} vereadores</strong>. Qualidade do mapa: <strong>${nivel}</strong>. As distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo).</p>`
+    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> com divisão real e <strong>${R.pts.length} vereadores</strong>${FA.partidos.length || FA.vers.length ? ' (mapa recalculado só com os escolhidos)' : ''}. Qualidade do mapa: <strong>${nivel}</strong>. As distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo).</p>`
       + (nivel === 'baixa' ? `<div class="callout am-aviso"><p><strong>Atenção:</strong> com esses filtros o mapa resume mal as diferenças de voto. Use as distâncias só como uma ideia geral e confira a tabela.</p></div>` : '')
       + (nPoucos ? `<p class="note">${nPoucos === 1 ? '1 vereador tem' : nPoucos + ' vereadores têm'} poucos votos em comum com os demais (borda tracejada): a posição deles é aproximada.</p>` : '');
     // cores por partido (as maiores bancadas primeiro); a partir da 10ª, cinza
-    const bancada = {}; R.pts.forEach(p => { const s = V[p.id].partido || 'Sem partido'; bancada[s] = (bancada[s] || 0) + 1; });
+    const total = {}; AF_POOL.filter(id => V[id].ativo).forEach(id => { const s = partidoAf(id); total[s] = (total[s] || 0) + 1; });
+    AF_POOL.forEach(id => { const s = partidoAf(id); if (!(s in total)) total[s] = 0; });
+    const cor = {}; Object.keys(total).sort((a, b) => total[b] - total[a] || a.localeCompare(b, 'pt-BR')).forEach((s, i) => { cor[s] = i < 9 ? `var(--pt${i + 1})` : 'var(--pt0)'; });
+    const bancada = {}; R.pts.forEach(p => { const s = partidoAf(p.id); bancada[s] = (bancada[s] || 0) + 1; });
     const siglas = Object.keys(bancada).sort((a, b) => bancada[b] - bancada[a] || a.localeCompare(b, 'pt-BR'));
-    const cor = {}; siglas.forEach((s, i) => { cor[s] = i < 9 ? `var(--pt${i + 1})` : 'var(--pt0)'; });
-    const corDe = id => cor[V[id].partido || 'Sem partido'];
+    const corDe = id => cor[partidoAf(id)];
     leg.innerHTML = `<span class="flabel">Partidos</span>` + siglas.map(s => `<span><i style="--c:${cor[s]}"></i>${esc(s)} (${bancada[s]})</span>`).join('') + (nPoucos ? `<span><i class="trac"></i>Poucos votos para analisar</span>` : '');
     pintarMapa(area, R, corDe);
     tab.innerHTML = `<div class="tablewrap"><table class="t"><caption class="sr">Mais parecidos e mais diferentes de cada vereador</caption><thead><tr><th scope="col">Vereador</th><th scope="col">Partido</th><th scope="col" class="ev">Votações usadas</th><th scope="col">Mais parecidos</th><th scope="col">Mais diferentes</th></tr></thead><tbody>${R.pts.slice().sort((a, b) => nomeV(a.id).localeCompare(nomeV(b.id), 'pt-BR')).map(p => `<tr><td><a href="#v-${p.id}">${esc(nomeV(p.id))}</a>${p.poucos ? '<br><span class="note">poucos votos para analisar</span>' : ''}</td><td>${esc(V[p.id].partido || '')}</td><td class="ev">${num(p.votos)}</td><td>${listaAf(p.parecidos)}</td><td>${p.diferentes.length ? listaAf(p.diferentes) : '—'}</td></tr>`).join('')}</tbody></table></div>`;
   };
   ligaCaixasAno('aano', s => { FA.anos = s; desenhar(); });
+  // partidos e vereadores: a lista de vereadores mostra só os dos partidos marcados; o mapa é recalculado só com os escolhidos
+  const elegiveis = () => AF_POOL.filter(id => FA.sairam || V[id].ativo);
+  const montaPartidos = () => {
+    const cnt = {}; elegiveis().forEach(id => { const s = partidoAf(id); cnt[s] = (cnt[s] || 0) + 1; });
+    const ps = Object.keys(cnt).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    FA.partidos = FA.partidos.filter(s => cnt[s]);
+    box.querySelector('#apartbox').innerHTML = `<div class="anos" id="apart" role="group" aria-label="Partidos"><span class="flabel">Partidos</span><label class="check"><input type="checkbox" data-todos ${FA.partidos.length ? '' : 'checked'}>Todos</label>${ps.map(s => `<label class="check"><input type="checkbox" value="${esc(s)}" ${FA.partidos.includes(s) ? 'checked' : ''}>${esc(s)} (${cnt[s]})</label>`).join('')}</div>`;
+    ligaCaixasAno('apart', s => { FA.partidos = s; montaVers(); desenhar(); });
+  };
+  const montaVers = () => {
+    const lista = elegiveis().filter(id => !FA.partidos.length || FA.partidos.includes(partidoAf(id))).sort((a, b) => nomeV(a).localeCompare(nomeV(b), 'pt-BR'));
+    FA.vers = FA.vers.filter(id => lista.includes(id)); if (FA.vers.length === lista.length) FA.vers = [];
+    const marcado = id => !FA.vers.length || FA.vers.includes(id);
+    box.querySelector('#avlista').innerHTML = lista.map(id => `<label class="check"><input type="checkbox" value="${id}" ${marcado(id) ? 'checked' : ''}>${esc(nomeV(id))} <span class="note">${esc(partidoAf(id))}</span></label>`).join('');
+    const resumo = () => { const n = FA.vers.length; box.querySelector('#avers summary').textContent = `Vereadores no mapa: ${n ? `${n} de ${lista.length} escolhidos` : `todos (${lista.length})`}`; };
+    resumo();
+    const caixas = [...box.querySelectorAll('#avlista input')];
+    const ler = () => { const s = caixas.filter(c => c.checked).map(c => +c.value); FA.vers = s.length === caixas.length ? [] : (s.length ? s : [-1]); resumo(); desenhar(); };
+    caixas.forEach(c => c.addEventListener('change', ler));
+    box.querySelector('#avtodos').onclick = () => { caixas.forEach(c => { c.checked = true; }); ler(); };
+    box.querySelector('#avnenhum').onclick = () => { caixas.forEach(c => { c.checked = false; }); ler(); };
+  };
+  montaPartidos(); montaVers();
   ligarChips('#acat', k => { FA.cat = k; desenhar(); });
-  box.querySelector('#asai').addEventListener('change', e => { FA.sairam = e.target.checked; desenhar(); });
+  box.querySelector('#asai').addEventListener('change', e => { FA.sairam = e.target.checked; montaPartidos(); montaVers(); desenhar(); });
   box.querySelector('#atabbtn').addEventListener('click', e => { FA.tabela = !FA.tabela; e.currentTarget.setAttribute('aria-expanded', FA.tabela); e.currentTarget.textContent = FA.tabela ? 'Esconder tabela' : 'Ver em tabela'; box.querySelector('#atab').hidden = !FA.tabela; });
   desenhar();
   let largura = box.querySelector('#abox').clientWidth, espera = null;
@@ -1636,7 +1680,7 @@ function viewSobre(){
 }
 
 /* ---------- Rotas ---------- */
-const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
+const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Mapa de afinidade','votacoes'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
 function rota(){
   const h = location.hash.replace('#','');
   let tab, titulo;
