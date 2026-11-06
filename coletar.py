@@ -220,6 +220,10 @@ ORGAOS_CONHECIDOS = [
     (r'seg\.? ?publica|seguranca', 'Cooperação nos Assuntos de Segurança Pública', 'Segurança Pública'),
     (r'clima|meio ambiente', 'Clima, Meio Ambiente e Sustentabilidade', 'Meio Ambiente e Clima'),
     (r'servidor|\bfdc\b', 'Fundo de Desenvolvimento e Capacitação do Servidor (FDC)', 'Servidores e Administração'),
+    (r'^(secretaria municipal de )?gabinete do prefeito$', 'Gabinete do Prefeito', 'Servidores e Administração'),
+    (r'jose pedro de oliveira|\bfjpo\b', 'Fundação José Pedro de Oliveira (Mata de Santa Genebra)', 'Meio Ambiente e Clima'),
+    (r'^secretaria municipal de urbanismo$', 'Secretaria de Urbanismo', 'Cidade e Serviços Urbanos'),
+    (r'^secretaria municipal de justica$', 'Secretaria de Justiça', 'Servidores e Administração'),
 ]
 # Para órgãos novos: palavras que indicam a área. O que não casar cai em "Outros" e aparece no log.
 AREAS_PALAVRAS = [
