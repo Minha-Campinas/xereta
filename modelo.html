@@ -356,6 +356,19 @@ details.cat.reu > summary{display:grid;grid-template-columns:auto 1fr auto;gap:.
 .mlist li span{font-size:.9rem;color:var(--muted)}
 
 /* emendas parlamentares */
+.area{margin:.7rem 0;background:var(--surface);border:2px solid var(--bd)}
+.area>summary{display:grid;grid-template-columns:minmax(0,1.7fr) auto 4.5rem minmax(5rem,1fr);gap:.4rem 1rem;align-items:center;padding:.75rem .9rem;cursor:pointer;list-style:none}
+.area>summary::-webkit-details-marker{display:none}
+.area[open]>summary{border-bottom:2px solid var(--bd)}
+.aname{font-family:var(--display);font-size:1.3rem}
+.aname::before{content:'\25B8';display:inline-block;margin-right:.5rem;transition:transform .1s}
+.area[open] .aname::before{transform:rotate(90deg)}
+.aval,.apct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.area .tablewrap{margin:0;padding:.6rem .9rem .9rem}
+@media (max-width:620px){.area>summary{grid-template-columns:minmax(0,1fr) auto}.area>summary .apct{display:none}.area>summary .ebar{grid-column:1 / -1}}
+td.obs{min-width:15rem;max-width:26rem;font-size:.9rem;color:var(--muted)}
+td.obs summary{cursor:pointer}
+td.obs details p{margin:.4rem 0 0;color:var(--ink)}
 .anos{display:flex;flex-wrap:wrap;align-items:center;gap:.1rem 1.1rem}
 .eme-hero{margin:1.75rem 0 0;padding:1.4rem 1.5rem;background:var(--accent-soft);border:3px solid var(--bd);box-shadow:6px 6px 0 var(--sh)}
 .eme-big{font-family:var(--display);font-size:clamp(1.8rem,5.2vw,3.1rem);line-height:1.12;margin:.25rem 0 .6rem;font-weight:700}
@@ -1052,7 +1065,7 @@ function viewVereadores(){
 const FPV = {p:'tudo', de:DATA_MIN, ate:HOJE, voto:'todos', cat:'todos', div:false, q:'', n:'10', aut:'todas'};
 function viewPerfil(id){
   const v = V[id];
-  FPV.n = '10'; FPV.aut = 'todas'; Object.assign(FEV, {anos:[], forn:'', n:'10', ord:'valor'});
+  FPV.n = '10'; FPV.aut = 'todas'; Object.assign(FEV, {anos:[], forn:'', org:'', n:'10', ord:'valor'});
   if (!v) { app.innerHTML = `<a class="back" href="#vereadores">‹ Vereadores</a><div class="empty">Não há dados deste parlamentar ${PERIODO_TXT}.</div>`; return; }
   const minhas = VT.filter(x => NOM[x.id] && NOM[x.id][id]);
   const ehDiv = x => { const c = contagem(NOM[x.id]); const meu = NOM[x.id][id]; return (meu==='S'||meu==='N') && c.S !== c.N && ((meu==='S') !== (c.S > c.N)); };
@@ -1127,6 +1140,7 @@ function viewPerfil(id){
 
 /* ---------- Emendas parlamentares ---------- */
 const EME = D.EME || null;
+if (EME) { const O = EME.o || ['']; EME.v.forEach(x => (x.r || []).forEach(r => { if (typeof r[4] === 'number') r[4] = O[r[4]] || ''; })); }
 const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const brlMi = n => n >= 1e6 ? 'R$ ' + (n / 1e6).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' mi' : brl(n);
 const ALIAS_EME = {'rodrigo da farmadic':'rodrigo farmadic'};
@@ -1148,12 +1162,20 @@ const ligaCaixasAno = (id, aoMudar) => {
 const passaF = (r, f) => (!f.anos || !f.anos.length || f.anos.includes(anoDe(r[0]))) && (!f.forn || termosBusca(f.forn).every(t => norm(limpaForn(r[1])).includes(t))) && (f.min == null || r[2] >= f.min) && (f.max == null || r[2] <= f.max);
 const agrupaForn = rs => { const m = {}; rs.forEach(r => { const k = limpaForn(r[1]); m[k] = (m[k] || 0) + r[2]; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
 const campoTexto = (id, ph, val) => `<label class="f" style="flex:1 1 16rem"><span class="sr">${esc(ph)}</span><input id="${id}" type="search" placeholder="${esc(ph)}" value="${esc(val)}"></label>`;
+const areaDe = o => (EME && EME.a && EME.a[o]) || 'Outros';
+const passaOrg = (o, sel) => !sel || (sel.startsWith('a:') ? areaDe(o) === sel.slice(2) : o === sel.slice(2));
+const selAreaOrgao = (id, orgaos, atual) => {
+  const AO = {}; orgaos.forEach(o => { (AO[areaDe(o)] || (AO[areaDe(o)] = new Set())).add(o); });
+  const as = Object.keys(AO).sort((a, b) => a === 'Outros' ? 1 : b === 'Outros' ? -1 : a.localeCompare(b, 'pt-BR'));
+  return `<label class="f">Área ou órgão <select id="${id}"><option value="">Todos</option>${as.map(a => `<optgroup label="${esc(a)}"><option value="a:${esc(a)}"${atual === 'a:' + a ? ' selected' : ''}>${esc(a)} (toda a área)</option>${[...AO[a]].sort((x, y) => x.localeCompare(y, 'pt-BR')).map(o => `<option value="o:${esc(o)}"${atual === 'o:' + o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+};
 const EMEV = {}, IDV = {};
 if (EME) { const fe = document.getElementById('fonteEme'); if (fe) fe.innerHTML = ' Emendas parlamentares: <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, consultado em ' + fmtData(EME.atualizado) + '.'; EME.v.forEach(x => { EMEV[chaveEme(x.n)] = x; }); Object.values(V).forEach(v => { IDV[chaveEme(v.nome)] = v.id; }); const t = document.getElementById('tabEme'); if (t) t.hidden = false; }
 const nomeVer = n => { const id = IDV[chaveEme(n)]; return id ? V[id].nome : tc(n); };
 const fotoVer = (n, cls) => { const id = IDV[chaveEme(n)]; return id ? av(id, cls) : `<span class="av ${cls}" aria-hidden="true">${esc(iniciais(tc(n)))}</span>`; };
 const linkVer = n => { const id = IDV[chaveEme(n)]; return id ? `<a href="#v-${id}">${esc(V[id].nome)}</a>` : `${esc(tc(n))} <span class="note">sem página nesta legislatura</span>`; };
-const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Vereador</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td><td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
+const obsCell = t => { if (!t) return '<td class="obs">—</td>'; if (t.length <= 140) return `<td class="obs">${esc(t)}</td>`; const curto = t.slice(0, 140).replace(/\s+\S*$/, '') + '…'; return `<td class="obs"><details><summary>${esc(curto)}</summary><p>${esc(t)}</p></details></td>`; };
+const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Vereador</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(comVer ? r[5] : r[4])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
 const barraForn = (nome, val, total, max, outros) => `<div class="efor"><div class="eh"><span>${esc(limpaForn(nome))}</span><span>${brl(val)} · ${(100 * val / total).toLocaleString('pt-BR', {maximumFractionDigits:1})}%</span></div><div class="ebar${outros ? ' outros' : ''}" aria-hidden="true"><i style="width:${100 * val / max}%"></i></div></div>`;
 const aviso = () => EME && EME.parcial ? `<p class="note"><strong>Prévia:</strong> a lista de pagamentos está carregada só para alguns vereadores.</p>` : '';
 
@@ -1171,11 +1193,11 @@ function emendasDestaque(){
 app.addEventListener('click', e => { if (e.target.closest('#homeEme')) { FE.anos = [ANO]; FE.ver = 'todos'; FE.forn = ''; FE.min = ''; FE.max = ''; } });
 
 /* --- aba Emendas (abas: por vereador, por fornecedor, pagamentos) --- */
-const FE = {anos:[], ver:'todos', forn:'', min:'', max:'', ord:'valor', lord:'valor', ford:'valor', aba:'ver', n:'25'};
-const ABAS_EME = [['ver','Por vereador'],['for','Por fornecedor'],['pag','Pagamentos']];
+const FE = {anos:[], ver:'todos', org:'', forn:'', min:'', max:'', ord:'valor', lord:'valor', ford:'valor', sord:'valor', abertas:new Set(), aba:'ver', n:'25'};
+const ABAS_EME = [['ver','Por vereador'],['for','Por fornecedor'],['org','Por área e órgão'],['pag','Pagamentos']];
 function viewEmendas(){
   if (!EME) { app.innerHTML = `<h1>Emendas parlamentares</h1><div class="empty">Os dados de emendas ainda não foram carregados.</div>`; return; }
-  const L0 = []; EME.v.forEach(x => (x.r || []).forEach(r => L0.push([r[0], r[1], r[2], r[3], x.n])));
+  const L0 = []; EME.v.forEach(x => (x.r || []).forEach(r => L0.push([r[0], r[1], r[2], r[3], x.n, r[4] || ''])));
   const anos = [...new Set(L0.map(r => anoDe(r[0])))].sort().reverse();
   const vers = [...EME.v].sort((a, b) => nomeVer(a.n).localeCompare(nomeVer(b.n), 'pt-BR'));
   app.innerHTML = `<h1>Emendas parlamentares</h1>
@@ -1183,7 +1205,8 @@ function viewEmendas(){
   <section class="section" aria-labelledby="h-ef"><h2 id="h-ef">Filtros</h2>
     <div class="filters">
       <div class="frow">${caixasAno('eano', anos, FE.anos)}</div>
-      <div class="frow"><label class="f">Vereador <select id="eve"><option value="todos">Todos</option>${vers.map(x => `<option value="${esc(chaveEme(x.n))}">${esc(nomeVer(x.n))}</option>`).join('')}</select></label></div>
+      <div class="frow"><label class="f">Vereador <select id="eve"><option value="todos">Todos</option>${vers.map(x => `<option value="${esc(chaveEme(x.n))}">${esc(nomeVer(x.n))}</option>`).join('')}</select></label>
+        ${selAreaOrgao('eorg', L0.map(r => r[3]), FE.org)}</div>
       <div class="frow">${campoTexto('efor', 'Buscar fornecedor', FE.forn)}</div>
       <div class="frow"><label class="f">Valor mínimo (R$) <input id="emin" type="search" inputmode="decimal" placeholder="0" style="width:8rem" value="${esc(FE.min)}"></label>
         <label class="f">Valor máximo (R$) <input id="emax" type="search" inputmode="decimal" placeholder="sem limite" style="width:8rem" value="${esc(FE.max)}"></label>
@@ -1197,8 +1220,8 @@ function viewEmendas(){
   const render = () => {
     const min = numBR(FE.min), max = numBR(FE.max);
     const f = {anos:FE.anos, forn:FE.forn, min, max};
-    const R = L0.filter(r => (FE.ver === 'todos' || chaveEme(r[4]) === FE.ver) && passaF(r, f));
-    const semFiltro = !FE.anos.length && FE.ver === 'todos' && !FE.forn && min == null && max == null;
+    const R = L0.filter(r => (FE.ver === 'todos' || chaveEme(r[4]) === FE.ver) && passaOrg(r[3], FE.org) && passaF(r, f));
+    const semFiltro = !FE.anos.length && FE.ver === 'todos' && !FE.org && !FE.forn && min == null && max == null;
     const resumo = !!EME.parcial && semFiltro;
     const q = qtdDe(FE.n);
     /* por vereador */
@@ -1232,6 +1255,27 @@ function viewEmendas(){
         ${FL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Fornecedor</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Vereadores</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${FLs.map((x, i) => `<tr><td>${esc(x.nome)}</td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.n)}</td><td class="ev">${num(x.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td><td><button type="button" class="btn ghost sm" data-verpag="${i}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum fornecedor com esses filtros.</div>`}`;
       ligarChips('#eford', k => { FE.ford = k; render(); });
       pn.querySelectorAll('[data-verpag]').forEach(b => b.addEventListener('click', () => { FE.forn = FLs[+b.dataset.verpag].nome; document.getElementById('efor').value = FE.forn; FE.aba = 'pag'; render(); document.getElementById('aba-pag').focus(); }));
+    } else if (FE.aba === 'org') {
+      const GA = {};
+      R.forEach(r => {
+        const a = GA[areaDe(r[3])] || (GA[areaDe(r[3])] = {nome:areaDe(r[3]), pago:0, n:0, vs:new Set(), os:{}});
+        a.pago += r[2]; a.n++; a.vs.add(chaveEme(r[4]));
+        const o = a.os[r[3]] || (a.os[r[3]] = {nome:r[3], pago:0, n:0, vs:new Set()});
+        o.pago += r[2]; o.n++; o.vs.add(chaveEme(r[4]));
+      });
+      const AL = Object.values(GA).sort(FE.sord === 'nome' ? (a, b) => a.nome.localeCompare(b.nome, 'pt-BR') : (a, b) => b.pago - a.pago);
+      const totR = somaR(R) || 1, mxA = AL.length ? Math.max(...AL.map(a => a.pago)) : 1;
+      const pct = v => (100 * v / totR).toLocaleString('pt-BR', {maximumFractionDigits:1}) + '%';
+      pn.innerHTML = `<div class="frow" id="esord"><span class="flabel">Ordenar áreas por</span>${chips('Ordenar áreas por', [['valor','Maior valor'],['nome','Nome']], FE.sord)}</div>
+        <p class="count">${num(AL.length)} ${AL.length === 1 ? 'área' : 'áreas'}. Clique numa área para ver os órgãos que executaram as emendas.</p>
+        ${aviso()}
+        ${AL.length ? AL.map(a => { const OL = Object.values(a.os).sort((x, y) => y.pago - x.pago), mxO = OL[0].pago;
+          return `<details class="area" data-a="${esc(a.nome)}"${FE.abertas.has(a.nome) ? ' open' : ''}><summary><span class="aname">${esc(a.nome)}</span><span class="aval">${brl(a.pago)}</span><span class="apct">${pct(a.pago)}</span><span class="ebar" aria-hidden="true"><i style="width:${100 * a.pago / mxA}%"></i></span></summary>
+          <div class="tablewrap"><table class="t"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Vereadores</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td><td class="ev">${num(o.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
+          <p style="margin:.6rem 0 0"><button type="button" class="btn ghost sm" data-org="a:${esc(a.nome)}">Ver todos os pagamentos de ${esc(a.nome)}</button></p></div></details>`; }).join('') : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
+      ligarChips('#esord', k => { FE.sord = k; render(); });
+      pn.querySelectorAll('details.area').forEach(d => d.addEventListener('toggle', () => { if (d.open) FE.abertas.add(d.dataset.a); else FE.abertas.delete(d.dataset.a); }));
+      pn.querySelectorAll('[data-org]').forEach(b => b.addEventListener('click', () => { FE.org = b.dataset.org; document.getElementById('eorg').value = FE.org; FE.aba = 'pag'; render(); document.getElementById('aba-pag').focus(); }));
     } else {
       const LP = [...R].sort(FE.lord === 'valor' ? (a, b) => b[2] - a[2] : (a, b) => b[0].localeCompare(a[0]));
       pn.innerHTML = `<div class="frow" id="elord"><span class="flabel">Ordenar por</span>${chips('Ordenar pagamentos por', [['valor','Maior valor'],['data','Mais recentes']], FE.lord)}</div>
@@ -1250,17 +1294,18 @@ function viewEmendas(){
   });
   ligaCaixasAno('eano', s => { FE.anos = s; render(); });
   document.getElementById('eve').addEventListener('change', e => { FE.ver = e.target.value; render(); });
+  document.getElementById('eorg').addEventListener('change', e => { FE.org = e.target.value; render(); });
   document.getElementById('efor').addEventListener('input', e => { FE.forn = e.target.value; render(); });
   document.getElementById('emin').addEventListener('input', e => { FE.min = e.target.value; render(); });
   document.getElementById('emax').addEventListener('input', e => { FE.max = e.target.value; render(); });
   document.getElementById('eqtd').addEventListener('change', e => { FE.n = e.target.value; render(); });
-  document.getElementById('elimpa').addEventListener('click', () => { Object.assign(FE, {anos:[], ver:'todos', forn:'', min:'', max:''}); document.querySelectorAll('#eano input[value]').forEach(c => { c.checked = false; }); document.querySelector('#eano [data-todos]').checked = true; document.getElementById('eve').value = 'todos'; ['efor','emin','emax'].forEach(i => { document.getElementById(i).value = ''; }); render(); });
+  document.getElementById('elimpa').addEventListener('click', () => { Object.assign(FE, {anos:[], ver:'todos', org:'', forn:'', min:'', max:''}); document.getElementById('eorg').value = ''; document.querySelectorAll('#eano input[value]').forEach(c => { c.checked = false; }); document.querySelector('#eano [data-todos]').checked = true; document.getElementById('eve').value = 'todos'; ['efor','emin','emax'].forEach(i => { document.getElementById(i).value = ''; }); render(); });
   document.getElementById('eve').value = FE.ver;
   render();
 }
 
 /* --- cartão na página do vereador (resumo) + janela com tudo --- */
-const FEV = {anos:[], forn:'', n:'10', ord:'valor'};
+const FEV = {anos:[], forn:'', org:'', n:'10', ord:'valor'};
 function secEmendas(v){
   if (!EME) return '';
   const e = EMEV[chaveEme(v.nome)];
@@ -1269,12 +1314,16 @@ function secEmendas(v){
   const rows = e.r || [];
   const rank = EME.v.filter(x => x.pago > e.pago).length + 1;
   const base = (EME.parcial || !rows.length) ? (e.f || []) : agrupaForn(rows);
-  const top = base.slice(0, 5);
+  const top = base.slice(0, 4);
   const conc = top.length >= 3 && e.pago > 0 ? Math.round(100 * (top[0][1] + top[1][1] + top[2][1]) / e.pago) : null;
+  const ga = {}; rows.forEach(r => { const a = areaDe(r[3]); ga[a] = (ga[a] || 0) + r[2]; });
+  const gaL = Object.entries(ga).sort((a, b) => b[1] - a[1]).slice(0, 3), totR = somaR(rows);
+  const areasCard = gaL.length ? `<h3 style="margin:1rem 0 .2rem">Em quais áreas</h3>${gaL.map(([n, p]) => barraForn(n, p, totR, gaL[0][1], false)).join('')}${EME.parcial ? '<p class="note" style="margin:.3rem 0 0">Prévia: só os pagamentos carregados.</p>' : ''}` : '';
   return cab + `<div class="stats">
       <div class="stat"><h3>Total pago</h3><div class="big">${brlMi(e.pago)}</div><div class="note">${rank}º de ${EME.v.length} no ranking</div></div>
       <div class="stat"><h3>Fornecedores</h3><div class="big">${num(e.forn)}</div>${conc !== null ? `<div class="note">Os 3 maiores receberam ${conc}%.</div>` : ''}</div></div>
     ${top.length ? `<h3 style="margin:1rem 0 .2rem">Para quem foi o dinheiro</h3>${top.map(([n, p]) => barraForn(n, p, e.pago, top[0][1], false)).join('')}` : ''}
+    ${areasCard}
     ${rows.length ? '' : aviso()}
     <div class="cfoot">${rows.length ? `<button type="button" class="btn" id="evabrir">Ver todos os pagamentos e filtrar</button>` : ''}<p class="note" style="margin:.7rem 0 0">A fonte informa o nome do fornecedor, não o CNPJ.</p></div></section>`;
 }
@@ -1287,11 +1336,11 @@ function ligaEmendasV(v){
   const corpo = () => `<div id="evstats"></div>
     <div class="filters"><div class="frow">${caixasAno('evano', anos, FEV.anos)}</div>
       <div class="frow" id="evord"><span class="flabel">Ordenar</span>${chips('Ordenar pagamentos', [['valor','Maior valor'],['data','Mais recentes']], FEV.ord)}</div>
-      <div class="frow">${campoTexto('evfor', 'Buscar fornecedor', FEV.forn)}${seletorQtd('evqtd', FEV.n, 'Mostrar pagamentos')}</div></div>
-    <div id="evgraf"></div><h3 style="margin:1.2rem 0 .3rem">Pagamentos</h3>${EME.parcial ? `<p class="note">Prévia: a lista traz só os pagamentos carregados (${num(rows.length)}).</p>` : ''}<div id="evlista"></div>`;
+      <div class="frow">${campoTexto('evfor', 'Buscar fornecedor', FEV.forn)}${selAreaOrgao('evorg', rows.map(r => r[3]), FEV.org)}${seletorQtd('evqtd', FEV.n, 'Mostrar pagamentos')}</div></div>
+    <div id="evgraf"></div><div id="evarea"></div><h3 style="margin:1.2rem 0 .3rem">Pagamentos</h3>${EME.parcial ? `<p class="note">Prévia: a lista traz só os pagamentos carregados (${num(rows.length)}).</p>` : ''}<div id="evlista"></div>`;
   const render = () => {
-    const filtrado = FEV.anos.length > 0 || !!FEV.forn;
-    const R = rows.filter(r => passaF(r, {anos:FEV.anos, forn:FEV.forn, min:null, max:null}));
+    const filtrado = FEV.anos.length > 0 || !!FEV.forn || !!FEV.org;
+    const R = rows.filter(r => passaOrg(r[3], FEV.org) && passaF(r, {anos:FEV.anos, forn:FEV.forn, min:null, max:null}));
     const usaResumo = !!EME.parcial && !filtrado;
     const pago = usaResumo ? e.pago : somaR(R);
     const nforn = usaResumo ? e.forn : new Set(R.map(r => limpaForn(r[1]))).size;
@@ -1301,6 +1350,9 @@ function ligaEmendasV(v){
       <div class="stat"><h3>Total pago${filtrado ? ' (filtro)' : ''}</h3><div class="big">${brlMi(pago)}</div></div>
       <div class="stat"><h3>Fornecedores</h3><div class="big">${num(nforn)}</div><div class="note">${usaResumo ? '' : num(R.length) + ' ' + (R.length === 1 ? 'pagamento' : 'pagamentos')}</div></div></div>`;
     document.getElementById('evgraf').innerHTML = top.length ? `<h3 style="margin:1.1rem 0 .3rem">Para quem foi o dinheiro</h3>${top.map(([n, p]) => barraForn(n, p, pago, top[0][1], false)).join('')}${resto > 1 && nforn > top.length ? barraForn('Outros ' + (nforn - top.length) + ' fornecedores', resto, pago, top[0][1], true) : ''}` : '';
+    const gm = {}; R.forEach(r => { const a = areaDe(r[3]); gm[a] = (gm[a] || 0) + r[2]; });
+    const gl = Object.entries(gm).sort((a, b) => b[1] - a[1]), totA = somaR(R);
+    document.getElementById('evarea').innerHTML = gl.length ? `<h3 style="margin:1.1rem 0 .3rem">Em quais áreas</h3>${gl.map(([n, p]) => barraForn(n, p, totA, gl[0][1], false)).join('')}` : '';
     const LP = [...R].sort(FEV.ord === 'valor' ? (a, b) => b[2] - a[2] : (a, b) => b[0].localeCompare(a[0]));
     document.getElementById('evlista').innerHTML = R.length ? `<p class="count">${num(R.length)} ${R.length === 1 ? 'pagamento' : 'pagamentos'}${R.length > qtdDe(FEV.n) ? ', mostrando os ' + num(qtdDe(FEV.n)) + (FEV.ord === 'valor' ? ' de maior valor' : ' mais recentes') : ''}</p>` + tabelaPag(LP.slice(0, qtdDe(FEV.n)), false) : `<div class="empty">Nenhum pagamento com esses filtros.</div>`;
   };
@@ -1309,6 +1361,7 @@ function ligaEmendasV(v){
     ligarChips('#evord', k => { FEV.ord = k; render(); });
     document.getElementById('evfor').addEventListener('input', ev => { FEV.forn = ev.target.value; render(); });
     document.getElementById('evqtd').addEventListener('change', ev => { FEV.n = ev.target.value; render(); });
+    document.getElementById('evorg').addEventListener('change', ev => { FEV.org = ev.target.value; render(); });
     render();
   }); });
 }
@@ -1323,7 +1376,7 @@ function viewSobre(){
   <p>O app foi idealizado por <strong>Marcelo Nisida</strong>, com uma ideia simples: facilitar para qualquer pessoa acompanhar o que os vereadores votam, quem comparece às sessões e como cada um atua nas comissões, usando apenas dados públicos. O Xereta é independente. Não é um canal oficial da Câmara Municipal e não tem ligação com partidos.</p>
   ${EME ? `<h2>De onde vêm os dados das emendas</h2>
   <p>As emendas não vêm do SAPL. Os dados vêm do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, de onde se baixa a planilha de execução das emendas parlamentares. Cada linha é um empenho, com o vereador autor, o fornecedor, a secretaria responsável e os valores empenhados, liquidados e pagos. A planilha foi consultada pela última vez em ${fmtData(EME.atualizado)}.${EME.fonte ? ' Fonte: ' + esc(EME.fonte) + '.' : ''}</p>
-  <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL.</p>` : ''}
+  <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL. As áreas, como Saúde e Cultura e Turismo, são um agrupamento feito pelo Xereta a partir do órgão que executa cada emenda. Os órgãos aparecem como na planilha, com os nomes padronizados.</p>` : ''}
   <h2>O que é confiável</h2>
   <p>O resultado de cada votação e a data da sessão. A data vem da sessão plenária, porque a data gravada em cada votação reflete quando o registro foi lançado no sistema.</p>
   <p>O voto de cada vereador nas votações nominais. Nos casos verificados, a soma dos votos individuais bate com o placar oficial em praticamente todas as votações.</p>

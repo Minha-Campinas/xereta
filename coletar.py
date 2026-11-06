@@ -206,30 +206,94 @@ def chave_nome(s):
     return re.sub(r'\s+', ' ', s.replace(' da ', ' ')).strip()
 
 
+# ---- órgão e área de cada emenda (coluna NOME_GESTORA da planilha)
+# Órgãos conhecidos: (trecho do nome sem acento e em minúsculas, nome para exibir, área)
+ORGAOS_CONHECIDOS = [
+    (r'fundo municipal de saude', 'Fundo Municipal de Saúde', 'Saúde'),
+    (r'gatti', 'Rede Municipal Dr. Mário Gatti', 'Saúde'),
+    (r'cultura', 'Cultura e Turismo', 'Cultura e Turismo'),
+    (r'\bfada\b|desporto amador', 'FADA - Fundo de Assistência ao Desporto Amador', 'Esporte e Lazer'),
+    (r'esportes', 'Esportes e Lazer', 'Esporte e Lazer'),
+    (r'servicos publicos', 'Serviços Públicos', 'Cidade e Serviços Urbanos'),
+    (r'planejamento', 'Planejamento e Desenvolvimento Urbano', 'Cidade e Serviços Urbanos'),
+    (r'economico|tecnologia', 'Desenvolvimento Econômico, Tecnologia e Inovação', 'Desenvolvimento Econômico e Inovação'),
+    (r'seg\.? ?publica|seguranca', 'Cooperação nos Assuntos de Segurança Pública', 'Segurança Pública'),
+    (r'clima|meio ambiente', 'Clima, Meio Ambiente e Sustentabilidade', 'Meio Ambiente e Clima'),
+    (r'servidor|\bfdc\b', 'Fundo de Desenvolvimento e Capacitação do Servidor (FDC)', 'Servidores e Administração'),
+]
+# Para órgãos novos: palavras que indicam a área. O que não casar cai em "Outros" e aparece no log.
+AREAS_PALAVRAS = [
+    ('Saúde', ['saude', 'hospital', 'samu', 'medic']),
+    ('Educação', ['educacao', 'escola', 'fumec', 'ensino', 'creche']),
+    ('Assistência Social e Direitos', ['assistencia social', 'direitos', 'crianca', 'adolescente', 'idoso', 'mulher', 'deficiencia', 'juventude', 'cidadania', 'igualdade']),
+    ('Habitação', ['habitacao', 'cohab', 'moradia']),
+    ('Mobilidade e Transporte', ['transporte', 'mobilidade', 'emdec', 'transito']),
+    ('Cidade e Serviços Urbanos', ['obras', 'infraestrutura', 'urbano', 'saneamento', 'sanasa', 'zeladoria']),
+    ('Cultura e Turismo', ['cultura', 'turismo']),
+    ('Esporte e Lazer', ['esporte', 'lazer', 'desporto']),
+    ('Segurança Pública', ['seguranca', 'guarda']),
+    ('Meio Ambiente e Clima', ['ambiente', 'clima', 'sustentabilidade']),
+    ('Desenvolvimento Econômico e Inovação', ['economic', 'tecnologia', 'inovacao', 'renda']),
+    ('Servidores e Administração', ['servidor', 'administracao', 'gestao', 'governo', 'financas', 'fazenda', 'recursos humanos', 'procuradoria']),
+]
+
+
+def nome_bonito(s):
+    s = re.sub(r'\s+', ' ', s or '').strip()
+    if s and s == s.upper():
+        s = ' '.join(p if p in ('de', 'da', 'do', 'das', 'dos', 'e') else p.capitalize() for p in s.lower().split(' '))
+    return s
+
+
+def orgao_e_area(nome):
+    n = chave_nome(nome)
+    for padrao, exibe, area in ORGAOS_CONHECIDOS:
+        if re.search(padrao, n):
+            return exibe, area
+    for area, palavras in AREAS_PALAVRAS:
+        if any(p in n for p in palavras):
+            return nome_bonito(nome), area
+    return nome_bonito(nome) or 'Órgão não informado', 'Outros'
+
+
+def limpa_obs(s):
+    """Texto livre do empenho: junta quebras de linha, tira marcadores internos e omite CPFs."""
+    s = re.sub(r'#\{[^}]*\}', ' ', s or '')
+    s = re.sub(r'\s+', ' ', s).strip()
+    s = re.sub(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', '(CPF omitido)', s)
+    s = re.sub(r'\b\d{11}\b', '(CPF omitido)', s)
+    return s[:600].rstrip() + ('…' if len(s) > 600 else '')
+
+
 def emendas_de_csv(texto, hoje=None):
-    """Transforma o CSV da planilha em {total, v:[{n, pago, forn, r:[[data, fornecedor, pago, secretaria]]}]}.
+    """Transforma o CSV da planilha em {total, o:[observações], a:{órgão: área}, v:[{n, pago, forn, r:[[data, fornecedor, pago, secretaria, índice da observação]]}]}.
     Só entram pagamentos já feitos (VL_PAGO > 0). O CPF que vem colado ao nome de pessoa física é removido."""
     leitor = csv.DictReader(io.StringIO(texto))
     if not leitor.fieldnames or 'PARLAMENTAR' not in leitor.fieldnames or 'VL_PAGO' not in leitor.fieldnames:
         raise ValueError('A planilha não tem as colunas esperadas (PARLAMENTAR, VL_PAGO).')
     por = {}
+    obs_tab = {'': 0}  # textos repetidos ficam guardados uma vez só
+    areas = {}  # órgão -> área
     for lin in leitor:
         nome = re.sub(r'\s+', ' ', (lin.get('PARLAMENTAR') or '')).strip()
         if not nome:
             continue
-        pago = parse_brl(lin.get('VL_PAGO'))
+        # VL_PAGO3 é a coluna já padronizada da planilha; VL_PAGO fica de reserva
+        pago = parse_brl(lin.get('VL_PAGO3')) or parse_brl(lin.get('VL_PAGO'))
         d = parse_data(lin.get('DT_CADASTRO'))
         if pago <= 0 or not d:
             continue
         forn = re.sub(r'\s+', ' ', (lin.get('NOME_FORNECEDOR') or '')).strip()
         forn = re.sub(r'\s\d{11}$', '', forn) or 'Fornecedor não informado'
-        sec = re.sub(r'\s+', ' ', (lin.get('NOME_GESTORA') or '')).strip()
-        por.setdefault(nome, []).append([d, forn, round(pago, 2), sec])
+        sec, area = orgao_e_area(lin.get('NOME_GESTORA'))
+        areas[sec] = area
+        obs = limpa_obs(lin.get('OBS_EMPENHO')) or limpa_obs(lin.get('RESUMO_EMPENHO'))
+        por.setdefault(nome, []).append([d, forn, round(pago, 2), sec, obs_tab.setdefault(obs, len(obs_tab))])
     v = []
     for nome, rs in sorted(por.items()):
         rs.sort(key=lambda r: (r[0], r[2]), reverse=True)
         v.append(dict(n=nome, pago=round(sum(r[2] for r in rs), 2), forn=len({r[1] for r in rs}), r=rs))
-    return dict(atualizado=hoje or HOJE, total=round(sum(x['pago'] for x in v), 2), v=v)
+    return dict(atualizado=hoje or HOJE, total=round(sum(x['pago'] for x in v), 2), o=list(obs_tab), a=areas, v=v)
 
 
 def emendas_anteriores():
@@ -254,6 +318,16 @@ def coletar_emendas():
         if sum(len(x['r']) for x in eme['v']) < 500:
             raise ValueError('Poucas linhas na planilha de emendas; ignorando.')
         log(f"Emendas: {len(eme['v'])} parlamentares, {sum(len(x['r']) for x in eme['v'])} pagamentos, R$ {eme['total']:,.2f}")
+        por_area, por_orgao = collections.Counter(), collections.Counter()
+        for x in eme['v']:
+            for rr in x['r']:
+                por_area[eme['a'].get(rr[3], 'Outros')] += rr[2]
+                por_orgao[rr[3]] += rr[2]
+        for ar, val in por_area.most_common():
+            log(f'  Área {ar}: R$ {val:,.2f}')
+        outros = [(o, v) for o, v in por_orgao.most_common() if eme['a'].get(o, 'Outros') == 'Outros']
+        if outros:
+            log('Órgãos que ficaram em "Outros" (me diga em qual área encaixar): ' + '; '.join(f'{o} (R$ {v:,.0f})' for o, v in outros))
         return eme
     except Exception as e:
         log(f'Aviso: não foi possível atualizar as emendas ({e}).')
