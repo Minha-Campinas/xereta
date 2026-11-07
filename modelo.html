@@ -490,6 +490,30 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 .aleg i{display:inline-block;width:1rem;height:1rem;border:3px solid var(--c);background:var(--surface);margin-right:.35rem;box-sizing:border-box}
 .aleg i.trac{border:3px dashed var(--muted)}
 #atab{margin-top:.8rem}
+.plist2 li{display:grid;gap:.2rem;background:var(--surface);border:2px solid var(--bd);border-radius:0;padding:.75rem .9rem}
+.plist2 .pmeta{font-size:.88rem;color:var(--muted)}
+.plist2 .pem{color:var(--ink);font-size:.95rem}
+.plist2 .paut{font-size:.88rem}
+.prank-t{font-size:1.4rem;margin:0 0 .4rem}
+.prank{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.5rem}
+.prank li{display:grid;grid-template-columns:2.4rem minmax(0,1.4fr) auto minmax(5rem,1fr) auto;gap:.4rem 1rem;align-items:center;padding:.5rem .6rem;border-bottom:1px solid var(--line)}
+.prank .pos{font-family:var(--display);font-size:1.4rem;text-align:right}
+.prank .vcell{text-decoration:none;color:var(--ink);min-width:0}
+.prank .vcell small{display:block;color:var(--muted);font-size:.82rem}
+.prank .pnum{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.prank .pnum b{font-size:1.15rem}
+.prank .pnum small{display:block;color:var(--muted);font-size:.8rem}
+@media (max-width:640px){.prank li{grid-template-columns:2rem minmax(0,1fr) auto}.prank .ebar{grid-column:2 / -1}.prank .btn{grid-column:2 / -1;justify-self:start}}
+tr.psel td{background:var(--accent-soft)}
+.pcard{margin-top:1.5rem}
+.filters label.f{max-width:100%;flex-wrap:wrap;min-width:0}
+.filters select{max-width:100%;min-width:0}
+#ppanel{min-width:0}
+.plist2 li{overflow-wrap:anywhere}
+#ppanel .tablewrap td .linkrow{flex-wrap:nowrap}
+#ppanel .btn.sm{white-space:nowrap}
+.prank .pos{white-space:nowrap}
+@media (max-width:640px){.prank li{grid-template-columns:2.7rem minmax(0,1fr) auto}.prank .pos{font-size:1.15rem}#ppanel td.ecell{display:none}#ppanel .tablewrap table.t thead{display:none}#ppanel .tablewrap table.t,#ppanel .tablewrap tbody{display:block}#ppanel .tablewrap tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:.3rem .9rem;padding:.65rem .8rem;border-bottom:1px solid var(--line)}#ppanel .tablewrap td{display:block;padding:0;border:0}#ppanel .tablewrap td:last-child{grid-column:1 / -1}}
 .avers{border:2px solid var(--bd);background:var(--surface);box-shadow:3px 3px 0 var(--sh)}
 .avers>summary{cursor:pointer;font-weight:700;padding:.6rem .85rem;min-height:2.75rem;display:flex;align-items:center}
 .avers[open]>summary{border-bottom:2px solid var(--bd)}
@@ -514,6 +538,7 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
     <nav class="tabs" aria-label="Seções">
       <a href="#inicio" data-view="inicio">Início</a>
       <a href="#votacoes" data-view="votacoes">Votações</a>
+      <a href="#projetos" data-view="projetos" id="tabProj" hidden>Projetos</a>
       <a href="#emendas" data-view="emendas" id="tabEme" hidden>Emendas</a>
       <a href="#presenca" data-view="presenca">Presença</a>
       <a href="#comissoes" data-view="comissoes">Comissões</a>
@@ -1391,6 +1416,7 @@ function viewPerfil(id){
     <div class="cfoot"><button type="button" class="btn" id="vabrir">Ver todas e filtrar</button>${nAut ? ` <button type="button" class="btn ghost" id="vabrirAut">Ver o que ele propôs (${num(nAut)})</button>` : ''}</div></section>
   ${secEmendas(v)}
   </div>
+  ${secProjetos(v)}
   <section class="section" aria-labelledby="h-com"><h2 id="h-com">Comissões</h2>
   ${coms.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Comissão</th><th scope="col">Função</th></tr></thead><tbody>${coms.map(c => `<tr><td><a href="#c-${c.cid}">${esc(c.nome)}</a> <span class="note">${esc(c.sig)}</span></td><td>${cargoTxt(c.cargo, c.tit)}</td></tr>`).join('')}</tbody></table></div>` : `<p class="note">Nenhuma participação ativa em comissão registrada.</p>`}
   ${relv.length ? `<p class="note" style="margin-top:.8rem">Foi designado relator de ${relv.length} ${relv.length===1?'projeto':'projetos'} em comissões ${PERIODO_TXT}.</p>` : ''}
@@ -1422,6 +1448,7 @@ function viewPerfil(id){
   document.getElementById('vabrir').addEventListener('click', () => abrirVotos(null));
   const bAut = document.getElementById('vabrirAut'); if (bAut) bAut.addEventListener('click', () => abrirVotos('minha'));
   ligaEmendasV(v);
+  const pv = document.getElementById('pver'); if (pv) pv.addEventListener('click', () => { Object.assign(FPJ, {anos:[], area:'', tipo:'todos', autor:'v:' + id, q:'', aba:'lista', tema:false}); });
 }
 
 /* ---------- Emendas parlamentares ---------- */
@@ -1663,6 +1690,10 @@ function viewSobre(){
   ${EME ? `<h2>De onde vêm os dados das emendas</h2>
   <p>As emendas não vêm do SAPL. Os dados vêm do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, de onde se baixa a planilha de execução das emendas parlamentares. Cada linha é um empenho, com o vereador autor, o fornecedor, a secretaria responsável e os valores empenhados, liquidados e pagos. A planilha foi consultada pela última vez em ${fmtData(EME.atualizado)}.${EME.fonte ? ' Fonte: ' + esc(EME.fonte) + '.' : ''}</p>
   <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL. As áreas, como Saúde e Cultura e Turismo, são um agrupamento feito pelo Xereta a partir do órgão que executa cada emenda. Os órgãos aparecem como na planilha, com os nomes padronizados.</p>` : ''}
+  ${PROJ.length ? `<h2>Como os projetos são separados por área</h2>
+  <p>A aba Projetos lista os projetos de lei (ordinária e complementar), de decreto legislativo, de resolução e de emenda à Lei Orgânica apresentados na legislatura, com data de apresentação e autores, tirados do SAPL. Requerimentos, moções e indicações não entram.</p>
+  <p>A área de cada projeto é escolhida automaticamente pelas palavras da ementa: “concede título” ou “diploma” vira Homenagens e títulos, “denomina rua” vira Nomes de ruas e locais, “escola” vira Educação, e assim por diante. Cada projeto fica em uma única área, a primeira regra que combinar. Por isso a classificação pode errar em ementas que tratam de mais de um tema ou usam palavras pouco comuns; o que não combina com nenhuma regra fica em “Outros”.</p>
+  <p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara, comissões e outros autores que não são vereadores aparecem nos filtros, mas ficam fora do ranking.</p>` : ''}
   <h2>O que é confiável</h2>
   <p>O resultado de cada votação e a data da sessão. A data vem da sessão plenária, porque a data gravada em cada votação reflete quando o registro foi lançado no sistema.</p>
   <p>O voto de cada vereador nas votações nominais. Nos casos verificados, a soma dos votos individuais bate com o placar oficial em praticamente todas as votações.</p>
@@ -1679,8 +1710,124 @@ function viewSobre(){
   <p><a href="${SAPL}/api/schema/swagger-ui/" target="_blank" rel="noopener">Documentação da API do SAPL de Campinas</a>. Este é um protótipo independente e não substitui as informações oficiais da Câmara.</p></div>`;
 }
 
+/* ---------- Projetos apresentados (áreas definidas pelo coletar.py a partir da ementa) ---------- */
+const AREAS_P = D.AREAS_P || [];
+const SIMB = ['Homenagens e títulos', 'Nomes de ruas e locais', 'Datas comemorativas', 'Utilidade pública'];
+const GRUPO_TIPO = {lei:['PLO','PLC','PELOM'], pdl:['PDL'], res:['PRE']};
+const IDNOME = {}; D.V.forEach(v => { IDNOME[norm(v.nome)] = v.id; });
+const PROJ = (D.PROJ || []).map(r => { const m = D.MAT[r[0]] || [];
+  return {id:r[0], d:r[1], a:AREAS_P[r[2]] || 'Outros', sig:m[0] || '', n:m[1], ano:m[2], em:m[3] || '', txt:m[5] || null,
+          aut:(m[4] || []).map((nome, i) => ({nome, p:(r[3] || [])[i] || IDNOME[norm(nome)] || 0}))}; });
+if (PROJ.length) { const t = document.getElementById('tabProj'); if (t) t.hidden = false; }
+const FPJ = {anos:[], area:'', tipo:'todos', autor:'', q:'', aba:'area', n:'25', tema:false};
+const ABAS_P = [['area','Por área'],['rank','Ranking de vereadores'],['lista','Lista de projetos']];
+const autorChave = a => a.p && V[a.p] ? 'v:' + a.p : 'n:' + norm(a.nome);
+const passaP = (p, f, sem = '') => (!f.anos.length || f.anos.includes(p.d.slice(0, 4)))
+  && (sem === 'area' || !f.area || p.a === f.area)
+  && (f.tipo === 'todos' || GRUPO_TIPO[f.tipo].includes(p.sig))
+  && (sem === 'autor' || !f.autor || p.aut.some(a => autorChave(a) === f.autor))
+  && (!f.q || termosBusca(f.q).every(t => norm(p.em + ' ' + p.sig + ' ' + p.n + '/' + p.ano + ' ' + p.aut.map(a => a.nome).join(' ')).includes(t)));
+const rotProj = p => `${esc(TIPOS[p.sig] || p.sig)} nº ${p.n}/${p.ano}`;
+const itemProj = p => `<li><strong><a href="${SAPL}/materia/${p.id}" target="_blank" rel="noopener">${rotProj(p)}</a></strong>
+  <span class="pmeta">${fmtData(p.d)} · <span class="badge b3">${esc(p.a)}</span></span>
+  <span class="pem">${esc(p.em)}</span>
+  <span class="paut">Autoria: ${p.aut.length ? p.aut.map(a => a.p && V[a.p] ? `<a href="#v-${a.p}">${esc(V[a.p].nome)}</a>` : esc(a.nome)).join(', ') : 'não informada'}</span></li>`;
+function viewProjetos(){
+  if (!PROJ.length) { app.innerHTML = `<h1>Projetos apresentados</h1><div class="empty">Os projetos ainda não foram carregados.</div>`; return; }
+  const anos = [...new Set(PROJ.map(p => p.d.slice(0, 4)))].sort().reverse();
+  const contA = {}; PROJ.forEach(p => { contA[p.a] = (contA[p.a] || 0) + 1; });
+  const areas = AREAS_P.filter(a => contA[a]);
+  const autores = {}; PROJ.forEach(p => p.aut.forEach(a => { const k = autorChave(a); if (!autores[k]) autores[k] = {k, nome:a.p && V[a.p] ? V[a.p].nome : a.nome, ver:!!(a.p && V[a.p]), n:0}; autores[k].n++; }));
+  const listaAut = Object.values(autores).sort((a, b) => (b.ver - a.ver) || a.nome.localeCompare(b.nome, 'pt-BR'));
+  app.innerHTML = `<h1>Projetos apresentados</h1>
+  <p class="lede">Projetos de lei, de decreto legislativo e de resolução apresentados ${PERIODO_TXT}, separados por área a partir do texto da ementa. A classificação é automática e pode errar: veja como ela é feita em <a href="#sobre">Sobre os dados</a>.</p>
+  <section class="section" aria-labelledby="h-pf"><h2 id="h-pf">Filtros</h2>
+    <div class="filters">
+      <div class="frow">${caixasAno('pano', anos, FPJ.anos)}</div>
+      <div class="frow"><label class="f">Área <select id="parea"><option value="">Todas</option>${areas.map(a => `<option value="${esc(a)}"${FPJ.area === a ? ' selected' : ''}>${esc(a)} (${contA[a]})</option>`).join('')}</select></label>
+        <label class="f">Autor <select id="paut"><option value="">Todos</option><optgroup label="Vereadores">${listaAut.filter(x => x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup><optgroup label="Outros autores">${listaAut.filter(x => !x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup></select></label></div>
+      <div class="frow" id="ptipo"><span class="flabel">Tipo</span>${chips('Tipo de projeto', [['todos','Todos'],['lei','Projetos de lei'],['pdl','Decretos legislativos'],['res','Resoluções']], FPJ.tipo)}</div>
+      <div class="frow">${campoTexto('pq', 'Buscar na ementa, número ou autor', FPJ.q)}</div>
+      <div class="frow">${seletorQtd('pqtd', FPJ.n, 'Mostrar até')}<button type="button" class="btn ghost" id="plimpa">Limpar filtros</button></div>
+    </div>
+  </section>
+  <div id="pstats" aria-live="polite"></div>
+  <div class="pasta" role="tablist" aria-label="Como ver os projetos">${ABAS_P.map(([k, n]) => `<button type="button" role="tab" id="paba-${k}" data-aba="${k}" aria-controls="ppanel" aria-selected="${FPJ.aba === k}" tabindex="${FPJ.aba === k ? 0 : -1}">${n}</button>`).join('')}</div>
+  <div class="painel-pasta" role="tabpanel" id="ppanel" tabindex="0"></div>`;
+  const render = () => {
+    const L = PROJ.filter(p => passaP(p, FPJ));
+    const nSimb = L.filter(p => SIMB.includes(p.a)).length;
+    const tema = {}; L.filter(p => !SIMB.includes(p.a) && p.a !== 'Outros').forEach(p => { tema[p.a] = (tema[p.a] || 0) + 1; });
+    const topT = Object.entries(tema).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('pstats').innerHTML = `<div class="stats" style="margin-top:1.25rem">
+      <div class="stat"><h3>Projetos</h3><div class="big">${num(L.length)}</div><div class="note">com os filtros escolhidos</div></div>
+      <div class="stat"><h3>Homenagens, nomes de ruas, datas e utilidade pública</h3><div class="big">${L.length ? pct(nSimb, L.length) + '%' : '—'}</div><div class="note">${num(nSimb)} ${nSimb === 1 ? 'projeto' : 'projetos'}</div></div>
+      <div class="stat"><h3>Área temática com mais projetos</h3><div class="big" style="font-size:1.6rem">${topT ? esc(topT[0]) : '—'}</div><div class="note">${topT ? num(topT[1]) + (topT[1] === 1 ? ' projeto' : ' projetos') : 'nenhum projeto temático'}</div></div></div>`;
+    document.querySelectorAll('.pasta [role=tab]').forEach(b => { const on = b.dataset.aba === FPJ.aba; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+    const pn = document.getElementById('ppanel'), q = qtdDe(FPJ.n);
+    if (FPJ.aba === 'area') {
+      const LA = PROJ.filter(p => passaP(p, FPJ, 'area')); const c = {}; LA.forEach(p => { c[p.a] = (c[p.a] || 0) + 1; });
+      const R = Object.entries(c).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR')); const max = R.length ? R[0][1] : 1;
+      pn.innerHTML = `<p class="count">${num(LA.length)} projetos em ${R.length} áreas${FPJ.area ? '. A área escolhida no filtro aparece destacada' : ''}. As áreas marcadas com * são homenagens e outros atos simbólicos.</p>
+        ${R.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Área</th><th scope="col" class="ev">Projetos</th><th scope="col" class="ev">%</th><th scope="col"><span class="sr">Proporção</span></th><th scope="col"><span class="sr">Ações</span></th></tr></thead><tbody>${R.map(([a, n]) => `<tr${a === FPJ.area ? ' class="psel"' : ''}><td><strong>${esc(a)}</strong>${SIMB.includes(a) ? ' *' : ''}</td><td class="ev">${num(n)}</td><td class="ev">${pct(n, LA.length)}%</td><td class="ecell"><div class="ebar${a === 'Outros' ? ' outros' : ''}" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div></td><td><span class="linkrow"><button type="button" class="btn ghost sm" data-rank="${esc(a)}">Ranking</button><button type="button" class="btn ghost sm" data-lista="${esc(a)}">Ver projetos</button></span></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum projeto com esses filtros.</div>`}`;
+      const vai = (a, aba) => { FPJ.area = a; FPJ.aba = aba; document.getElementById('parea').value = a; render(); document.getElementById('paba-' + aba).focus(); };
+      pn.querySelectorAll('[data-rank]').forEach(b => b.addEventListener('click', () => vai(b.dataset.rank, 'rank')));
+      pn.querySelectorAll('[data-lista]').forEach(b => b.addEventListener('click', () => vai(b.dataset.lista, 'lista')));
+    } else if (FPJ.aba === 'rank') {
+      const LR = PROJ.filter(p => passaP(p, FPJ, 'autor') && (FPJ.area || !FPJ.tema || !SIMB.includes(p.a)));
+      const c = {}, outros = {}; LR.forEach(p => p.aut.forEach(a => { if (a.p && V[a.p]) c[a.p] = (c[a.p] || 0) + 1; else outros[a.nome] = (outros[a.nome] || 0) + 1; }));
+      const totV = {}; PROJ.filter(p => passaP(p, {...FPJ, area:'', autor:''})).forEach(p => p.aut.forEach(a => { if (a.p) totV[a.p] = (totV[a.p] || 0) + 1; }));
+      const R = Object.entries(c).map(([id, n]) => [+id, n]).sort((a, b) => b[1] - a[1] || nomeV(a[0]).localeCompare(nomeV(b[0]), 'pt-BR'));
+      const max = R.length ? R[0][1] : 1;
+      const titulo = FPJ.area ? `em ${esc(FPJ.area)}` : FPJ.tema ? 'em áreas temáticas' : 'em todas as áreas';
+      pn.innerHTML = `<h2 class="prank-t">Quem mais apresentou projetos ${titulo}</h2>
+        ${FPJ.area ? '' : `<label class="check"><input type="checkbox" id="ptema" ${FPJ.tema ? 'checked' : ''}>Só áreas temáticas (sem homenagens, nomes de ruas, datas comemorativas e utilidade pública)</label>`}
+        <p class="count">${R.length} ${R.length === 1 ? 'vereador' : 'vereadores'} com pelo menos um projeto${FPJ.autor ? '. O filtro de autor não vale para o ranking' : ''}. Projetos com mais de um autor contam para cada um.</p>
+        ${R.length ? `<ol class="prank">${R.slice(0, q).map(([id, n], i) => `<li><span class="pos">${i + 1}º</span><a class="vcell" href="#v-${id}">${av(id, 'sm')}<span><strong>${esc(nomeV(id))}</strong><small>${esc(V[id].partido || '')}${V[id].ativo ? '' : ' · fora do exercício'}</small></span></a>
+          <span class="pnum"><b>${num(n)}</b> ${n === 1 ? 'projeto' : 'projetos'}${totV[id] && (FPJ.area || FPJ.tema) ? `<small>${pct(n, totV[id])}% dos projetos dele</small>` : ''}</span>
+          <div class="ebar" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div>
+          <button type="button" class="btn ghost sm" data-ver="${id}">Ver projetos</button></li>`).join('')}</ol>` : `<div class="empty">Nenhum vereador apresentou projetos com esses filtros.</div>`}
+        ${R.length > q ? `<p class="note">Mostrando ${num(q)} de ${R.length}. Use “Mostrar até” para ver mais.</p>` : ''}
+        ${Object.keys(outros).length ? `<p class="note">Fora do ranking (não são vereadores): ${Object.entries(outros).sort((a, b) => b[1] - a[1]).map(([nm, n]) => `${esc(nm)} (${num(n)})`).join(', ')}.</p>` : ''}`;
+      const t = pn.querySelector('#ptema'); if (t) t.addEventListener('change', e => { FPJ.tema = e.target.checked; render(); });
+      pn.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => { FPJ.autor = 'v:' + b.dataset.ver; FPJ.aba = 'lista'; document.getElementById('paut').value = FPJ.autor; render(); document.getElementById('paba-lista').focus(); }));
+    } else {
+      const LS = L.slice().sort((a, b) => b.d.localeCompare(a.d) || b.id - a.id);
+      pn.innerHTML = `<p class="count">${num(LS.length)} ${LS.length === 1 ? 'projeto' : 'projetos'}${LS.length > q ? `, mostrando os ${num(q)} mais recentes` : ''}.</p>
+        ${LS.length ? `<ul class="mlist plist2">${LS.slice(0, q).map(itemProj).join('')}</ul>` : `<div class="empty">Nenhum projeto com esses filtros.</div>`}`;
+    }
+  };
+  ligaCaixasAno('pano', s => { FPJ.anos = s; render(); });
+  document.getElementById('parea').addEventListener('change', e => { FPJ.area = e.target.value; render(); });
+  document.getElementById('paut').addEventListener('change', e => { FPJ.autor = e.target.value; render(); });
+  ligarChips('#ptipo', k => { FPJ.tipo = k; render(); });
+  document.getElementById('pq').addEventListener('input', e => { FPJ.q = e.target.value; render(); });
+  document.getElementById('pqtd').addEventListener('change', e => { FPJ.n = e.target.value; render(); });
+  document.getElementById('plimpa').addEventListener('click', () => { Object.assign(FPJ, {anos:[], area:'', tipo:'todos', autor:'', q:'', tema:false}); viewProjetos(); });
+  const abas = [...document.querySelectorAll('.pasta [role=tab]')];
+  abas.forEach((b, i) => {
+    b.addEventListener('click', () => { FPJ.aba = b.dataset.aba; render(); });
+    b.addEventListener('keydown', e => { const j = e.key === 'ArrowRight' ? (i + 1) % abas.length : e.key === 'ArrowLeft' ? (i - 1 + abas.length) % abas.length : e.key === 'Home' ? 0 : e.key === 'End' ? abas.length - 1 : -1;
+      if (j < 0) return; e.preventDefault(); FPJ.aba = abas[j].dataset.aba; render(); abas[j].focus(); });
+  });
+  render();
+}
+function secProjetos(v){
+  if (!PROJ.length) return '';
+  const meus = PROJ.filter(p => p.aut.some(a => a.p === v.id));
+  const cab = `<section class="card pcard" aria-labelledby="h-proj"><h2 id="h-proj">Projetos apresentados</h2>`;
+  if (!meus.length) return cab + `<p class="note" style="margin-top:0">Nenhum projeto apresentado ${PERIODO_TXT}.</p></section>`;
+  const c = {}; meus.forEach(p => { c[p.a] = (c[p.a] || 0) + 1; });
+  const R = Object.entries(c).sort((a, b) => b[1] - a[1]); const max = R[0][1];
+  const nSimb = meus.filter(p => SIMB.includes(p.a)).length;
+  return cab + `<p class="note" style="margin-top:0">${num(meus.length)} ${meus.length === 1 ? 'projeto' : 'projetos'} ${PERIODO_TXT}, sozinho ou com outros autores. ${pct(nSimb, meus.length)}% são homenagens, nomes de ruas, datas comemorativas ou utilidade pública.</p>
+    ${R.slice(0, 6).map(([a, n]) => `<div class="efor"><div class="eh"><span>${esc(a)}</span><span>${num(n)}</span></div><div class="ebar${a === 'Outros' ? ' outros' : ''}" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div></div>`).join('')}
+    ${R.length > 6 ? `<p class="note">E mais ${R.length - 6} ${R.length - 6 === 1 ? 'área' : 'áreas'}.</p>` : ''}
+    <div class="cfoot"><a class="btn" href="#projetos" id="pver">Ver os projetos</a></div></section>`;
+}
+
 /* ---------- Rotas ---------- */
-const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Mapa de afinidade','votacoes'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
+const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Mapa de afinidade','votacoes'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
 function rota(){
   const h = location.hash.replace('#','');
   let tab, titulo;

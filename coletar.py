@@ -157,6 +157,20 @@ def coletar(leg_num=None):
     # ementa de todas as matérias votadas (não só as nominais), para a busca por palavra funcionar em tudo
     mats = {v['m'] for v in R['votacoes']} | {r['m'] for r in R['relatorias']}
     cache = carregar_cache()
+    # todos os projetos apresentados na legislatura (não só os votados), para a aba Projetos
+    tipos_proj = [k for k, t in R['tipos_materia'].items() if t['sigla'] in TIPOS_PROJETO]
+    R['projetos'] = []
+    if tipos_proj:
+        log('projetos apresentados')
+        for x in todos('/materia/materialegislativa/', f'data_apresentacao__gte={INICIO}&data_apresentacao__lte={FIM}'
+                       f'&tipo__in=' + ','.join(map(str, tipos_proj))):
+            if not x.get('data_apresentacao') or not INICIO <= x['data_apresentacao'] <= FIM:
+                continue
+            cache[str(x['id'])] = dict(tipo=x['tipo'], n=x['numero'], ano=x['ano'], ementa=x['ementa'],
+                                       autores=x['autores'], texto=x.get('texto_original') or None)
+            R['projetos'].append([x['id'], x['data_apresentacao']])
+        mats |= {p for p, _ in R['projetos']}
+        log(f"{len(R['projetos'])} projetos apresentados")
     faltam = [m for m in mats if str(m) not in cache]
     log(f'{len(mats)} matérias, {len(faltam)} novas')
     for m, x in zip(faltam, paralelo(lambda m: get(f'/materia/materialegislativa/{m}/'), faltam, 6)):
@@ -164,13 +178,17 @@ def coletar(leg_num=None):
             cache[str(m)] = dict(tipo=x['tipo'], n=x['numero'], ano=x['ano'], ementa=x['ementa'],
                                  autores=x['autores'], texto=x.get('texto_original') or None)
     autores = {a for m in mats if str(m) in cache for a in cache[str(m)]['autores']}
-    faltam = [a for a in autores if 'a' + str(a) not in cache]
+    faltam = [a for a in autores if 'a' + str(a) not in cache or 'ap' + str(a) not in cache]
+    parl_ids = {p['id'] for p in R['parlamentares']}
     for a, x in zip(faltam, paralelo(lambda a: get(f'/base/autor/{a}/'), faltam, 6)):
         if x:
             cache['a' + str(a)] = x['nome']
+            # autor do tipo parlamentar aponta para a ficha do vereador (object_id); 0 = prefeito, Mesa, comissão etc.
+            cache['ap' + str(a)] = x['object_id'] if x.get('tipo') == 1 and x.get('object_id') in parl_ids else 0
     salvar_cache(cache)
     R['materias'] = {m: cache[str(m)] for m in mats if str(m) in cache}
     R['autores'] = {a: cache.get('a' + str(a), '') for a in autores}
+    R['autores_parl'] = {a: cache.get('ap' + str(a), 0) for a in autores}
 
     log('fotos')
     pessoas = {m['p'] for m in R['mandatos']} | {p for _, p, _ in R['votos']}
@@ -341,6 +359,40 @@ def coletar_emendas():
         return ant
 
 
+# ---------------------------------------------------------------- áreas dos projetos
+TIPOS_PROJETO = ('PLO', 'PLC', 'PDL', 'PRE', 'PELOM')
+# Áreas dos projetos (ordem importa: a primeira regra que casar define a área). Texto sem acento e minúsculo.
+AREAS_PROJ = [
+    ('Homenagens e títulos', r'^(concede|outorga|confere)\b|titulo de cidadao|diploma|medalha|comenda|honra ao merito|voto de (louvor|congratula)'),
+    ('Nomes de ruas e locais', r'^(denomina|da denominacao|altera a denominacao)|denomina (rua|avenida|via|praca|travessa|viela|ruela|alameda|estrada|rodovia|sistema de lazer|area|escola|centro|unidade|ponte|viaduto|complexo|parque|bosque|largo)'),
+    ('Datas comemorativas', r'calendario (oficial|de datas|de eventos|municipal)|institui,? (no municipio de campinas,? )?(o|a) (dia|semana|mes|jornada|campanha anual)|dia municipal|semana municipal|mes municipal|data comemorativa|inclui no calendario'),
+    ('Utilidade pública', r'utilidade publica'),
+    ('Funcionamento da Câmara', r'regimento interno|codigo de etica parlamentar|medida disciplinar|camara municipal de campinas|comissao parlamentar|frente parlamentar|tribuna livre|sessao solene|mesa da camara'),
+    ('Urbanismo e imóveis públicos', r'terreno baldio|terrenos baldios|area publica|glebas?\b|perimetro urbano|direito real de uso|destinacao de area|condominio|bem publico|bens publicos|imovel|imoveis|desafeta|desincorpora|aliena|doacao de area|concessao de uso|permissao de uso|zoneamento|uso e ocupacao|uso do solo|loteamento|urbanist|plano diretor|impacto de vizinhanca|edifica|construc|\bobras?\b|espacos publicos|hostil'),
+    ('Saúde', r'paliativ|diagnostico|equoterapia|valorizacao da vida|suicid|toxicolog|terapia|cegueira|obesidade|urgencia|samu|sono\b|telessaude|vascular|alzheimer|pressao arterial|respirat|gagueira|aborto|sorriso|bucal|vicio|dependencia quimica|\bsaude\b|hospital|medic|doenca|cancer|vacin|\bsus\b|autis|\btea\b|enferm|covid|dengue|saude mental|gestante|gravidez|parto|obstetr|farmac|diabet|fibromialg|tratamento|paciente|sangue|doacao de orgaos|cirurg|odontol|ubs\b|pronto.?socorro'),
+    ('Educação', r'cursinho|formacao profissional|educa|escola|ensino|aluno|estudant|creche|professor|alfabetiza|universit|bolsa de estudo'),
+    ('Segurança', r'vigilant|agentes de seguranca|armament|seguranca publica|guarda municipal|guarda civil|violencia|policia|crime|criminal|monitoramento por camera|cameras de|videomonitoramento|defesa civil|drogas|\barmas?\b'),
+    ('Meio ambiente e animais', r'\brios?\b|ribeir|plantio|especies|leucena|veterinar|floresta|coleta seletiva|coleta domiciliar|ambient|animal|animais|\bcaes\b|\bgatos\b|\bcao\b|pitbull|focinheira|coleira|arvore|arboriza|residuo|lixo|recicla|clima|\bagua\b|poluic|nascente|mata\b|fauna|flora|sustentab|enchente|drenagem|queimada|pet\b'),
+    ('Mobilidade e trânsito', r'bilhete unico|ciclist|bueiro|asfalto|pavimenta|vias publicas|motofret|entregador|transito|transporte|onibus|mobilidade|veicul|estacionamento|ciclo|calcada|motorista|taxi|aplicativo de transporte|semaforo|pedestre|emdec|rodoviaria|aeroporto|\bmotos?\b|motocicl'),
+    ('Habitação', r'habitac|moradia|cohab|auxilio moradia|regularizacao fundiaria|ocupacao irregular|loteamento irregular|nucleo residencial'),
+    ('Direitos e assistência social', r'racis|pedofilia|adultiza|mulher|feminic|crianca|adolescente|idos|negr[oa]s?\b|lgbt|assistencia social|vulnerab|fome|alimentar|alimentacao|pessoa com deficiencia|deficien|acessibilidade|inclusao|cidadania|direitos humanos|situacao de rua|igualdade|juventude|jovens|familia|refugiad|migrant|cuidador'),
+    ('Cultura, esporte e lazer', r'skate|orquestra|cultur|esport|lazer|turismo|festival|musica|artista|\barte\b|teatro|cinema|biblioteca|patrimonio historico|tombamento|capoeira|futebol|atleta|carnaval|feira'),
+    ('Economia, tributos e orçamento', r'planta generica|despesas|desburocratiza|publicidade|naming|tribut|imposto|iptu|\biss\b|\bitbi\b|taxa|orcament|credito adicional|credito especial|diretrizes orcamentarias|plano plurianual|fiscal|isencao|anistia|divida|refis|parcelamento|reparcelamento|empresa|comercio|comercial|estabelecimento|consumidor|supermercado|empreend|emprego|trabalho|economi|inovacao|tecnologia|startup|licitac|contrato|combustive'),
+    ('Administração e servidores', r'tribunal de contas|lei organica|secretarias municipais|fundacao|poder executivo a|servidor|cargo|carreira|vencimento|gratificac|estrutura administrativa|secretaria municipal|administracao publica|transparencia|ouvidoria|conselho municipal|fundo municipal|previdenc|camprev|quadro de pessoal|subsidio|remunera|autarquia|reajuste'),
+]
+AREAS_PROJ_RE = [(a, re.compile(p)) for a, p in AREAS_PROJ]
+
+
+def sem_acento(s):
+    return unicodedata.normalize('NFD', s or '').encode('ascii', 'ignore').decode().lower().strip()
+
+
+def area_projeto(ementa):
+    """Área principal do projeto pela ementa: a primeira regra que casar. O que não casar fica em "Outros"."""
+    e = sem_acento(ementa)
+    return next((a for a, r in AREAS_PROJ_RE if r.search(e)), 'Outros')
+
+
 def normaliza(s):
     s = (s or '').strip()
     if s == 'Sim': return 'S'
@@ -464,6 +516,20 @@ def montar(R, saida='index.html'):
     for k, m in R['materias'].items():
         MAT[str(k)] = [tipos.get(m['tipo'], {}).get('sigla'), m['n'], m['ano'], m['ementa'],
                        [autores.get(a, '') for a in (m['autores'] or [])], m['texto']]
+    autp = {int(k): v for k, v in (R.get('autores_parl') or {}).items()}
+    nomes_areas = [a for a, _ in AREAS_PROJ] + ['Outros']
+    PROJ = []
+    for mid, data in R.get('projetos') or []:
+        m = R['materias'].get(mid) or R['materias'].get(str(mid))
+        if not m:
+            continue
+        PROJ.append([mid, data, nomes_areas.index(area_projeto(m['ementa'])), [autp.get(a, 0) for a in (m['autores'] or [])]])
+    if PROJ:
+        cont = collections.Counter(nomes_areas[p[2]] for p in PROJ)
+        log(f'Projetos por área ({len(PROJ)}): ' + '; '.join(f'{a} {n}' for a, n in cont.most_common()))
+        outros = [R['materias'].get(p[0]) or R['materias'].get(str(p[0])) for p in PROJ if nomes_areas[p[2]] == 'Outros']
+        if outros:
+            log('Projetos que ficaram em "Outros" (me diga em qual área encaixar): ' + ' | '.join((m['ementa'] or '')[:90] for m in outros[:40]))
     usadas = {c[0] for v in V for c in v['com']} | {r['c'] for r in R['reunioes']} | {r['c'] for r in R['relatorias']}
     COM = {str(c['id']): [c['nome'], c['sigla'], c['tipo']] for c in R['comissoes'] if c['id'] in usadas}
 
@@ -480,6 +546,9 @@ def montar(R, saida='index.html'):
         REL=[[r['m'], r['p'], r['c'], r['ini'], r['fim'], None, r['tfim']] for r in R['relatorias'] if r['ini']],
         TFIM={str(k): v for k, v in R['tipos_fim'].items()},
     )
+    if PROJ:
+        dados['PROJ'] = PROJ
+        dados['AREAS_P'] = nomes_areas
     if atual and R.get('emendas'):
         dados['EME'] = R['emendas']
         nomes = {chave_nome(v['nome']) for v in V}
