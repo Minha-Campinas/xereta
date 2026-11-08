@@ -222,6 +222,7 @@ button.day[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)
 .b1,.b8{background:var(--ok-bg);color:var(--ok-ink)}
 .b2,.b9{background:var(--bad-bg);color:var(--bad-ink)}
 .b3{background:var(--neu-bg);color:var(--neu-ink)}
+.bpend{background:transparent;color:var(--muted)}
 .b4,.b7{background:var(--warn-bg);color:var(--warn-ink)}
 .score{font-size:.82rem;color:var(--muted);white-space:nowrap}
 .detail{border-top:1px solid var(--line);padding:1rem 1.15rem 1.15rem}
@@ -332,11 +333,11 @@ input[type=date]{font:inherit;padding:.45rem .6rem;border:1px solid var(--line);
 .segnav{display:inline-flex;background:var(--soft);border-radius:12px;padding:.25rem;gap:.25rem;margin-top:1.25rem}
 .segnav a{padding:.5rem 1rem;border-radius:9px;text-decoration:none;font-weight:700;color:var(--muted);min-height:2.6rem;display:inline-flex;align-items:center}
 .segnav a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
-.ftoggle{display:none}
-@media (max-width:640px){
-  .ftoggle{display:inline-flex}
-  .filters.closed{display:none}
-}
+.ftoggle{display:inline-flex;align-items:center;gap:.55rem}
+.ftoggle::after{content:'';width:0;height:0;border-left:.38rem solid transparent;border-right:.38rem solid transparent;border-top:.45rem solid currentColor;transition:transform .15s}
+.ftoggle[aria-expanded="true"]::after{transform:rotate(180deg)}
+.filters.closed{display:none}
+.sec-filtros>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* início com calendário */
 .homecal{display:grid;grid-template-columns:minmax(17rem,22rem) 1fr;gap:1.25rem;margin-top:2.25rem;align-items:start}
@@ -381,11 +382,17 @@ details.cat.reu > summary{display:grid;grid-template-columns:auto 1fr auto;gap:.
 .area[open] .aname::before{transform:rotate(90deg)}
 .aval,.apct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .area .tablewrap{margin:0;padding:.6rem .9rem .9rem}
-@media (max-width:620px){.area>summary{grid-template-columns:minmax(0,1fr) auto}.area>summary .apct{display:none}.area>summary .ebar{grid-column:1 / -1}}
+@media (max-width:620px){.area>summary{grid-template-columns:auto minmax(0,1fr);gap:.25rem .6rem;line-height:1.3}.area>summary .aname{grid-column:1 / -1}.area>summary .apct{display:block;text-align:left;color:var(--muted)}.area>summary .ebar{grid-column:1 / -1;margin-top:.2rem}}
 td.obs{min-width:15rem;max-width:26rem;font-size:.9rem;color:var(--muted)}
 td.obs summary{cursor:pointer}
 td.obs details p{margin:.4rem 0 0;color:var(--ink)}
-.anos{display:flex;flex-wrap:wrap;align-items:center;gap:.1rem 1.1rem}
+.anos{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.anos .flabel{margin-right:.4rem}
+.anos .check{position:relative;min-height:2.4rem;gap:0;padding:.35rem .9rem;border:2px solid var(--bd);background:var(--surface);box-shadow:2px 2px 0 var(--sh);font-weight:700;font-size:.92rem;font-variant-numeric:tabular-nums;justify-content:center;transition:transform .08s,box-shadow .08s}
+.anos .check input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.anos .check:hover{border-color:var(--accent)}
+.anos .check:has(input:checked){background:var(--p2);color:var(--p5);border-color:var(--bd);transform:translate(2px,2px);box-shadow:none}
+.anos .check:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:2px}
 .eme-hero{margin:1.75rem 0 0;padding:1.4rem 1.5rem;background:var(--accent-soft);border:3px solid var(--bd);box-shadow:6px 6px 0 var(--sh)}
 .eme-big{font-family:var(--display);font-size:clamp(1.8rem,5.2vw,3.1rem);line-height:1.12;margin:.25rem 0 .6rem;font-weight:700}
 .eme-big strong{color:var(--accent)}
@@ -514,6 +521,8 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 #atab{margin-top:.8rem}
 .plist2 li{display:grid;gap:.2rem;background:var(--surface);border:2px solid var(--bd);border-radius:0;padding:.75rem .9rem}
 .plist2 .pmeta{font-size:.88rem;color:var(--muted)}
+.plist2 .ptags{display:flex;flex-wrap:wrap;gap:.4rem;margin:.15rem 0 .2rem}
+.plist2 .ptags .badge{white-space:normal}
 .plist2 .pem{color:var(--ink);font-size:.95rem}
 .plist2 .paut{font-size:.88rem}
 .prank-t{font-size:1.4rem;margin:0 0 .4rem}
@@ -582,6 +591,7 @@ tr.psel td{background:var(--accent-soft)}
   .eme-big,.big,h1,h2{overflow-wrap:anywhere}
   .sec-filtros>h2{display:none}
   .sec-filtros{margin-top:1.25rem;margin-bottom:1.25rem}
+  .anos .flabel{flex-basis:100%;margin:0}
   /* emendas: total pago na largura toda, os outros quadros lado a lado */
   .stats .stat-total{grid-column:1 / -1}
   .stats .stat-larga{grid-column:1 / -1}
@@ -942,11 +952,19 @@ function ligarPeriodo(id, st, fn){
   }));
 }
 const btnFiltros = alvo => `<button type="button" class="btn ghost ftoggle" aria-expanded="false" aria-controls="${alvo}" data-ft="${alvo}">Filtros</button>`;
+/* botão Filtros: recolhe e expande os filtros (no computador começam abertos; no celular, fechados) */
 function ligarToggle(){
-  app.querySelectorAll('[data-ft]').forEach(b => b.addEventListener('click', () => {
-    const f = document.getElementById(b.dataset.ft); const ab = f.classList.toggle('closed') === false; b.setAttribute('aria-expanded', ab);
-  }));
+  app.querySelectorAll('[data-ft]').forEach(b => {
+    const f = document.getElementById(b.dataset.ft); if (!f) return;
+    b.setAttribute('aria-expanded', !f.classList.contains('closed'));
+    if (b.dataset.ligado) return; b.dataset.ligado = '1';
+    b.addEventListener('click', () => { const ab = f.classList.toggle('closed') === false; b.setAttribute('aria-expanded', ab); });
+  });
 }
+/* tipo de votação: nominal (com o voto de cada vereador) ou simbólica (só o resultado) */
+const TV_OPC = [['todas','Todas'],['nom','Nominais'],['simb','Simbólicas']];
+const passaTV = (v, t) => !t || t === 'todas' || (t === 'nom' ? !!NOM[v.id] : !NOM[v.id] && !RESG.nv.includes(v.res));
+const linhaTV = (id, atual) => `<div class="frow" id="${id}"><span class="flabel">Votação</span>${chips('Tipo de votação', TV_OPC, atual)}</div>`;
 
 /* ---------- calendário reutilizável ---------- */
 const MESES = [...new Set(SESS.map(s => s.d.slice(0,7)))].sort();
@@ -1552,7 +1570,7 @@ function pintarMapa(area, R, corDe){
 }
 
 /* ---------- Votações: busca com período ---------- */
-const FB = {p:'90', de:periodo('90')[0], ate:HOJE, cat:'proj', res:'todos', nominal:false, q:'', ordem:'rec', limite:40, area:''};
+const FB = {p:'90', de:periodo('90')[0], ate:HOJE, cat:'proj', res:'todos', tv:'todas', q:'', ordem:'rec', limite:40, area:''};
 function viewBusca(){
   app.innerHTML = `<h1>Todas as votações</h1>
   <p class="lede">Filtre por período, tipo de proposta e resultado.</p>
@@ -1563,8 +1581,8 @@ function viewBusca(){
     <div class="frow" id="bcat"><span class="flabel">Tipo</span>${chips('Tipo de proposta', [['proj','Projetos e emendas'],['req','Requerimentos'],['moc','Moções'],['ata','Atas e outros'],['todos','Todos']], FB.cat)}</div>
     ${TEM_AREA ? `<div class="frow">${selAreaV('barea', VT.map(v => v.m), FB.area)}</div>` : ''}
     <div class="frow" id="bres"><span class="flabel">Resultado</span>${chips('Resultado', [['todos','Todos'],['aprov','Aprovados'],['nao','Não aprovados'],['nv','Não votados']], FB.res)}</div>
-    <div class="frow"><span class="flabel">Mostrar</span><label class="check"><input type="checkbox" id="bnom" ${FB.nominal?'checked':''}>Só com voto de cada vereador</label>
-      <label class="f">Ordenar <select id="bord"><option value="rec">Mais recentes</option><option value="ant">Mais antigas</option><option value="div">Mais votos contrários</option><option value="pol">Mais polêmicas (Sim e Não mais próximos)</option></select></label></div>
+    ${linhaTV('btv', FB.tv)}
+    <div class="frow"><label class="f">Ordenar <select id="bord"><option value="rec">Mais recentes</option><option value="ant">Mais antigas</option><option value="div">Mais votos contrários</option><option value="pol">Mais polêmicas (Sim e Não mais próximos)</option></select></label></div>
   </div>
   <p class="count" id="count" aria-live="polite"></p><div id="lista"></div>`;
   if (matchMedia('(min-width:641px)').matches) document.getElementById('bf').classList.remove('closed');
@@ -1572,7 +1590,7 @@ function viewBusca(){
   const upd = () => { FB.limite = 40; renderBusca(); };
   document.getElementById('bord').value = FB.ordem;
   document.getElementById('bq').addEventListener('input', e => { FB.q = e.target.value; upd(); });
-  document.getElementById('bnom').addEventListener('change', e => { FB.nominal = e.target.checked; upd(); });
+  ligarChips('#btv', k => { FB.tv = k; upd(); });
   document.getElementById('bord').addEventListener('change', e => { FB.ordem = e.target.value; upd(); });
   ligarPeriodo('bper', FB, upd);
   ligarChips('#bcat', k => { FB.cat = k; upd(); });
@@ -1587,7 +1605,7 @@ const bateMat = (lbl, mid, termos) => { if (!termos.length) return true; const m
 const campoBusca = (id, valor) => `<div class="frow"><label style="flex:1 1 20rem"><span class="sr">Buscar por palavra da ementa, número ou autor</span><input id="${id}" type="search" placeholder="Buscar por palavra da ementa, número ou autor" value="${esc(valor)}"></label></div>`;
 function renderBusca(){
   const termos = termosBusca(FB.q);
-  let r = VT.filter(v => v.d >= FB.de && v.d <= FB.ate && passaCat(v, FB.cat) && passaRes(v, FB.res) && passaArea(v.m, FB.area) && (!FB.nominal || NOM[v.id]) && bateMat(v.lbl, v.m, termos));
+  let r = VT.filter(v => v.d >= FB.de && v.d <= FB.ate && passaCat(v, FB.cat) && passaRes(v, FB.res) && passaArea(v.m, FB.area) && passaTV(v, FB.tv) && bateMat(v.lbl, v.m, termos));
   const contra = v => NOM[v.id] ? contagem(NOM[v.id]).N : -1;
   const placar = v => { if (!NOM[v.id]) return null; const c = contagem(NOM[v.id]); return {S:c.S, N:c.N, t:c.S + c.N}; };
   /* polêmica: quanto mais perto de um empate entre Sim e Não, maior; desempata por quem votou mais */
@@ -1605,7 +1623,7 @@ function renderBusca(){
 }
 
 /* ---------- Página da sessão ---------- */
-const FS = {res:'todos', cat:'todos', q:'', area:''};
+const FS = {res:'todos', tv:'todas', cat:'todos', q:'', area:''};
 function viewSessao(id){
   const s = Sid[id];
   if (!s) { app.innerHTML = `<a class="back" href="#votacoes">‹ Todas as sessões</a><div class="empty">Sessão não encontrada nos dados ${PERIODO_TXT}.</div>`; return; }
@@ -1632,8 +1650,9 @@ function viewSessao(id){
   if (vs.length && vs.every(v => v.res === 3)) h += `<div class="callout" style="margin-top:1.5rem"><p>Nenhum item da pauta foi votado nesta sessão. O sistema da Câmara não informa o motivo, que pode ser falta de quórum, pedido de adiamento ou encerramento antecipado.</p></div>`;
   if (!vs.length) h += `<div class="section"><div class="empty">${s.t === 'Solene' ? 'Sessões solenes são homenagens e não têm votações nem lista de presença.' : 'Não há votações registradas para esta sessão.'}</div></div>`;
   else h += `<section class="section" aria-labelledby="h-vot"><h2 id="h-vot">Votações</h2>
-    <div class="filters">
+    ${btnFiltros('sfil')}<div class="filters${fechadoCel()}" id="sfil">
       ${campoBusca('sq', FS.q)}
+      ${linhaTV('stv', FS.tv)}
       <div class="frow" id="sres"><span class="flabel">Resultado</span>${chips('Resultado', [['todos','Todos'],['aprov','Aprovados'],['nao','Não aprovados'],['nv','Não votados']], FS.res)}</div>
       <div class="frow" id="scat"><span class="flabel">Tipo</span>${chips('Tipo de proposta', [['todos','Todos'],['proj','Projetos e emendas'],['req','Requerimentos'],['moc','Moções'],['ata','Atas e outros']], FS.cat)}</div>
       ${TEM_AREA ? `<div class="frow">${selAreaV('sarea', vs.map(v => v.m), FS.area)}</div>` : ''}
@@ -1647,7 +1666,7 @@ function viewSessao(id){
   if (!vs.length) return;
   const render = () => {
     const termos = termosBusca(FS.q);
-    const L = vs.filter(v => passaRes(v, FS.res) && passaCat(v, FS.cat) && passaArea(v.m, FS.area) && bateMat(v.lbl, v.m, termos));
+    const L = vs.filter(v => passaRes(v, FS.res) && passaTV(v, FS.tv) && passaCat(v, FS.cat) && passaArea(v.m, FS.area) && bateMat(v.lbl, v.m, termos));
     const nom = L.filter(v => NOM[v.id]); const outras = L.filter(v => !NOM[v.id]);
     let x = '';
     if (!L.length) x = `<div class="empty">Nenhuma votação desta sessão com esses filtros.</div>`;
@@ -1663,7 +1682,9 @@ function viewSessao(id){
     document.getElementById('svot').innerHTML = x;
   };
   document.getElementById('sq').addEventListener('input', e => { FS.q = e.target.value; render(); });
+  ligarToggle();
   ligarChips('#sres', k => { FS.res = k; render(); });
+  ligarChips('#stv', k => { FS.tv = k; render(); });
   ligarChips('#scat', k => { FS.cat = k; render(); });
   const sa = document.getElementById('sarea'); if (sa) sa.addEventListener('change', e => { FS.area = e.target.value; render(); });
   render();
@@ -1740,7 +1761,7 @@ function viewComissao(cid){
   <section class="section cint" aria-labelledby="h-int"><h2 id="h-int">Integrantes</h2><div class="people">${ms.map(m => person(m.id, cargoTxt(m.cargo, m.tit))).join('')}</div></section>`;
   if (!REU.length) { h += `<section class="section"><div class="empty">Os dados de reuniões e relatorias das comissões ainda não foram carregados neste protótipo.</div></section>`; app.innerHTML = h; return; }
   h += `<section class="section" aria-labelledby="h-reu"><h2 id="h-reu">Reuniões</h2>
-    <div class="filters">${blocoPeriodo('cper', FC)}
+    ${btnFiltros('cfil')}<div class="filters${fechadoCel()}" id="cfil">${blocoPeriodo('cper', FC)}
     <div class="frow" id="cso"><span class="flabel">Mostrar</span>${chips('Mostrar', [['todas','Todas'],['ok','Realizadas'],['canc','Canceladas ou não realizadas'],['ata','Com ata']], FC.so)}</div></div>
     <div class="facts" id="cfacts" style="margin-top:.5rem"></div><div id="creu" style="margin-top:1rem"></div></section>
   <section class="section" aria-labelledby="h-rel"><h2 id="h-rel">Relatorias</h2>${campoBusca('crq', FC.q)}<div id="crel"></div></section>
@@ -1763,6 +1784,7 @@ function viewComissao(cid){
   };
   ligarPeriodo('cper', FC, render);
   document.getElementById('crq').addEventListener('input', e => { FC.q = e.target.value; render(); });
+  ligarToggle();
   ligarChips('#cso', k => { FC.so = k; render(); });
   render();
 }
@@ -1788,10 +1810,10 @@ function viewVereadores(){
   document.getElementById('vtodos').addEventListener('change', e => { FV.todos = e.target.checked; render(); });
   render();
 }
-const FPV = {p:'tudo', de:DATA_MIN, ate:HOJE, voto:'todos', cat:'todos', div:false, q:'', n:'10', aut:'todas', area:''};
+const FPV = {p:'tudo', de:DATA_MIN, ate:HOJE, voto:'todos', res:'todos', tv:'todas', cat:'todos', div:false, q:'', n:'10', aut:'todas', area:''};
 function viewPerfil(id){
   const v = V[id];
-  FPV.n = '10'; FPV.aut = 'todas'; FPV.area = ''; Object.assign(FEV, {anos:[], forn:'', org:'', n:'10', ord:'valor'});
+  FPV.n = '10'; FPV.aut = 'todas'; FPV.area = ''; FPV.res = 'todos'; FPV.tv = 'todas'; Object.assign(FEV, {anos:[], forn:'', org:'', n:'10', ord:'valor'});
   if (!v) { app.innerHTML = `<a class="back" href="#vereadores">‹ Vereadores</a><div class="empty">Não há dados deste parlamentar ${PERIODO_TXT}.</div>`; return; }
   const minhas = VT.filter(x => NOM[x.id] && NOM[x.id][id]);
   const ehDiv = x => { const c = contagem(NOM[x.id]); const meu = NOM[x.id][id]; return (meu==='S'||meu==='N') && c.S !== c.N && ((meu==='S') !== (c.S > c.N)); };
@@ -1838,9 +1860,11 @@ function viewPerfil(id){
   ${relv.length ? `<p class="note" style="margin-top:.8rem">Foi designado relator de ${relv.length} ${relv.length===1?'projeto':'projetos'} em comissões ${PERIODO_TXT}.</p>` : ''}
   </section>
   ${comoFunciona('<p>A presença conta só sessões com lista registrada, dentro do período de mandato. Licenças e afastamentos ainda não são descontados.</p><p>“Votações nominais” são as que registram o voto de cada vereador. A maioria das votações da Câmara é simbólica e não entra aqui.</p>')}`;
-  const filtrosVotos = () => `<div class="filters">${campoBusca('vqs', FPV.q)}${blocoPeriodo('vper', FPV)}
+  const filtrosVotos = () => `${btnFiltros('vfil')}<div class="filters${fechadoCel()}" id="vfil">${campoBusca('vqs', FPV.q)}${blocoPeriodo('vper', FPV)}
       <div class="frow" id="vaut"><span class="flabel">Autoria</span>${chips('Autoria', [['todas','Todas'],['minha','Só de autoria dele']], FPV.aut)}</div>
       <div class="frow" id="vvoto"><span class="flabel">Voto</span>${chips('Voto', [['todos','Todos'],['S','Sim'],['N','Não'],['A','Abstenção'],['F','Ausente']], FPV.voto)}</div>
+      ${linhaTV('vtv', FPV.tv)}
+      <div class="frow" id="vres"><span class="flabel">Resultado</span>${chips('Resultado', [['todos','Todos'],['aprov','Aprovados'],['nao','Não aprovados'],['nv','Não votados']], FPV.res)}</div>
       <div class="frow" id="vcat"><span class="flabel">Tipo</span>${chips('Tipo de proposta', [['todos','Todos'],['proj','Projetos e emendas'],['req','Requerimentos'],['moc','Moções']], FPV.cat)}</div>
       ${TEM_AREA ? `<div class="frow">${selAreaV('varea', minhas.map(x => x.m), FPV.area)}</div>` : ''}
       <div class="frow"><label class="check"><input type="checkbox" id="vdiv" ${FPV.div?'checked':''}>Só quando votou diferente da maioria</label>${seletorQtd('vqtd', FPV.n, 'Mostrar')}</div>
@@ -1848,7 +1872,7 @@ function viewPerfil(id){
   const render = () => {
     const base = FPV.aut === 'minha' ? minhasAut : minhas;
     const meu = x => NOM[x.id] ? NOM[x.id][id] : null;
-    const L = base.filter(x => x.d >= FPV.de && x.d <= FPV.ate && (FPV.voto === 'todos' || meu(x) === FPV.voto) && passaCat(x, FPV.cat) && passaArea(x.m, FPV.area) && (!FPV.div || (meu(x) && ehDiv(x))) && bateMat(x.lbl, x.m, termosBusca(FPV.q))).sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id);
+    const L = base.filter(x => x.d >= FPV.de && x.d <= FPV.ate && (FPV.voto === 'todos' || meu(x) === FPV.voto) && (FPV.res === 'todos' || RESG[FPV.res].includes(x.res)) && passaTV(x, FPV.tv) && passaCat(x, FPV.cat) && passaArea(x.m, FPV.area) && (!FPV.div || (meu(x) && ehDiv(x))) && bateMat(x.lbl, x.m, termosBusca(FPV.q))).sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id);
     const q = qtdDe(FPV.n);
     document.getElementById('vcount').textContent = `${num(L.length)} ${L.length===1?'votação':'votações'}${L.length > q ? ', mostrando as ' + num(q) + ' mais recentes' : ''}`;
     document.getElementById('pvotos').innerHTML = L.length ? L.slice(0, q).map(x => voteItem(x, vmeta(x))).join('') : `<div class="empty">Nenhuma votação com esses filtros.</div>`;
@@ -1858,6 +1882,9 @@ function viewPerfil(id){
     document.getElementById('vqs').addEventListener('input', e => { FPV.q = e.target.value; render(); });
     ligarChips('#vaut', k => { FPV.aut = k; render(); });
     ligarChips('#vvoto', k => { FPV.voto = k; render(); });
+    ligarToggle();
+    ligarChips('#vres', k => { FPV.res = k; render(); });
+    ligarChips('#vtv', k => { FPV.tv = k; render(); });
     ligarChips('#vcat', k => { FPV.cat = k; render(); });
     const va = document.getElementById('varea'); if (va) va.addEventListener('change', e => { FPV.area = e.target.value; render(); });
     document.getElementById('vdiv').addEventListener('change', e => { FPV.div = e.target.checked; render(); });
@@ -1867,7 +1894,7 @@ function viewPerfil(id){
   document.getElementById('vabrir').addEventListener('click', () => abrirVotos(null));
   const bAut = document.getElementById('vabrirAut'); if (bAut) bAut.addEventListener('click', () => abrirVotos('minha'));
   ligaEmendasV(v);
-  const pv = document.getElementById('pver'); if (pv) pv.addEventListener('click', () => { Object.assign(FPJ, {anos:[], area:'', tipo:'todos', autor:'v:' + id, q:'', aba:'lista', tema:false}); });
+  const pv = document.getElementById('pver'); if (pv) pv.addEventListener('click', () => { Object.assign(FPJ, {anos:[], area:'', tipo:'todos', st:'todos', tv:'todas', autor:'v:' + id, q:'', aba:'lista', tema:false}); });
 }
 
 /* ---------- Emendas parlamentares ---------- */
@@ -2006,7 +2033,7 @@ function viewEmendas(){
         ${aviso()}
         ${AL.length ? AL.map(a => { const OL = Object.values(a.os).sort((x, y) => y.pago - x.pago), mxO = OL[0].pago;
           return `<details class="area" data-a="${esc(a.nome)}"${FE.abertas.has(a.nome) ? ' open' : ''}><summary><span class="aname">${esc(a.nome)}</span><span class="aval">${brl(a.pago)}</span><span class="apct">${pct(a.pago)}</span><span class="ebar" aria-hidden="true"><i style="width:${100 * a.pago / mxA}%"></i></span></summary>
-          <div class="tablewrap"><table class="t"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Vereadores</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td><td class="ev">${num(o.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
+          <div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Vereadores</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td><td class="ev">${num(o.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
           <p style="margin:.6rem 0 0"><button type="button" class="btn ghost sm" data-org="a:${esc(a.nome)}">Ver todos os pagamentos de ${esc(a.nome)}</button></p></div></details>`; }).join('') : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
       ligarChips('#esord', k => { FE.sord = k; render(); });
       pn.querySelectorAll('details.area').forEach(d => d.addEventListener('toggle', () => { if (d.open) FE.abertas.add(d.dataset.a); else FE.abertas.delete(d.dataset.a); }));
@@ -2069,7 +2096,7 @@ function ligaEmendasV(v){
   const bt = document.getElementById('evabrir'); if (!bt) return;
   const anos = [...new Set(rows.map(r => anoDe(r[0])))].sort().reverse();
   const corpo = () => `<div id="evstats"></div>
-    <div class="filters"><div class="frow">${caixasAno('evano', anos, FEV.anos)}</div>
+    ${btnFiltros('evfil')}<div class="filters${fechadoCel()}" id="evfil"><div class="frow">${caixasAno('evano', anos, FEV.anos)}</div>
       <div class="frow" id="evord"><span class="flabel">Ordenar</span>${chips('Ordenar pagamentos', [['valor','Maior valor'],['data','Mais recentes']], FEV.ord)}</div>
       <div class="frow">${campoTexto('evfor', 'Buscar fornecedor', FEV.forn)}${selAreaOrgao('evorg', rows.map(r => r[3]), FEV.org)}${seletorQtd('evqtd', FEV.n, 'Mostrar pagamentos')}</div></div>
     <div id="evgraf"></div><div id="evarea"></div><h3 style="margin:1.2rem 0 .3rem">Pagamentos</h3>${EME.parcial ? `<p class="note">Prévia: a lista traz só os pagamentos carregados (${num(rows.length)}).</p>` : ''}<div id="evlista"></div>`;
@@ -2092,6 +2119,7 @@ function ligaEmendasV(v){
     document.getElementById('evlista').innerHTML = R.length ? `<p class="count">${num(R.length)} ${R.length === 1 ? 'pagamento' : 'pagamentos'}${R.length > qtdDe(FEV.n) ? ', mostrando os ' + num(qtdDe(FEV.n)) + (FEV.ord === 'valor' ? ' de maior valor' : ' mais recentes') : ''}</p>` + tabelaPag(LP.slice(0, qtdDe(FEV.n)), false) : `<div class="empty">Nenhum pagamento com esses filtros.</div>`;
   };
   bt.addEventListener('click', () => { abreJanela('Emendas de ' + v.nome, corpo(), () => {
+    ligarToggle();
     ligaCaixasAno('evano', s => { FEV.anos = s; render(); });
     ligarChips('#evord', k => { FEV.ord = k; render(); });
     document.getElementById('evfor').addEventListener('input', ev => { FEV.forn = ev.target.value; render(); });
@@ -2115,7 +2143,7 @@ function viewSobre(){
   ${PROJ.length ? `<h2>Como os projetos são separados por área</h2>
   <p>A aba Projetos lista os projetos de lei (ordinária e complementar), de decreto legislativo, de resolução e de emenda à Lei Orgânica apresentados na legislatura, com data de apresentação e autores, tirados do SAPL. Requerimentos, moções e indicações não entram.</p>
   <p>A área de cada projeto é escolhida automaticamente pelas palavras da ementa: “concede título” ou “diploma” vira Homenagens e títulos, “denomina rua” vira Nomes de ruas e locais, “escola” vira Educação, e assim por diante. Cada projeto fica em uma única área, a primeira regra que combinar. Por isso a classificação pode errar em ementas que tratam de mais de um tema ou usam palavras pouco comuns; o que não combina com nenhuma regra fica em “Outros”.</p>
-  <p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara, comissões e outros autores que não são vereadores aparecem nos filtros, mas ficam fora do ranking.</p>
+  <p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara, comissões e outros autores que não são vereadores aparecem nos filtros, mas ficam fora do ranking.</p>
   <p>As mesmas áreas aparecem nas votações. Requerimentos, emendas e substitutivos que citam um projeto (por exemplo, “requer urgência do Projeto de Lei nº 49/2026”) recebem a área do projeto citado. Atas de reunião ficam em Funcionamento da Câmara.</p>` : ''}
   <h2>O que é confiável</h2>
   <p>O resultado de cada votação e a data da sessão. A data vem da sessão plenária, porque a data gravada em cada votação reflete quando o registro foi lançado no sistema.</p>
@@ -2141,18 +2169,26 @@ const IDNOME = {}; D.V.forEach(v => { IDNOME[norm(v.nome)] = v.id; });
 const PROJ = (D.PROJ || []).map(r => { const m = D.MAT[r[0]] || [];
   return {id:r[0], d:r[1], a:AREAS_P[r[2]] || 'Outros', sig:m[0] || '', n:m[1], ano:m[2], em:m[3] || '', txt:m[5] || null,
           aut:(m[4] || []).map((nome, i) => ({nome, p:(r[3] || [])[i] || IDNOME[norm(nome)] || 0}))}; });
+/* situação: o resultado da última votação decisiva do próprio projeto em plenário (não sabe de arquivamento, retirada ou sanção) */
+{ const ult = {}; VT.forEach(x => { if (!RESG.aprov.includes(x.res) && !RESG.nao.includes(x.res)) return; const d = (Sid[x.s] || {}).d || '';
+    const u = ult[x.m]; if (!u || d > u.d || (d === u.d && x.id > u.id)) ult[x.m] = {d, id:x.id, res:x.res}; });
+  PROJ.forEach(p => { const u = ult[p.id]; p.st = !u ? 'pend' : RESG.aprov.includes(u.res) ? 'aprov' : 'nao'; p.nom = !!(u && NOM[u.id]); }); }
+const SIT_P = {aprov:['Aprovado','b1'], nao:['Rejeitado','b2'], pend:['Ainda não votado','bpend']};
 if (PROJ.length) { const t = document.getElementById('tabProj'); if (t) t.hidden = false; }
-const FPJ = {anos:[], area:'', tipo:'todos', autor:'', q:'', aba:'area', n:'25', tema:false};
+const FPJ = {anos:[], area:'', tipo:'todos', st:'todos', tv:'todas', autor:'', q:'', aba:'area', n:'25', tema:false};
 const ABAS_P = [['area','Por área'],['rank','Ranking de vereadores'],['lista','Lista de projetos']];
 const autorChave = a => a.p && V[a.p] ? 'v:' + a.p : 'n:' + norm(a.nome);
 const passaP = (p, f, sem = '') => (!f.anos.length || f.anos.includes(p.d.slice(0, 4)))
   && (sem === 'area' || !f.area || p.a === f.area)
   && (f.tipo === 'todos' || GRUPO_TIPO[f.tipo].includes(p.sig))
+  && (!f.st || f.st === 'todos' || p.st === f.st)
+  && (!f.tv || f.tv === 'todas' || (p.st !== 'pend' && p.nom === (f.tv === 'nom')))
   && (sem === 'autor' || !f.autor || p.aut.some(a => autorChave(a) === f.autor))
   && (!f.q || termosBusca(f.q).every(t => norm(p.em + ' ' + p.sig + ' ' + p.n + '/' + p.ano + ' ' + p.aut.map(a => a.nome).join(' ')).includes(t)));
 const rotProj = p => `${esc(TIPOS[p.sig] || p.sig)} nº ${p.n}/${p.ano}`;
 const itemProj = p => `<li><strong><a href="${SAPL}/materia/${p.id}" target="_blank" rel="noopener">${rotProj(p)}</a></strong>
-  <span class="pmeta">${fmtData(p.d)} · <span class="badge b3">${esc(p.a)}</span></span>
+  <span class="pmeta">${fmtData(p.d)}</span>
+  <span class="ptags"><span class="badge b3">${esc(p.a)}</span><span class="badge ${SIT_P[p.st][1]}">${SIT_P[p.st][0]}</span></span>
   <span class="pem clamp">${esc(p.em)}</span>
   <span class="paut">Autoria: ${p.aut.length ? p.aut.map(a => a.p && V[a.p] ? `<a href="#v-${a.p}">${esc(V[a.p].nome)}</a>` : esc(a.nome)).join(', ') : 'não informada'}</span></li>`;
 function viewProjetos(){
@@ -2169,6 +2205,8 @@ function viewProjetos(){
       <div class="frow">${caixasAno('pano', anos, FPJ.anos)}</div>
       <div class="frow"><label class="f">Área <select id="parea"><option value="">Todas</option>${areas.map(a => `<option value="${esc(a)}"${FPJ.area === a ? ' selected' : ''}>${esc(a)} (${contA[a]})</option>`).join('')}</select></label>
         <label class="f">Autor <select id="paut"><option value="">Todos</option><optgroup label="Vereadores">${listaAut.filter(x => x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup><optgroup label="Outros autores">${listaAut.filter(x => !x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup></select></label></div>
+      <div class="frow" id="pst"><span class="flabel">Situação</span>${chips('Situação do projeto', [['todos','Todos'],['aprov','Aprovados'],['nao','Rejeitados'],['pend','Ainda não votados']], FPJ.st)}</div>
+      ${linhaTV('ptv', FPJ.tv)}
       <div class="frow" id="ptipo"><span class="flabel">Tipo</span>${chips('Tipo de projeto', [['todos','Todos'],['lei','Projetos de lei'],['pdl','Decretos legislativos'],['res','Resoluções']], FPJ.tipo)}</div>
       <div class="frow">${campoTexto('pq', 'Buscar na ementa, número ou autor', FPJ.q)}</div>
       <div class="frow">${seletorQtd('pqtd', FPJ.n, 'Mostrar até')}<button type="button" class="btn ghost" id="plimpa">Limpar filtros</button></div>
@@ -2177,11 +2215,11 @@ function viewProjetos(){
   <div id="pstats" aria-live="polite"></div>
   <div class="pasta" role="tablist" aria-label="Como ver os projetos">${ABAS_P.map(([k, n]) => `<button type="button" role="tab" id="paba-${k}" data-aba="${k}" aria-controls="ppanel" aria-selected="${FPJ.aba === k}" tabindex="${FPJ.aba === k ? 0 : -1}">${n}</button>`).join('')}</div>
   <div class="painel-pasta" role="tabpanel" id="ppanel" tabindex="0"></div>
-  ${comoFunciona(`<p>Projetos de lei, de decreto legislativo e de resolução apresentados ${PERIODO_TXT}, separados por área a partir do texto da ementa. A classificação é automática e pode errar: veja como ela é feita em <a href="#sobre">Sobre os dados</a>.</p><p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara e comissões ficam fora do ranking.</p>`)}`;
+  ${comoFunciona(`<p>Projetos de lei, de decreto legislativo e de resolução apresentados ${PERIODO_TXT}, separados por área a partir do texto da ementa. A classificação é automática e pode errar: veja como ela é feita em <a href="#sobre">Sobre os dados</a>.</p><p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara e comissões ficam fora do ranking.</p>`)}`;
   ligarToggle();
   const render = () => {
     const L = PROJ.filter(p => passaP(p, FPJ));
-    marcaFiltros('pfil', FPJ.anos.length + !!FPJ.area + (FPJ.tipo !== 'todos') + !!FPJ.autor + !!FPJ.q);
+    marcaFiltros('pfil', FPJ.anos.length + !!FPJ.area + (FPJ.tipo !== 'todos') + (FPJ.st !== 'todos') + (FPJ.tv !== 'todas') + !!FPJ.autor + !!FPJ.q);
     const nSimb = L.filter(p => SIMB.includes(p.a)).length;
     const tema = {}; L.filter(p => !SIMB.includes(p.a) && p.a !== 'Outros').forEach(p => { tema[p.a] = (tema[p.a] || 0) + 1; });
     const topT = Object.entries(tema).sort((a, b) => b[1] - a[1])[0];
@@ -2227,9 +2265,11 @@ function viewProjetos(){
   document.getElementById('parea').addEventListener('change', e => { FPJ.area = e.target.value; render(); });
   document.getElementById('paut').addEventListener('change', e => { FPJ.autor = e.target.value; render(); });
   ligarChips('#ptipo', k => { FPJ.tipo = k; render(); });
+  ligarChips('#pst', k => { FPJ.st = k; render(); });
+  ligarChips('#ptv', k => { FPJ.tv = k; render(); });
   document.getElementById('pq').addEventListener('input', e => { FPJ.q = e.target.value; render(); });
   document.getElementById('pqtd').addEventListener('change', e => { FPJ.n = e.target.value; render(); });
-  document.getElementById('plimpa').addEventListener('click', () => { Object.assign(FPJ, {anos:[], area:'', tipo:'todos', autor:'', q:'', tema:false}); viewProjetos(); });
+  document.getElementById('plimpa').addEventListener('click', () => { Object.assign(FPJ, {anos:[], area:'', tipo:'todos', st:'todos', tv:'todas', autor:'', q:'', tema:false}); viewProjetos(); });
   const abas = [...document.querySelectorAll('.pasta [role=tab]')];
   abas.forEach((b, i) => {
     b.addEventListener('click', () => { FPJ.aba = b.dataset.aba; render(); });
