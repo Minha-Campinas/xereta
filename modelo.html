@@ -484,7 +484,13 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 .amapa .am-num{margin:.4rem 0}
 .abox{position:relative;margin-top:.6rem;background:var(--bg);border:2px solid var(--bd);min-width:0}
 .abox .empty{margin:1rem;box-shadow:none}
-.asvg{display:block;width:100%;height:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.asvg{display:block;width:100%;height:auto;touch-action:pan-y;-webkit-user-select:none;user-select:none;overflow:hidden}
+.asvg.arrastando{cursor:grabbing}
+.azoom{display:flex;align-items:center;justify-content:flex-end;gap:.35rem;padding:.4rem .4rem .4rem .7rem;border-bottom:2px solid var(--line);background:var(--surface)}
+.azoom .azdica{margin-right:auto;font-size:.85rem;line-height:1.3}
+.azoom .tool{flex:none;white-space:nowrap}
+.azoom .tool{min-width:2.4rem;height:2.4rem;font-size:1.2rem;background:var(--surface)}
+.azoom .azero{font-size:.85rem;padding:0 .6rem}
 .apt{cursor:pointer;outline:none}
 .apt .aring{fill:none;stroke:transparent;stroke-width:3}
 .apt:focus-visible .aring,.apt.on .aring{stroke:var(--focus)}
@@ -1394,48 +1400,108 @@ function pintarMapa(area, R, corDe){
   // mesma escala nos dois eixos, para não exagerar o segundo eixo
   const esc1 = Math.min((W - 2 * mg - (estreito ? 20 : 60)) / ((x1 - x0) || 1), (H - 2 * mg) / ((y1 - y0) || 1));
   const cx = (W - (x1 - x0) * esc1) / 2, cy = (H - (y1 - y0) * esc1) / 2;
-  const P = R.pts.map((p, i) => ({p, i, x: cx + (U[i] - x0) * esc1, y: H - (cy + (Vv[i] - y0) * esc1)}));
-  // afasta um pouco os pontos que se cobririam (a posição calculada não muda; é só para enxergar)
+  // posições-base (sem zoom); com zoom, as posições se afastam e as fotos continuam do mesmo tamanho
+  const B = R.pts.map((p, i) => ({p, i, x: cx + (U[i] - x0) * esc1, y: H - (cy + (Vv[i] - y0) * esc1)}));
+  const Z = {s: 1, tx: 0, ty: 0}, ZMAX = 4;
+  let esconde = () => {};
   const minD = T + 4;
-  for (let it = 0; it < 200; it++) { let mexeu = false;
-    for (let a = 0; a < P.length; a++) for (let b = a + 1; b < P.length; b++) {
-      let dx = P[b].x - P[a].x, dy = P[b].y - P[a].y; let d = Math.hypot(dx, dy);
-      if (d >= minD) continue; mexeu = true;
-      if (d < 0.01) { const ang = (a * 2.39996 + b) % (2 * Math.PI); dx = Math.cos(ang); dy = Math.sin(ang); d = 1; }
-      const em = (minD - Math.max(d, 0.01)) / 2 + 0.3, ux = dx / d, uy = dy / d;
-      P[a].x -= ux * em; P[a].y -= uy * em; P[b].x += ux * em; P[b].y += uy * em;
+  let P = [], rot = [], nVis = 0;
+  // afasta um pouco os pontos que se cobririam (a posição calculada não muda; é só para enxergar)
+  const afasta = (L, prende) => {
+    for (let it = 0; it < 200; it++) { let mexeu = false;
+      for (let a = 0; a < P.length; a++) for (let b = a + 1; b < P.length; b++) {
+        let dx = P[b].x - P[a].x, dy = P[b].y - P[a].y; let d = Math.hypot(dx, dy);
+        if (d >= minD) continue; mexeu = true;
+        if (d < 0.01) { const ang = (a * 2.39996 + b) % (2 * Math.PI); dx = Math.cos(ang); dy = Math.sin(ang); d = 1; }
+        const em = (minD - Math.max(d, 0.01)) / 2 + 0.3, ux = dx / d, uy = dy / d;
+        P[a].x -= ux * em; P[a].y -= uy * em; P[b].x += ux * em; P[b].y += uy * em;
+      }
+      if (prende) P.forEach(q => { q.x = Math.min(Math.max(q.x, mg), W - mg); q.y = Math.min(Math.max(q.y, mg), H - mg); });
+      if (!mexeu) break;
     }
-    P.forEach(q => { q.x = Math.min(Math.max(q.x, mg), W - mg); q.y = Math.min(Math.max(q.y, mg), H - mg); });
-    if (!mexeu) break;
+  };
+  // o zoom parte do desenho sem zoom (já afastado): assim aproxima exatamente o que a pessoa está vendo
+  P = B.map(b => ({...b})); afasta(P, true); const B1 = P.map(q => ({x: q.x, y: q.y}));
+  function arranja(){
+    P = B.map((b, k) => ({p: b.p, i: b.i, x: B1[k].x * Z.s + Z.tx, y: B1[k].y * Z.s + Z.ty}));
+    if (Z.s > 1) afasta(P, false);
+    // rótulos: tenta à direita, à esquerda, embaixo e em cima; se não couber, o nome aparece só ao tocar ou passar o mouse
+    const vis = P.filter(q => q.x > -T && q.x < W + T && q.y > -T && q.y < H + T); nVis = vis.filter(q => q.x > 0 && q.x < W && q.y > 0 && q.y < H).length;
+    const caixas = vis.map(q => [q.x - T / 2 - 2, q.y - T / 2 - 2, q.x + T / 2 + 5, q.y + T / 2 + 5]);
+    const bate = (r, s2) => r[0] < s2[2] && r[2] > s2[0] && r[1] < s2[3] && r[3] > s2[1];
+    rot = [];
+    [...vis].sort((a, b) => a.x - b.x).forEach(q => {
+      const txt = nomeCurto(nomeV(q.p.id)), w = txt.length * fs * 0.56, h = fs + 2;
+      const op = [[q.x + T / 2 + 6, q.y + fs / 3, 'start', [q.x + T / 2 + 5, q.y - h / 2, q.x + T / 2 + 7 + w, q.y + h / 2]],
+                  [q.x - T / 2 - 6, q.y + fs / 3, 'end', [q.x - T / 2 - 7 - w, q.y - h / 2, q.x - T / 2 - 5, q.y + h / 2]],
+                  [q.x, q.y + T / 2 + fs + 3, 'middle', [q.x - w / 2, q.y + T / 2 + 4, q.x + w / 2, q.y + T / 2 + 6 + h]],
+                  [q.x, q.y - T / 2 - 6, 'middle', [q.x - w / 2, q.y - T / 2 - 7 - h, q.x + w / 2, q.y - T / 2 - 4]]];
+      const ok = op.find(o => o[3][0] >= 2 && o[3][2] <= W - 2 && o[3][1] >= 2 && o[3][3] <= H - 2 && !caixas.some(c => bate(o[3], c)) && !rot.some(r => bate(o[3], r[3])));
+      if (ok) rot.push([...ok, txt]);
+    });
   }
-  // rótulos: tenta à direita, à esquerda, embaixo e em cima; se não couber, o nome aparece só ao passar o mouse
-  const caixas = P.map(q => [q.x - T / 2 - 2, q.y - T / 2 - 2, q.x + T / 2 + 5, q.y + T / 2 + 5]);
-  const bate = (r, s) => r[0] < s[2] && r[2] > s[0] && r[1] < s[3] && r[3] > s[1];
-  const rot = [];
-  [...P].sort((a, b) => a.x - b.x).forEach(q => {
-    const txt = nomeCurto(nomeV(q.p.id)), w = txt.length * fs * 0.56, h = fs + 2;
-    const op = [[q.x + T / 2 + 6, q.y + fs / 3, 'start', [q.x + T / 2 + 5, q.y - h / 2, q.x + T / 2 + 7 + w, q.y + h / 2]],
-                [q.x - T / 2 - 6, q.y + fs / 3, 'end', [q.x - T / 2 - 7 - w, q.y - h / 2, q.x - T / 2 - 5, q.y + h / 2]],
-                [q.x, q.y + T / 2 + fs + 3, 'middle', [q.x - w / 2, q.y + T / 2 + 4, q.x + w / 2, q.y + T / 2 + 6 + h]],
-                [q.x, q.y - T / 2 - 6, 'middle', [q.x - w / 2, q.y - T / 2 - 7 - h, q.x + w / 2, q.y - T / 2 - 4]]];
-    const ok = op.find(o => o[3][0] >= 2 && o[3][2] <= W - 2 && o[3][1] >= 2 && o[3][3] <= H - 2 && !caixas.some(c => bate(o[3], c)) && !rot.some(r => bate(o[3], r[3])));
-    if (ok) rot.push([...ok, txt]);
-  });
   const desc = q => { const p = q.p, v = V[p.id];
     return `${v.nome}${v.partido ? ', ' + v.partido : ''}. Mais parecidos: ${p.parecidos.length ? p.parecidos.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') : 'sem dados suficientes'}.${p.diferentes.length ? ' Mais diferentes: ' + p.diferentes.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') + '.' : ''} ${p.votos} votações usadas.${p.poucos ? ' Poucos votos para analisar.' : ''} Abre a página do vereador.`; };
-  area.innerHTML = `<svg class="asvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Mapa de afinidade: ${R.pts.length} vereadores. Use Tab para percorrer os pontos e Enter para abrir a página do vereador.">
-    ${P.map(q => { const v = V[q.p.id], x = q.x - T / 2, y = q.y - T / 2, c = corDe(q.p.id);
-      return `<a href="#v-${v.id}" class="apt${q.p.poucos ? ' poucos' : ''}" data-i="${q.i}" aria-label="${esc(desc(q))}">
+  arranja();
+  const toque = matchMedia('(pointer: coarse)').matches;
+  area.innerHTML = `<div class="azoom" role="group" aria-label="Aproximar o mapa"><span class="note azdica">${toque ? 'Dois dedos aproximam o mapa' : 'Aproxime para ver mais nomes'}</span><button type="button" class="tool" data-z="1.6" aria-label="Aproximar">+</button><button type="button" class="tool" data-z="0.625" aria-label="Afastar">−</button><button type="button" class="tool azero" data-z="0" hidden>Ver tudo</button></div>
+  <svg class="asvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Mapa de afinidade: ${R.pts.length} vereadores. Use Tab para percorrer os pontos e Enter para abrir a página do vereador.">
+    ${P.map(q => { const v = V[q.p.id], c = corDe(q.p.id), x = -T / 2, y = -T / 2;
+      return `<a href="#v-${v.id}" class="apt${q.p.poucos ? ' poucos' : ''}" data-i="${q.i}" transform="translate(${q.x} ${q.y})" aria-label="${esc(desc(q))}">
         <rect class="aring" x="${x - 5}" y="${y - 5}" width="${T + 10}" height="${T + 10}"></rect>
         <rect class="ash" x="${x + 3}" y="${y + 3}" width="${T}" height="${T}"></rect>
         <rect class="afr" x="${x}" y="${y}" width="${T}" height="${T}" style="stroke:${c}"></rect>
         ${FOTOS[v.id] ? `<image href="${FOTOS[v.id]}" x="${x + 3}" y="${y + 3}" width="${T - 6}" height="${T - 6}" preserveAspectRatio="xMidYMid slice"${q.p.poucos ? ' opacity=".55"' : ''}></image>`
-          : `<text class="ainit" x="${q.x}" y="${q.y + T * 0.16}" text-anchor="middle" font-size="${T * 0.42}">${esc(iniciais(v.nome))}</text>`}
+          : `<text class="ainit" x="0" y="${T * 0.16}" text-anchor="middle" font-size="${T * 0.42}">${esc(iniciais(v.nome))}</text>`}
       </a>`; }).join('')}
-    ${rot.map(r => `<text class="alab" x="${r[0]}" y="${r[1]}" text-anchor="${r[2]}" font-size="${fs}" aria-hidden="true">${esc(r[4])}</text>`).join('')}
+    <g class="alabs" aria-hidden="true"></g>
   </svg><div class="atip" id="atip" hidden></div>`;
-  const ocultos = P.length - rot.length;
-  if (ocultos) area.insertAdjacentHTML('beforeend', `<p class="note am-ocultos">${ocultos === 1 ? '1 nome ficou escondido' : ocultos + ' nomes ficaram escondidos'} para não se sobreporem: passe o mouse, toque ou use Tab nos pontos para ver.</p>`);
+  const svg = area.querySelector('svg'), labs = svg.querySelector('.alabs'), pts = [...svg.querySelectorAll('.apt')], bZero = area.querySelector('.azero');
+  area.insertAdjacentHTML('beforeend', '<p class="note am-ocultos"></p>');
+  const nota = area.querySelector('.am-ocultos');
+  function desenha(){
+    pts.forEach(el => { const q = P[+el.dataset.i]; el.setAttribute('transform', `translate(${q.x.toFixed(1)} ${q.y.toFixed(1)})`); });
+    labs.innerHTML = rot.map(r => `<text class="alab" x="${r[0].toFixed(1)}" y="${r[1].toFixed(1)}" text-anchor="${r[2]}" font-size="${fs}">${esc(r[4])}</text>`).join('');
+    const ocultos = Math.max(0, (Z.s > 1 ? nVis : P.length) - rot.length);
+    nota.textContent = Z.s > 1 ? `Mapa aproximado: ${toque ? 'arraste com um dedo' : 'arraste com o mouse'} para andar por ele${ocultos ? ` (${ocultos === 1 ? '1 nome escondido' : ocultos + ' nomes escondidos'} nesta parte)` : ''}. “Ver tudo” volta ao mapa inteiro.` : ocultos ? `${ocultos === 1 ? '1 nome está escondido' : ocultos + ' nomes estão escondidos'} para não se sobreporem: ${toque ? 'toque nos pontos ou aproxime com dois dedos' : 'passe o mouse, use Tab ou aproxime com o botão +'}.` : '';
+    bZero.hidden = Z.s === 1;
+    svg.style.touchAction = Z.s > 1 ? 'none' : '';
+  }
+  desenha();
+  // zoom: mantém parado o ponto (mx, my) e limita para o mapa não sair da caixa
+  let pedido = 0;
+  const agenda = () => { if (!pedido) pedido = requestAnimationFrame(() => { pedido = 0; arranja(); desenha(); }); };
+  const limita = () => { Z.s = Math.min(Math.max(Z.s, 1), ZMAX); Z.tx = Math.min(0, Math.max(W - W * Z.s, Z.tx)); Z.ty = Math.min(0, Math.max(H - H * Z.s, Z.ty)); if (Z.s === 1) { Z.tx = 0; Z.ty = 0; } };
+  const zoomEm = (novo, mx, my) => { const s0 = Z.s, s1 = Math.min(Math.max(novo, 1), ZMAX); Z.tx = mx - (mx - Z.tx) * s1 / s0; Z.ty = my - (my - Z.ty) * s1 / s0; Z.s = s1; limita(); esconde(); agenda(); };
+  const noSvg = (cx2, cy2) => { const r = svg.getBoundingClientRect(); return [(cx2 - r.left) * W / r.width, (cy2 - r.top) * H / r.height]; };
+  area.querySelectorAll('.azoom [data-z]').forEach(b => b.addEventListener('click', () => { const f = +b.dataset.z; if (!f) { Z.s = 1; limita(); esconde(); agenda(); } else zoomEm(Z.s * f, W / 2, H / 2); }));
+  let engole = false;
+  const segura = () => { engole = true; setTimeout(() => { engole = false; }, 220); };
+  svg.addEventListener('click', e => { if (engole) { e.preventDefault(); e.stopPropagation(); } }, true);
+  // dois dedos: pinça (o resto do site não aumenta); um dedo com o mapa aproximado: arrasta o mapa
+  let pinca = null, arr = null;
+  const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  svg.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) { const [a, b] = e.touches; pinca = {d0: dist(a, b), s0: Z.s, tx0: Z.tx, ty0: Z.ty, m0: noSvg((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2)}; arr = null; esconde(); }
+    else if (e.touches.length === 1 && Z.s > 1) { const t = e.touches[0]; arr = {x: t.clientX, y: t.clientY, tx0: Z.tx, ty0: Z.ty, movido: false}; }
+  }, {passive: true});
+  svg.addEventListener('touchmove', e => {
+    if (pinca && e.touches.length === 2) { e.preventDefault(); const [a, b] = e.touches, m = noSvg((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+      const s1 = Math.min(Math.max(pinca.s0 * dist(a, b) / pinca.d0, 1), ZMAX);
+      Z.s = s1; Z.tx = m[0] - (pinca.m0[0] - pinca.tx0) * s1 / pinca.s0; Z.ty = m[1] - (pinca.m0[1] - pinca.ty0) * s1 / pinca.s0; limita(); agenda(); }
+    else if (arr && e.touches.length === 1 && Z.s > 1) { e.preventDefault(); const t = e.touches[0], k = W / svg.getBoundingClientRect().width;
+      const dx = (t.clientX - arr.x) * k, dy = (t.clientY - arr.y) * k; if (Math.hypot(dx, dy) > 6) { arr.movido = true; esconde(); }
+      Z.tx = arr.tx0 + dx; Z.ty = arr.ty0 + dy; limita(); agenda(); }
+  }, {passive: false});
+  svg.addEventListener('touchend', e => { if (pinca && e.touches.length < 2) { pinca = null; segura(); } if (arr && !e.touches.length) { if (arr.movido) segura(); arr = null; } }, {passive: true});
+  ['gesturestart', 'gesturechange'].forEach(t => svg.addEventListener(t, e => e.preventDefault()));   // Safari: não aumentar a página
+  // computador: arrastar com o mouse quando aproximado; pinça do trackpad (ctrl + rodinha)
+  let arrM = null;
+  svg.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && e.button === 0 && Z.s > 1) arrM = {x: e.clientX, y: e.clientY, tx0: Z.tx, ty0: Z.ty, movido: false}; });
+  window.addEventListener('pointermove', e => { if (!arrM || !svg.isConnected) return; const k = W / svg.getBoundingClientRect().width, dx = (e.clientX - arrM.x) * k, dy = (e.clientY - arrM.y) * k;
+    if (Math.hypot(dx, dy) > 4) { arrM.movido = true; svg.classList.add('arrastando'); } if (arrM.movido) { Z.tx = arrM.tx0 + dx; Z.ty = arrM.ty0 + dy; limita(); agenda(); } });
+  window.addEventListener('pointerup', () => { if (arrM && arrM.movido) segura(); arrM = null; svg.classList.remove('arrastando'); });
+  svg.addEventListener('wheel', e => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); const [mx, my] = noSvg(e.clientX, e.clientY); zoomEm(Z.s * Math.exp(-e.deltaY * 0.01), mx, my); }, {passive: false});
   const tip = area.querySelector('#atip'); let fixo = null, ultimoPtr = 'mouse';
   const mostra = (el, comLink) => {
     const q = P[+el.dataset.i], p = q.p, v = V[p.id];
@@ -1453,7 +1519,7 @@ function pintarMapa(area, R, corDe){
     if (left < 4) { left = Math.min(Math.max(px - tw / 2, 4), Math.max(4, aw - tw - 4)); top = py + r + th <= ah - 4 || py - r - th < 4 ? py + r : py - r - th; }
     tip.style.left = left + 'px'; tip.style.top = top + 'px';
   };
-  const esconde = () => { tip.hidden = true; fixo = null; area.querySelectorAll('.apt.on').forEach(x => x.classList.remove('on')); };
+  esconde = () => { tip.hidden = true; fixo = null; area.querySelectorAll('.apt.on').forEach(x => x.classList.remove('on')); };
   area.querySelector('svg').addEventListener('pointerdown', e => { ultimoPtr = e.pointerType || 'mouse'; });
   area.querySelectorAll('.apt').forEach(el => {
     el.addEventListener('mouseenter', () => { if (ultimoPtr !== 'touch' && !fixo) mostra(el, false); });
