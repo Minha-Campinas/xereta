@@ -363,13 +363,13 @@ def coletar_emendas():
 TIPOS_PROJETO = ('PLO', 'PLC', 'PDL', 'PRE', 'PELOM')
 # Áreas dos projetos (ordem importa: a primeira regra que casar define a área). Texto sem acento e minúsculo.
 AREAS_PROJ = [
-    ('Homenagens e títulos', r'^(concede|outorga|confere)\b|titulo de cidadao|diploma|medalha|comenda|honra ao merito|voto de (louvor|congratula)'),
+    ('Homenagens e títulos', r'^(concede|outorga|confere)\b|manifestacao de pesar|votos? de pesar|\bpesar pelo|aplauso|congratula|louvor|titulo de cidadao|diploma|medalha|comenda|honra ao merito|voto de (louvor|congratula)'),
     ('Nomes de ruas e locais', r'^(denomina|da denominacao|altera a denominacao)|denomina (rua|avenida|via|praca|travessa|viela|ruela|alameda|estrada|rodovia|sistema de lazer|area|escola|centro|unidade|ponte|viaduto|complexo|parque|bosque|largo)'),
     ('Datas comemorativas', r'calendario (oficial|de datas|de eventos|municipal)|institui,? (no municipio de campinas,? )?(o|a) (dia|semana|mes|jornada|campanha anual)|dia municipal|semana municipal|mes municipal|data comemorativa|inclui no calendario'),
     ('Utilidade pública', r'utilidade publica'),
     ('Funcionamento da Câmara', r'regimento interno|codigo de etica parlamentar|medida disciplinar|camara municipal de campinas|comissao parlamentar|frente parlamentar|tribuna livre|sessao solene|mesa da camara'),
     ('Urbanismo e imóveis públicos', r'terreno baldio|terrenos baldios|area publica|glebas?\b|perimetro urbano|direito real de uso|destinacao de area|condominio|bem publico|bens publicos|imovel|imoveis|desafeta|desincorpora|aliena|doacao de area|concessao de uso|permissao de uso|zoneamento|uso e ocupacao|uso do solo|loteamento|urbanist|plano diretor|impacto de vizinhanca|edifica|construc|\bobras?\b|espacos publicos|hostil'),
-    ('Saúde', r'paliativ|diagnostico|equoterapia|valorizacao da vida|suicid|toxicolog|terapia|cegueira|obesidade|urgencia|samu|sono\b|telessaude|vascular|alzheimer|pressao arterial|respirat|gagueira|aborto|sorriso|bucal|vicio|dependencia quimica|\bsaude\b|hospital|medic|doenca|cancer|vacin|\bsus\b|autis|\btea\b|enferm|covid|dengue|saude mental|gestante|gravidez|parto|obstetr|farmac|diabet|fibromialg|tratamento|paciente|sangue|doacao de orgaos|cirurg|odontol|ubs\b|pronto.?socorro'),
+    ('Saúde', r'paliativ|diagnostico|equoterapia|valorizacao da vida|suicid|toxicolog|terapia|cegueira|obesidade|urgencia e emergencia|samu|pronto atendimento|sono\b|telessaude|vascular|alzheimer|pressao arterial|respirat|gagueira|aborto|sorriso|bucal|vicio|dependencia quimica|\bsaude\b|hospital|medic|doenca|cancer|vacin|\bsus\b|autis|\btea\b|enferm|covid|dengue|saude mental|gestante|gravidez|parto|obstetr|farmac|diabet|fibromialg|tratamento|paciente|sangue|doacao de orgaos|cirurg|odontol|ubs\b|pronto.?socorro'),
     ('Educação', r'cursinho|formacao profissional|educa|escola|ensino|aluno|estudant|creche|professor|alfabetiza|universit|bolsa de estudo'),
     ('Segurança', r'vigilant|agentes de seguranca|armament|seguranca publica|guarda municipal|guarda civil|violencia|policia|crime|criminal|monitoramento por camera|cameras de|videomonitoramento|defesa civil|drogas|\barmas?\b'),
     ('Meio ambiente e animais', r'\brios?\b|ribeir|plantio|especies|leucena|veterinar|floresta|coleta seletiva|coleta domiciliar|ambient|animal|animais|\bcaes\b|\bgatos\b|\bcao\b|pitbull|focinheira|coleira|arvore|arboriza|residuo|lixo|recicla|clima|\bagua\b|poluic|nascente|mata\b|fauna|flora|sustentab|enchente|drenagem|queimada|pet\b'),
@@ -391,6 +391,36 @@ def area_projeto(ementa):
     """Área principal do projeto pela ementa: a primeira regra que casar. O que não casar fica em "Outros"."""
     e = sem_acento(ementa)
     return next((a for a, r in AREAS_PROJ_RE if r.search(e)), 'Outros')
+
+
+# requerimentos, emendas, substitutivos etc. que citam um projeto herdam a área dele
+REF_PROJETO = re.compile(r'projeto de (lei complementar|lei ordinaria|lei|decreto legislativo|resolucao)\b[^0-9]{0,25}?(\d+)\s*(?:/|de)\s*(\d{4})')
+SIGLA_REF = {'lei complementar': 'PLC', 'lei ordinaria': 'PLO', 'lei': 'PLO', 'decreto legislativo': 'PDL', 'resolucao': 'PRE'}
+
+
+def areas_das_materias(materias, tipos):
+    """Área de cada matéria (projetos, requerimentos, moções, emendas, atas). Devolve {id: área}."""
+    sig = {mid: (tipos.get(m['tipo']) or tipos.get(str(m['tipo'])) or {}).get('sigla') for mid, m in materias.items()}
+    base = {mid: area_projeto(m['ementa']) for mid, m in materias.items()}
+    indice = {}
+    for mid, m in materias.items():
+        try:
+            if sig[mid] in TIPOS_PROJETO:
+                indice[(sig[mid], int(m['n']), int(m['ano']))] = mid
+        except (TypeError, ValueError):
+            pass
+    out = {}
+    for mid, m in materias.items():
+        s, a = sig[mid] or '', base[mid]
+        if s.startswith('ATA'):
+            a = 'Funcionamento da Câmara'
+        elif s not in TIPOS_PROJETO and s != 'MOC':
+            r = REF_PROJETO.search(sem_acento(m['ementa']))
+            if r:
+                alvo = indice.get((SIGLA_REF[r.group(1)], int(r.group(2)), int(r.group(3))))
+                a = base[alvo] if alvo is not None else 'Outros'
+        out[mid] = a
+    return out
 
 
 def normaliza(s):
@@ -518,12 +548,15 @@ def montar(R, saida='index.html'):
                        [autores.get(a, '') for a in (m['autores'] or [])], m['texto']]
     autp = {int(k): v for k, v in (R.get('autores_parl') or {}).items()}
     nomes_areas = [a for a, _ in AREAS_PROJ] + ['Outros']
+    area_m = {str(k): nomes_areas.index(a) for k, a in areas_das_materias(R['materias'], tipos).items()}
+    for k, linha in MAT.items():
+        linha.append(area_m.get(k, len(nomes_areas) - 1))  # posição 6: índice da área
     PROJ = []
     for mid, data in R.get('projetos') or []:
         m = R['materias'].get(mid) or R['materias'].get(str(mid))
         if not m:
             continue
-        PROJ.append([mid, data, nomes_areas.index(area_projeto(m['ementa'])), [autp.get(a, 0) for a in (m['autores'] or [])]])
+        PROJ.append([mid, data, area_m[str(mid)], [autp.get(a, 0) for a in (m['autores'] or [])]])
     if PROJ:
         cont = collections.Counter(nomes_areas[p[2]] for p in PROJ)
         log(f'Projetos por área ({len(PROJ)}): ' + '; '.join(f'{a} {n}' for a, n in cont.most_common()))
@@ -546,9 +579,9 @@ def montar(R, saida='index.html'):
         REL=[[r['m'], r['p'], r['c'], r['ini'], r['fim'], None, r['tfim']] for r in R['relatorias'] if r['ini']],
         TFIM={str(k): v for k, v in R['tipos_fim'].items()},
     )
+    dados['AREAS_P'] = nomes_areas
     if PROJ:
         dados['PROJ'] = PROJ
-        dados['AREAS_P'] = nomes_areas
     if atual and R.get('emendas'):
         dados['EME'] = R['emendas']
         nomes = {chave_nome(v['nome']) for v in V}
