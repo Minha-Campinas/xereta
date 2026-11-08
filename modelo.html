@@ -506,6 +506,8 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 @media (max-width:640px){.prank li{grid-template-columns:2rem minmax(0,1fr) auto}.prank .ebar{grid-column:2 / -1}.prank .btn{grid-column:2 / -1;justify-self:start}}
 tr.psel td{background:var(--accent-soft)}
 .pcard{margin-top:1.5rem}
+.pfora{margin-top:1rem}
+.pfora>summary{cursor:pointer;font-size:.92rem;color:var(--muted);font-weight:700;min-height:2.5rem;padding:.3rem 0}
 .vote > button{grid-template-columns:minmax(0,1fr) auto}
 .vote .t{min-width:0;overflow-wrap:anywhere}
 .vote .vab{white-space:normal;font-size:.72rem;padding:.05rem .4rem;margin-left:.3rem;vertical-align:.12em;font-family:var(--body);letter-spacing:0}
@@ -612,6 +614,9 @@ tr.psel td{background:var(--accent-soft)}
   .vote .right{min-width:0}
   .vbar{min-width:0;max-width:100%}
   .mlist li,.plist2 li{min-width:0;overflow-wrap:anywhere}
+  .clamp,.vote .meta{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+  .clamp.solto{display:block;-webkit-line-clamp:unset;line-clamp:none;overflow:visible}
+  .vermais{display:inline-block;justify-self:start;background:none;border:0;padding:.2rem 0;margin:0;font:inherit;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:underline;text-underline-offset:.18em;cursor:pointer;min-height:2rem}
 }
 @media (max-width:640px) and (prefers-reduced-motion: reduce){header.top{transition:none}}
 </style>
@@ -653,6 +658,33 @@ const V = {}; D.V.forEach(v => V[v.id] = v);
 const ATIVOS = D.V.filter(v => v.ativo).sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
 const FOTOS = D.FOTOS || {};
 const TIPOS = D.TIPOS || {};
+/* As ementas vêm do SAPL em maiúsculas. Aqui viram letras normais: siglas conhecidas continuam em maiúsculas;
+   nomes entre aspas, nomes de homenageados e de ruas ganham iniciais maiúsculas. */
+const SIGLAS = new Set(['sus','samu','ubs','upa','caps','cras','creas','cep','iptu','iss','itbi','emdec','sanasa','cohab','fumec','setec','lgbt','lgbtqia','ong','oscip','cnpj','cpf','tea','tdah','avc','sp','unicamp','puc','camprev','fada','fdc','acnur','onu','pgv','ldo','loa','ppa','refis','gcm','eja','ceasa','covid','apae','cips','cmdca','fmdca','sesi','senai','senac','sebrae','mei','ia','tic','pcd','lom']);
+const PARTICULAS = new Set(['de','da','do','das','dos','e','a','o','em','na','no','nas','nos','para','por','com','à','ao','aos','às','di','del']);
+const maiuscula = w => w.replace(/^([("“'«]*)(\p{L})/u, (m, a, b) => a + b.toUpperCase());
+const titulo = t => t.split(/(\s+)/).map((w, i) => /^\s*$/.test(w) || (i > 0 && PARTICULAS.has(w)) ? w : maiuscula(w)).join('');
+function frase(s){
+  if (!s) return s;
+  const letras = s.replace(/[^\p{L}]/gu, ''), mai = letras.replace(/[^\p{Lu}]/gu, '').length;
+  if (!letras || mai / letras.length < 0.8) return s;
+  let t = s.toLowerCase().replace(/\s+/g, ' ').trim();
+  t = t.replace(/([“"«])([^”"»]{2,90})([”"»])/g, (m, a, b, c) => a + titulo(b) + c);
+  t = t.replace(/^((?:concede|outorga|confere)\b.*\s(?:a|ao|à|aos|às)\s)([^“"«]+?)(\.?)$/, (m, a, nome, fim) => a + titulo(nome) + fim);
+  t = t.replace(/^(denomina\s)(.+?)(\s(?:uma?|o|a)\s(?:via|vias|próprio|sistema|praça|área|pista|base|escola|unidade|centro|espaço|equipamento|quadra|campo|ponte|viaduto|rotatória|parque|bosque)\b)/, (m, a, nome, b) => a + titulo(nome) + b);
+  const NOMEFIM = '(?=[,;]|\\.(?:\\s|$)|\\s(?:pela|pelo|pelos|pelas|por|que|em razão|devido|ocorrido|realizad[oa]|no dia|na data)\\s|$)';
+  t = t.replace(new RegExp('((?:falecimento|homenagem|honraria|votos? de (?:aplausos?|congratula\\S*|louvor))\\s(?:d[oa]s?|a|ao|à|aos|às)\\s(?:(?:sra|sr|dra|dr|profa|prof)\\.?\\s|senhora\\s|senhor\\s|professora\\s|professor\\s|padre\\s|pastora\\s|pastor\\s|irmã\\s|jornalista\\s|reverendíssimo\\s|reverendo\\s)*\\s*)(.+?)' + NOMEFIM), (m, a, nome) => a + titulo(nome));
+  t = t.replace(/\((\p{L}{2,8})\)/gu, (m, w) => '(' + w.toUpperCase() + ')').replace(/([–-]\s)(\p{L}{2,8})(?=[\s,.;)]|$)/gu, (m, a, w) => PARTICULAS.has(w) ? m : a + w.toUpperCase());
+  t = t.replace(/\bprojeto de (lei complementar|lei ordinária|lei|decreto legislativo|resolução)\b/g, (m, x) => 'Projeto de ' + titulo(x).replace(' Ordinária', ' Ordinária'));
+  t = t.replace(/(incisos?|anexos?|cap[ií]tulos?|t[ií]tulos?|se[cç][oõ]es|se[cç][aã]o)\s+((?:[ivxlc]+(?:,\s*|\s+e\s+)?)+)/g, (m, a, b) => a + ' ' + b.replace(/\b[ivxlc]+\b/g, x => x.toUpperCase()));
+  t = t.replace(/\b\p{L}[\p{L}\d]*\b/gu, w => SIGLAS.has(w) ? w.toUpperCase() : w);
+  t = t.replace(/\bcampinas\b/g, 'Campinas').replace(/\bsão paulo\b/g, 'São Paulo').replace(/\bbrasil\b/g, 'Brasil')
+       .replace(/\blei orgânica\b/g, 'Lei Orgânica').replace(/\bregimento interno\b/g, 'Regimento Interno').replace(/\bcâmara municipal\b/g, 'Câmara Municipal')
+       .replace(/\blei( complementar)? (n[º°o]|federal|estadual|municipal)/g, (m, c, n) => 'Lei' + (c ? ' Complementar' : '') + ' ' + n);
+  t = t.replace(/(^|[.!?]\s+)(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
+  return t;
+}
+for (const m of Object.values(D.MAT || {})) if (m && m[3]) m[3] = frase(m[3]);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dt = d => new Date(d + 'T12:00:00');
 const fmtData = d => dt(d).toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
@@ -722,7 +754,12 @@ const rotulaTabelas = () => app.querySelectorAll('table.t:not(.nocard)').forEach
   const hs = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
   t.querySelectorAll('tbody tr:not([data-rl])').forEach(tr => { [...tr.children].forEach((td, i) => { if (hs[i]) td.dataset.l = hs[i]; }); tr.dataset.rl = '1'; });
 });
-new MutationObserver(rotulaTabelas).observe(app, {childList:true, subtree:true});
+// no celular, textos longos (ementas) mostram só as primeiras linhas, com "ver mais"
+const marcaClamp = () => { if (!celular.matches) return; app.querySelectorAll('.clamp:not([data-ck])').forEach(e => { e.dataset.ck = '1';
+  if (e.scrollHeight > e.clientHeight + 2) e.insertAdjacentHTML('afterend', '<button type="button" class="vermais" aria-expanded="false">ver mais</button>'); }); };
+new MutationObserver(() => { rotulaTabelas(); marcaClamp(); }).observe(app, {childList:true, subtree:true});
+app.addEventListener('click', e => { const b = e.target.closest('.vermais'); if (!b) return; const t = b.previousElementSibling; const ab = t.classList.toggle('solto');
+  b.textContent = ab ? 'ver menos' : 'ver mais'; b.setAttribute('aria-expanded', ab); });
 app.addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b) { const alvo = document.getElementById(b.dataset.ir); if (alvo) alvo.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); } });
 
 /* dados derivados */
@@ -1133,7 +1170,7 @@ function mapaAfinidade(){
     <div id="ainfo" aria-live="polite"></div>
     <div class="linkrow" style="margin-top:.9rem"><button type="button" class="btn ghost" id="atabbtn" aria-expanded="${FA.tabela}" aria-controls="atab">${FA.tabela ? 'Esconder tabela' : 'Ver em tabela'}</button></div>
     <div id="atab" ${FA.tabela ? '' : 'hidden'}></div>
-    ${comoFunciona(`<p>Cada quadrado é um vereador. Quem vota parecido fica perto; quem vota diferente fica longe. A posição só vale em relação aos outros pontos: os lados e as direções do mapa não têm significado próprio. O cálculo usa só votações nominais (com o voto de cada vereador registrado), e só as que tiveram divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} do lado que perdeu. Abstenções e ausências não entram.</p><p>A posição vem de um índice de afinidade: a porcentagem de votações em que dois vereadores votaram igual (os dois Sim ou os dois Não), entre as votações em que os dois votaram. Com o mapa recalculado só para alguns vereadores, as posições consideram só esse grupo.</p>`)}`;
+    ${comoFunciona(`<p>Cada quadrado é um vereador. Quem vota parecido fica perto; quem vota diferente fica longe. A posição só vale em relação aos outros pontos: os lados e as direções do mapa não têm significado próprio. O cálculo usa só votações nominais (com o voto de cada vereador registrado), e só as que tiveram divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} do lado que perdeu. Abstenções e ausências não entram.</p><p id="aqual"></p><p>A posição vem de um índice de afinidade: a porcentagem de votações em que dois vereadores votaram igual (os dois Sim ou os dois Não), entre as votações em que os dois votaram. Com o mapa recalculado só para alguns vereadores, as posições consideram só esse grupo.</p>`)}`;
   ligarToggle();
   let R = null;
   const desenhar = () => {
@@ -1150,9 +1187,10 @@ function mapaAfinidade(){
     const expl = Math.round(100 * (R.e1 + R.e2));
     const nivel = R.corr >= 0.9 && expl >= 60 ? 'boa' : R.corr >= 0.75 && expl >= 40 ? 'razoável' : 'baixa';
     const nPoucos = R.pts.filter(p => p.poucos).length;
-    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> com divisão real e <strong>${R.pts.length} vereadores</strong>${FA.partidos.length || FA.vers.length ? ' (mapa recalculado só com os escolhidos)' : ''}. Qualidade do mapa: <strong>${nivel}</strong>. As distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo).</p>`
+    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> · <strong>${R.pts.length} vereadores</strong>${FA.partidos.length || FA.vers.length ? ' (só os escolhidos)' : ''} · qualidade do mapa: <strong>${nivel}</strong>${nPoucos ? ` · ${nPoucos} com poucos votos (borda tracejada)` : ''}</p>`
       + (nivel === 'baixa' ? `<div class="callout am-aviso"><p><strong>Atenção:</strong> com esses filtros o mapa resume mal as diferenças de voto. Use as distâncias só como uma ideia geral e confira a tabela.</p></div>` : '')
-      + (nPoucos ? `<p class="note">${nPoucos === 1 ? '1 vereador tem' : nPoucos + ' vereadores têm'} poucos votos em comum com os demais (borda tracejada): a posição deles é aproximada.</p>` : '');
+      + '';
+    const aq = box.querySelector('#aqual'); if (aq) aq.textContent = `Com os filtros atuais, as distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo). A qualidade é boa com correlação a partir de 0,9 e 60% explicados. Vereadores com borda tracejada têm poucas votações em comum com os demais, e a posição deles é aproximada.`;
     // cores por partido (as maiores bancadas primeiro); a partir da 10ª, cinza
     const total = {}; AF_POOL.filter(id => V[id].ativo).forEach(id => { const s = partidoAf(id); total[s] = (total[s] || 0) + 1; });
     AF_POOL.forEach(id => { const s = partidoAf(id); if (!(s in total)) total[s] = 0; });
@@ -1200,14 +1238,16 @@ function mapaAfinidade(){
 }
 function pintarMapa(area, R, corDe){
   const W = Math.max(area.clientWidth || 800, 280), estreito = W < 560;
-  const T = estreito ? 24 : 38, fs = estreito ? 11 : 12.5, H = Math.round(estreito ? Math.max(W * 1.15, 360) : Math.min(Math.max(W * 0.62, 360), 600));
+  // no celular (tela alta e estreita) o mapa gira 90°: o eixo principal fica na vertical, com o vereador de referência em cima
+  const T = estreito ? 26 : 38, fs = estreito ? 11 : 12.5;
+  const H = Math.round(estreito ? Math.min(Math.max(W * 1.75, 520), 820) : Math.min(Math.max(W * 0.62, 360), 600));
   const mg = T / 2 + 10;
-  const xs = R.pts.map(p => p.x), ys = R.pts.map(p => p.y);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const U = R.pts.map(p => estreito ? p.y : p.x), Vv = R.pts.map(p => estreito ? -p.x : p.y);
+  const x0 = Math.min(...U), x1 = Math.max(...U), y0 = Math.min(...Vv), y1 = Math.max(...Vv);
   // mesma escala nos dois eixos, para não exagerar o segundo eixo
   const esc1 = Math.min((W - 2 * mg - (estreito ? 20 : 60)) / ((x1 - x0) || 1), (H - 2 * mg) / ((y1 - y0) || 1));
   const cx = (W - (x1 - x0) * esc1) / 2, cy = (H - (y1 - y0) * esc1) / 2;
-  const P = R.pts.map((p, i) => ({p, i, x: cx + (p.x - x0) * esc1, y: H - (cy + (p.y - y0) * esc1)}));
+  const P = R.pts.map((p, i) => ({p, i, x: cx + (U[i] - x0) * esc1, y: H - (cy + (Vv[i] - y0) * esc1)}));
   // afasta um pouco os pontos que se cobririam (a posição calculada não muda; é só para enxergar)
   const minD = T + 4;
   for (let it = 0; it < 200; it++) { let mexeu = false;
@@ -1473,7 +1513,8 @@ function viewComissao(cid){
     <div class="filters">${blocoPeriodo('cper', FC)}
     <div class="frow" id="cso"><span class="flabel">Mostrar</span>${chips('Mostrar', [['todas','Todas'],['ok','Realizadas'],['canc','Canceladas ou não realizadas'],['ata','Com ata']], FC.so)}</div></div>
     <div class="facts" id="cfacts" style="margin-top:.5rem"></div><div id="creu" style="margin-top:1rem"></div></section>
-  <section class="section" aria-labelledby="h-rel"><h2 id="h-rel">Relatorias</h2><p class="note" style="margin:-.5rem 0 1rem">Projetos que receberam um relator nesta comissão no período escolhido. O relator estuda o projeto e propõe o parecer. A pauta de cada reunião está no PDF, porque o sistema não registra quais projetos foram discutidos em cada uma.</p>${campoBusca('crq', FC.q)}<div id="crel"></div></section>`;
+  <section class="section" aria-labelledby="h-rel"><h2 id="h-rel">Relatorias</h2>${campoBusca('crq', FC.q)}<div id="crel"></div></section>
+  ${comoFunciona('<p>Integrantes mostra a composição atual da comissão. Reuniões lista os encontros marcados, com pauta e ata em PDF quando existem.</p><p>Relatorias são os projetos que receberam um relator nesta comissão no período escolhido. O relator estuda o projeto e propõe o parecer. A pauta de cada reunião está no PDF, porque o sistema não registra quais projetos foram discutidos em cada uma.</p>')}`;
   app.innerHTML = h;
   const render = () => {
     const R = (REUc[cid] || []).filter(r => r.d >= FC.de && r.d <= FC.ate).sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id);
@@ -1487,8 +1528,8 @@ function viewComissao(cid){
       return `<details class="cat reu"><summary><span class="rdate"><b>${dt(r.d).getDate()}</b><small>${dt(r.d).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace('.','')}</small></span><span class="rinfo"><strong>${esc((r.nome || (r.n ? r.n + 'ª reunião' : 'Reunião')).replace(/\s*[-–]\s*cancelada\s*$/i,''))}</strong><span>${esc(r.tema ? r.tema.slice(0,110) + (r.tema.length > 110 ? '…' : '') : diaSemana(r.d))}</span></span><span style="display:flex;align-items:center;gap:.5rem"><span class="badge ${r.sit==='ok'?'b1':r.sit==='ag'?'b3':'b2'}">${SIT[r.sit]}</span>${CHEV}</span></summary>
       <div class="inner">${r.tema && r.tema.length > 110 ? `<p>${esc(r.tema)}</p>` : ''}<p class="note">${fmtData(r.d)}${r.hi ? `, das ${r.hi.slice(0,5)}${r.hf ? ' às ' + r.hf.slice(0,5) : ''}` : ''}${r.local ? `. ${esc(r.local)}` : ''}</p>${r.obs ? `<p>${esc(r.obs)}</p>` : ''}
       <div class="links">${r.pauta ? `<a href="${esc(r.pauta)}" target="_blank" rel="noopener">Pauta (PDF)</a>` : ''}${r.ata ? `<a href="${esc(r.ata)}" target="_blank" rel="noopener">Ata (PDF)</a>` : ''}${r.anexo ? `<a href="${esc(r.anexo)}" target="_blank" rel="noopener">Anexo</a>` : ''}${r.video ? `<a href="${esc(r.video)}" target="_blank" rel="noopener">Vídeo</a>` : ''}${r.audio ? `<a href="${esc(r.audio)}" target="_blank" rel="noopener">Áudio</a>` : ''}${!(r.pauta||r.ata||r.video||r.audio) ? '<span class="note">Sem documentos publicados.</span>' : ''}</div>
-      ${pm.length ? `<ul class="mlist">${pm.map(mid => `<li><strong><a href="${SAPL}/materia/${mid}" target="_blank" rel="noopener">${esc(matRot(mid))}</a></strong><span>${esc((D.MAT[mid]||[])[3] || '')}</span></li>`).join('')}</ul>` : ''}</div></details>`; }).join('') : `<div class="empty">Nenhuma reunião registrada nesse período com esse filtro.</div>`;
-    document.getElementById('crel').innerHTML = rel.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Projeto</th><th scope="col">Relator</th><th scope="col">Designado em</th><th scope="col">Situação</th></tr></thead><tbody>${rel.slice(0,100).map(x => `<tr><td><a href="${SAPL}/materia/${x.m}" target="_blank" rel="noopener">${esc(matRot(x.m))}</a><br><span class="note">${esc(((D.MAT[x.m]||[])[3]||'').slice(0,120))}</span></td><td>${V[x.p] ? `<a href="#v-${x.p}">${esc(nomeV(x.p))}</a>` : 'Parlamentar ' + x.p}</td><td>${fmtCurta(x.ini)} ${x.ini.slice(0,4)}</td><td>${x.fim || x.tfim ? esc(TFIM[x.tfim] ? 'Parecer ' + TFIM[x.tfim].toLowerCase() : 'Encerrada') : 'Em andamento'}</td></tr>`).join('')}</tbody></table></div>${rel.length > 100 ? `<p class="note">Mostrando as 100 mais recentes de ${rel.length}.</p>` : ''}` : `<div class="empty">Nenhuma relatoria encontrada nesse período e com essa busca.</div>`;
+      ${pm.length ? `<ul class="mlist">${pm.map(mid => `<li><strong><a href="${SAPL}/materia/${mid}" target="_blank" rel="noopener">${esc(matRot(mid))}</a></strong><span class="clamp">${esc((D.MAT[mid]||[])[3] || '')}</span></li>`).join('')}</ul>` : ''}</div></details>`; }).join('') : `<div class="empty">Nenhuma reunião registrada nesse período com esse filtro.</div>`;
+    document.getElementById('crel').innerHTML = rel.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Projeto</th><th scope="col">Relator</th><th scope="col">Designado em</th><th scope="col">Situação</th></tr></thead><tbody>${rel.slice(0,100).map(x => `<tr><td><a href="${SAPL}/materia/${x.m}" target="_blank" rel="noopener">${esc(matRot(x.m))}</a><br><span class="note clamp">${esc(((D.MAT[x.m]||[])[3]||''))}</span></td><td>${V[x.p] ? `<a href="#v-${x.p}">${esc(nomeV(x.p))}</a>` : 'Parlamentar ' + x.p}</td><td>${fmtCurta(x.ini)} ${x.ini.slice(0,4)}</td><td>${x.fim || x.tfim ? esc(TFIM[x.tfim] ? 'Parecer ' + TFIM[x.tfim].toLowerCase() : 'Encerrada') : 'Em andamento'}</td></tr>`).join('')}</tbody></table></div>${rel.length > 100 ? `<p class="note">Mostrando as 100 mais recentes de ${rel.length}.</p>` : ''}` : `<div class="empty">Nenhuma relatoria encontrada nesse período e com essa busca.</div>`;
   };
   ligarPeriodo('cper', FC, render);
   document.getElementById('crq').addEventListener('input', e => { FC.q = e.target.value; render(); });
@@ -1882,7 +1923,7 @@ const passaP = (p, f, sem = '') => (!f.anos.length || f.anos.includes(p.d.slice(
 const rotProj = p => `${esc(TIPOS[p.sig] || p.sig)} nº ${p.n}/${p.ano}`;
 const itemProj = p => `<li><strong><a href="${SAPL}/materia/${p.id}" target="_blank" rel="noopener">${rotProj(p)}</a></strong>
   <span class="pmeta">${fmtData(p.d)} · <span class="badge b3">${esc(p.a)}</span></span>
-  <span class="pem">${esc(p.em)}</span>
+  <span class="pem clamp">${esc(p.em)}</span>
   <span class="paut">Autoria: ${p.aut.length ? p.aut.map(a => a.p && V[a.p] ? `<a href="#v-${a.p}">${esc(V[a.p].nome)}</a>` : esc(a.nome)).join(', ') : 'não informada'}</span></li>`;
 function viewProjetos(){
   if (!PROJ.length) { app.innerHTML = `<h1>Projetos apresentados</h1><div class="empty">Os projetos ainda não foram carregados.</div>`; return; }
@@ -1923,7 +1964,7 @@ function viewProjetos(){
     if (FPJ.aba === 'area') {
       const LA = PROJ.filter(p => passaP(p, FPJ, 'area')); const c = {}; LA.forEach(p => { c[p.a] = (c[p.a] || 0) + 1; });
       const R = Object.entries(c).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR')); const max = R.length ? R[0][1] : 1;
-      pn.innerHTML = `<p class="count">${num(LA.length)} projetos em ${R.length} áreas${FPJ.area ? '. A área escolhida no filtro aparece destacada' : ''}. As áreas marcadas com * são homenagens e outros atos simbólicos.</p>
+      pn.innerHTML = `<p class="count">${num(LA.length)} projetos em ${R.length} áreas · * atos simbólicos</p>
         ${R.length ? `<div class="tablewrap"><table class="t nocard"><thead><tr><th scope="col">Área</th><th scope="col" class="ev">Projetos</th><th scope="col" class="ev">%</th><th scope="col"><span class="sr">Proporção</span></th><th scope="col"><span class="sr">Ações</span></th></tr></thead><tbody>${R.map(([a, n]) => `<tr${a === FPJ.area ? ' class="psel"' : ''}><td><strong>${esc(a)}</strong>${SIMB.includes(a) ? ' *' : ''}</td><td class="ev">${num(n)}</td><td class="ev">${pct(n, LA.length)}%</td><td class="ecell"><div class="ebar${a === 'Outros' ? ' outros' : ''}" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div></td><td><span class="linkrow"><button type="button" class="btn ghost sm" data-rank="${esc(a)}">Ranking</button><button type="button" class="btn ghost sm" data-lista="${esc(a)}">Ver projetos</button></span></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum projeto com esses filtros.</div>`}`;
       const vai = (a, aba) => { FPJ.area = a; FPJ.aba = aba; document.getElementById('parea').value = a; render(); document.getElementById('paba-' + aba).focus(); };
       pn.querySelectorAll('[data-rank]').forEach(b => b.addEventListener('click', () => vai(b.dataset.rank, 'rank')));
@@ -1937,13 +1978,13 @@ function viewProjetos(){
       const titulo = FPJ.area ? `em ${esc(FPJ.area)}` : FPJ.tema ? 'em áreas temáticas' : 'em todas as áreas';
       pn.innerHTML = `<h2 class="prank-t">Quem mais apresentou projetos ${titulo}</h2>
         ${FPJ.area ? '' : `<label class="check"><input type="checkbox" id="ptema" ${FPJ.tema ? 'checked' : ''}>Só áreas temáticas (sem homenagens, nomes de ruas, datas comemorativas e utilidade pública)</label>`}
-        <p class="count">${R.length} ${R.length === 1 ? 'vereador' : 'vereadores'} com pelo menos um projeto${FPJ.autor ? '. O filtro de autor não vale para o ranking' : ''}. Projetos com mais de um autor contam para cada um.</p>
+        <p class="count">${R.length} ${R.length === 1 ? 'vereador' : 'vereadores'} com projetos${FPJ.autor ? ' · o filtro de autor não vale aqui' : ''}</p>
         ${R.length ? `<ol class="prank">${R.slice(0, q).map(([id, n], i) => `<li><span class="pos">${i + 1}º</span><a class="vcell" href="#v-${id}">${av(id, 'sm')}<span><strong>${esc(nomeV(id))}</strong><small>${esc(V[id].partido || '')}${V[id].ativo ? '' : ' · fora do exercício'}</small></span></a>
           <span class="pnum"><b>${num(n)}</b> ${n === 1 ? 'projeto' : 'projetos'}${totV[id] && (FPJ.area || FPJ.tema) ? `<small>${pct(n, totV[id])}% dos projetos dele</small>` : ''}</span>
           <div class="ebar" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div>
           <button type="button" class="btn ghost sm" data-ver="${id}">Ver projetos</button></li>`).join('')}</ol>` : `<div class="empty">Nenhum vereador apresentou projetos com esses filtros.</div>`}
         ${R.length > q ? `<p class="note">Mostrando ${num(q)} de ${R.length}. Use “Mostrar até” para ver mais.</p>` : ''}
-        ${Object.keys(outros).length ? `<p class="note">Fora do ranking (não são vereadores): ${Object.entries(outros).sort((a, b) => b[1] - a[1]).map(([nm, n]) => `${esc(nm)} (${num(n)})`).join(', ')}.</p>` : ''}`;
+        ${Object.keys(outros).length ? `<details class="pfora"><summary>Fora do ranking: Prefeito, Mesa e outros (${num(Object.values(outros).reduce((a, b) => a + b, 0))} projetos)</summary><p class="note">${Object.entries(outros).sort((a, b) => b[1] - a[1]).map(([nm, n]) => `${esc(nm)} (${num(n)})`).join(', ')}.</p></details>` : ''}`;
       const t = pn.querySelector('#ptema'); if (t) t.addEventListener('change', e => { FPJ.tema = e.target.checked; render(); });
       pn.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => { FPJ.autor = 'v:' + b.dataset.ver; FPJ.aba = 'lista'; document.getElementById('paut').value = FPJ.autor; render(); document.getElementById('paba-lista').focus(); }));
     } else {
@@ -1975,7 +2016,7 @@ function secProjetos(v){
   const c = {}; meus.forEach(p => { c[p.a] = (c[p.a] || 0) + 1; });
   const R = Object.entries(c).sort((a, b) => b[1] - a[1]); const max = R[0][1];
   const nSimb = meus.filter(p => SIMB.includes(p.a)).length;
-  return cab + `<p class="note" style="margin-top:0">${num(meus.length)} ${meus.length === 1 ? 'projeto' : 'projetos'} ${PERIODO_TXT}, sozinho ou com outros autores. ${pct(nSimb, meus.length)}% são homenagens, nomes de ruas, datas comemorativas ou utilidade pública.</p>
+  return cab + `<p class="note" style="margin-top:0">${num(meus.length)} ${meus.length === 1 ? 'projeto' : 'projetos'} · ${pct(nSimb, meus.length)}% homenagens, ruas, datas e utilidade pública</p>
     ${R.slice(0, 6).map(([a, n]) => `<div class="efor"><div class="eh"><span>${esc(a)}</span><span>${num(n)}</span></div><div class="ebar${a === 'Outros' ? ' outros' : ''}" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div></div>`).join('')}
     ${R.length > 6 ? `<p class="note">E mais ${R.length - 6} ${R.length - 6 === 1 ? 'área' : 'áreas'}.</p>` : ''}
     <div class="cfoot"><a class="btn" href="#projetos" id="pver">Ver os projetos</a></div></section>`;
