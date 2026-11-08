@@ -216,6 +216,10 @@ button.day[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)
 .vote .meta{color:var(--muted);font-size:.92rem;grid-column:1}
 .vote .right{grid-row:1 / span 2;grid-column:2;display:flex;flex-direction:column;align-items:flex-end;gap:.25rem}
 .vote .strip{grid-column:1 / -1}
+.vote .vcel{display:none}
+.vote .vdata{color:var(--muted);font-size:.9rem;grid-column:1 / -1}
+.vote .vtags{grid-column:1 / -1;flex-wrap:wrap;gap:.35rem;margin:.15rem 0 .1rem}
+.vote .vtags .badge{white-space:normal}
 .vote .chev{transition:transform .15s;color:var(--muted)}
 .vote > button[aria-expanded="true"] .chev{transform:rotate(180deg)}
 .badge{display:inline-block;font-size:.8rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;white-space:nowrap}
@@ -491,6 +495,11 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 .amapa .am-num{margin:.4rem 0}
 .abox{position:relative;margin-top:.6rem;background:var(--bg);border:2px solid var(--bd);min-width:0}
 .abox .empty{margin:1rem;box-shadow:none}
+.abox.cheio{position:fixed;inset:0;z-index:300;margin:0;border:0;overflow:auto;overscroll-behavior:contain}
+.abox.cheio .azoom{position:sticky;top:0;z-index:2}
+body.mapa-cheio{overflow:hidden}
+.azoom [hidden]{display:none!important}
+.azoom .acheio-b{font-size:1rem;display:inline-flex;align-items:center;justify-content:center}
 .asvg{display:block;width:100%;height:auto;touch-action:pan-y;-webkit-user-select:none;user-select:none;overflow:hidden}
 .asvg.arrastando{cursor:grabbing}
 .azoom{display:flex;align-items:center;justify-content:flex-end;gap:.35rem;padding:.4rem .4rem .4rem .7rem;border-bottom:2px solid var(--line);background:var(--surface)}
@@ -592,11 +601,33 @@ tr.psel td{background:var(--accent-soft)}
   .sec-filtros>h2{display:none}
   .sec-filtros{margin-top:1.25rem;margin-bottom:1.25rem}
   .anos .flabel{flex-basis:100%;margin:0}
+  /* filtros compactos no celular: abertos, cabem em cerca de 3/4 da tela */
+  .filters{gap:.45rem;margin:.6rem 0 .8rem}
+  .filters .frow{gap:.3rem .5rem}
+  .filters .flabel{flex-basis:100%;min-width:0;font-size:.76rem;line-height:1.1;margin:.15rem 0 0}
+  .filters .frow:has(> .flabel + .chips){display:grid;grid-template-columns:4.4rem minmax(0,1fr);align-items:start;gap:.3rem}
+  .filters .frow:has(> .flabel + .chips)>.flabel{margin:.5rem 0 0}
+  .filters .frow:has(> .flabel + .chips)>:not(.flabel):not(.chips){grid-column:1 / -1}
+  .filters .frow:has(> .flabel + .chips)>.dates{display:flex;flex-wrap:wrap;gap:.3rem .6rem}
+  .filters .frow:has(> .flabel + .chips){grid-template-columns:3.9rem minmax(0,1fr)}
+  .filters .frow:has(> .flabel + .chips .chip:nth-child(7)){display:flex}
+  .filters .frow:has(> .flabel + .chips .chip:nth-child(7))>.flabel{margin:.15rem 0 0}
+  .filters .chips{gap:.25rem}
+  .filters .chip,.filters .anos .check{min-height:1.85rem;padding:.1rem .4rem;font-size:.78rem;box-shadow:2px 2px 0 var(--sh)}
+  .filters .anos .flabel{flex:0 0 3.6rem;margin:0}
+  .mbody{padding:.8rem .8rem 1.2rem}
+  .filters .chip[aria-pressed="true"],.filters .anos .check:has(input:checked){box-shadow:none}
+  .filters .anos{gap:.3rem}
+  .filters select,.filters input[type=search],.filters input[type=date]{min-height:2.2rem;padding:.3rem .55rem;font-size:.88rem;box-shadow:2px 2px 0 var(--sh)}
+  .filters label.f{gap:.35rem;font-size:.85rem}
+  .filters .check{min-height:1.9rem;font-size:.85rem}
+  .filters .btn{min-height:2.2rem;padding:.3rem .8rem;font-size:.88rem}
+  .filters .note,.filters p{font-size:.8rem;margin:0}
   /* emendas: total pago na largura toda, os outros quadros lado a lado */
   .stats .stat-total{grid-column:1 / -1}
   .stats .stat-larga{grid-column:1 / -1}
   .stats .stat-total ~ .stat:last-child:nth-child(2){grid-column:1 / -1}
-  .ftoggle{width:100%}
+  .ftoggle{width:100%;min-height:2.4rem;padding-top:.3rem;padding-bottom:.3rem}
   .modal{width:100%}
   /* abas em pasta viram botões em duas colunas */
   .pasta{flex-wrap:wrap;overflow:visible;padding:0;gap:.4rem;margin:1.25rem 0 .7rem}
@@ -662,6 +693,13 @@ tr.psel td{background:var(--accent-soft)}
   .snav{flex-wrap:wrap;width:100%}
   .snav>*{flex:1 1 auto}
   .vote .right{min-width:0}
+  /* cartão de votação no celular: título, data, etiquetas e texto, um embaixo do outro */
+  .vote > button{gap:.3rem .6rem;padding:.85rem .9rem}
+  .vote .vdsk{display:none}
+  .vote .vcel{display:block}
+  .vote .vtags{display:flex}
+  .vote .right{grid-row:1;align-self:start}
+  .vote .meta{grid-column:1 / -1}
   .vbar{min-width:0;max-width:100%}
   .mlist li,.plist2 li{min-width:0;overflow-wrap:anywhere}
   .clamp,.vote .meta{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
@@ -872,14 +910,20 @@ function detalhe(v){
   if (!location.hash.startsWith('#s-')) h += `<a href="#s-${v.s}">Ver a sessão de ${fmtCurta(v.d)}</a>`;
   return h + '</div></div>';
 }
-function voteItem(v, meta='', me=null){
+/* cartão de votação. o.d: mostra a data; o.txt: texto no lugar da ementa.
+   No computador: título com área, resultado à direita, e "data. texto" embaixo.
+   No celular: título, data, etiquetas (resultado e área) e por último o texto, tudo na largura toda. */
+function voteItem(v, o = {}){
   const m = NOM[v.id];
   const ementa = D.MAT[v.m] ? (D.MAT[v.m][3]||'') : '';
-  const sub = meta || (ementa ? esc(ementa.slice(0,150)) + (ementa.length > 150 ? '…' : '') : (m ? '' : 'Votação simbólica'));
+  const txt = o.txt != null ? o.txt : (ementa ? esc(ementa.slice(0,150)) + (ementa.length > 150 ? '…' : '') : (m ? '' : 'Votação simbólica'));
+  const data = o.d ? fmtData(v.d) : '', area = areaMat(v.m), res = `<span class="badge b${v.res}">${esc(resNome(v.res))}</span>`;
   return `<article class="vote" data-id="${v.id}"><button type="button" aria-expanded="false">
-    <span class="t">${esc(v.lbl || 'Matéria ' + v.m)}${areaMat(v.m) ? ` <span class="badge b3 vab">${esc(areaMat(v.m))}</span>` : ''}</span>
-    <span class="right"><span class="badge b${v.res}">${esc(resNome(v.res))}</span>${CHEV}</span>
-    <span class="meta">${sub}</span>
+    <span class="t">${esc(v.lbl || 'Matéria ' + v.m)}${area ? ` <span class="badge b3 vab vdsk">${esc(area)}</span>` : ''}</span>
+    <span class="right"><span class="vdsk">${res}</span>${CHEV}</span>
+    ${data ? `<span class="vdata vcel">${data}</span>` : ''}
+    <span class="vtags vcel">${res}${area ? `<span class="badge b3">${esc(area)}</span>` : ''}</span>
+    ${data || txt ? `<span class="meta">${data ? `<span class="vdsk">${data}${txt ? '. ' : ''}</span>` : ''}${txt}</span>` : ''}
     ${m ? barra(m) : ''}
   </button></article>`;
 }
@@ -1423,12 +1467,32 @@ function mapaAfinidade(){
   const aoRedim = () => { if (!document.contains(box)) { window.removeEventListener('resize', aoRedim); return; }
     clearTimeout(espera); espera = setTimeout(() => { const w = box.querySelector('#abox').clientWidth; if (w && Math.abs(w - largura) > 20 && R && !R.erro) { largura = w; desenhar(); } }, 200); };
   window.addEventListener('resize', aoRedim);
+  box.querySelector('#abox').addEventListener('redesenha', () => { if (R && !R.erro) { largura = box.querySelector('#abox').clientWidth; desenhar(); } });
 }
+/* tela cheia do mapa: usa a tela cheia do navegador quando existe e, de qualquer jeito, prende o mapa sobre a página
+   (no iPhone o navegador não deixa um pedaço da página ocupar a tela inteira) */
+const ICO_CHEIO = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5"/></svg>';
+const ICO_SAI_CHEIO = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M7 2v5H2M18 7h-5V2M13 18v-5h5M2 13h5v5"/></svg>';
+function telaCheia(area, liga){
+  if (liga) {
+    area.classList.add('cheio'); document.body.classList.add('mapa-cheio');
+    if (area.requestFullscreen && !document.fullscreenElement) area.requestFullscreen().catch(() => {});
+  } else {
+    area.classList.remove('cheio'); document.body.classList.remove('mapa-cheio');
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+  area.dispatchEvent(new CustomEvent('redesenha'));
+  setTimeout(() => { const b = area.querySelector('.acheio-b'); if (b) b.focus({preventScroll:true}); }, 60);
+}
+document.addEventListener('fullscreenchange', () => { const a = document.querySelector('.abox.cheio'); if (!document.fullscreenElement && a) telaCheia(a, false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const a = document.querySelector('.abox.cheio'); if (a && !document.fullscreenElement) telaCheia(a, false); } });
 function pintarMapa(area, R, corDe){
   const W = Math.max(area.clientWidth || 800, 280), estreito = W < 560;
   // no celular (tela alta e estreita) o mapa gira 90°: o eixo principal fica na vertical, com o vereador de referência em cima
   const T = estreito ? 26 : 38, fs = estreito ? 11 : 12.5;
-  const H = Math.round(estreito ? Math.min(Math.max(W * 1.75, 520), 820) : Math.min(Math.max(W * 0.62, 360), 600));
+  // em tela cheia o mapa ocupa a altura da tela (menos a barra de cima e a nota de baixo)
+  const cheio = area.classList.contains('cheio');
+  const H = cheio ? Math.max(Math.round(window.innerHeight - 105), 300) : Math.round(estreito ? Math.min(Math.max(W * 1.75, 520), 820) : Math.min(Math.max(W * 0.62, 360), 600));
   const mg = T / 2 + 10;
   const U = R.pts.map(p => estreito ? p.y : p.x), Vv = R.pts.map(p => estreito ? -p.x : p.y);
   const x0 = Math.min(...U), x1 = Math.max(...U), y0 = Math.min(...Vv), y1 = Math.max(...Vv);
@@ -1479,7 +1543,7 @@ function pintarMapa(area, R, corDe){
     return `${v.nome}${v.partido ? ', ' + v.partido : ''}. Mais parecidos: ${p.parecidos.length ? p.parecidos.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') : 'sem dados suficientes'}.${p.diferentes.length ? ' Mais diferentes: ' + p.diferentes.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') + '.' : ''} ${p.votos} votações usadas.${p.poucos ? ' Poucos votos para analisar.' : ''} Abre a página do vereador.`; };
   arranja();
   const toque = matchMedia('(pointer: coarse)').matches;
-  area.innerHTML = `<div class="azoom" role="group" aria-label="Aproximar o mapa"><span class="note azdica">${toque ? 'Dois dedos aproximam o mapa' : 'Aproxime para ver mais nomes'}</span><button type="button" class="tool" data-z="1.6" aria-label="Aproximar">+</button><button type="button" class="tool" data-z="0.625" aria-label="Afastar">−</button><button type="button" class="tool azero" data-z="0" hidden>Ver tudo</button></div>
+  area.innerHTML = `<div class="azoom" role="group" aria-label="Aproximar o mapa"><span class="note azdica">${toque ? 'Dois dedos aproximam o mapa' : 'Aproxime para ver mais nomes'}</span><button type="button" class="tool" data-z="1.6" aria-label="Aproximar">+</button><button type="button" class="tool" data-z="0.625" aria-label="Afastar">−</button><button type="button" class="tool azero" data-z="0" hidden>Ver tudo</button><button type="button" class="tool acheio-b" aria-pressed="${cheio}" aria-label="${cheio ? 'Sair da tela cheia' : 'Tela cheia'}" title="${cheio ? 'Sair da tela cheia' : 'Tela cheia'}">${cheio ? ICO_SAI_CHEIO : ICO_CHEIO}</button></div>
   <svg class="asvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Mapa de afinidade: ${R.pts.length} vereadores. Use Tab para percorrer os pontos e Enter para abrir a página do vereador.">
     ${P.map(q => { const v = V[q.p.id], c = corDe(q.p.id), x = -T / 2, y = -T / 2;
       return `<a href="#v-${v.id}" class="apt${q.p.poucos ? ' poucos' : ''}" data-i="${q.i}" transform="translate(${q.x} ${q.y})" aria-label="${esc(desc(q))}">
@@ -1491,7 +1555,7 @@ function pintarMapa(area, R, corDe){
       </a>`; }).join('')}
     <g class="alabs" aria-hidden="true"></g>
   </svg><div class="atip" id="atip" hidden></div>`;
-  const svg = area.querySelector('svg'), labs = svg.querySelector('.alabs'), pts = [...svg.querySelectorAll('.apt')], bZero = area.querySelector('.azero');
+  const svg = area.querySelector('svg.asvg'), labs = svg.querySelector('.alabs'), pts = [...svg.querySelectorAll('.apt')], bZero = area.querySelector('.azero');
   area.insertAdjacentHTML('beforeend', '<p class="note am-ocultos"></p>');
   const nota = area.querySelector('.am-ocultos');
   function desenha(){
@@ -1509,6 +1573,7 @@ function pintarMapa(area, R, corDe){
   const limita = () => { Z.s = Math.min(Math.max(Z.s, 1), ZMAX); Z.tx = Math.min(0, Math.max(W - W * Z.s, Z.tx)); Z.ty = Math.min(0, Math.max(H - H * Z.s, Z.ty)); if (Z.s === 1) { Z.tx = 0; Z.ty = 0; } };
   const zoomEm = (novo, mx, my) => { const s0 = Z.s, s1 = Math.min(Math.max(novo, 1), ZMAX); Z.tx = mx - (mx - Z.tx) * s1 / s0; Z.ty = my - (my - Z.ty) * s1 / s0; Z.s = s1; limita(); esconde(); agenda(); };
   const noSvg = (cx2, cy2) => { const r = svg.getBoundingClientRect(); return [(cx2 - r.left) * W / r.width, (cy2 - r.top) * H / r.height]; };
+  area.querySelector('.acheio-b').addEventListener('click', () => telaCheia(area, !cheio));
   area.querySelectorAll('.azoom [data-z]').forEach(b => b.addEventListener('click', () => { const f = +b.dataset.z; if (!f) { Z.s = 1; limita(); esconde(); agenda(); } else zoomEm(Z.s * f, W / 2, H / 2); }));
   let engole = false;
   const segura = () => { engole = true; setTimeout(() => { engole = false; }, 220); };
@@ -1555,7 +1620,7 @@ function pintarMapa(area, R, corDe){
     tip.style.left = left + 'px'; tip.style.top = top + 'px';
   };
   esconde = () => { tip.hidden = true; fixo = null; area.querySelectorAll('.apt.on').forEach(x => x.classList.remove('on')); };
-  area.querySelector('svg').addEventListener('pointerdown', e => { ultimoPtr = e.pointerType || 'mouse'; });
+  area.querySelector('svg.asvg').addEventListener('pointerdown', e => { ultimoPtr = e.pointerType || 'mouse'; });
   area.querySelectorAll('.apt').forEach(el => {
     el.addEventListener('mouseenter', () => { if (ultimoPtr !== 'touch' && !fixo) mostra(el, false); });
     el.addEventListener('mouseleave', () => { if (!fixo) esconde(); });
@@ -1617,7 +1682,7 @@ function renderBusca(){
   document.getElementById('count').textContent = `${num(r.length)} ${r.length === 1 ? 'votação' : 'votações'} de ${fmtData(FB.de)} a ${fmtData(FB.ate)}` + (FB.q && VT.some(v => !D.MAT[v.m]) ? '. Em algumas votações a ementa não está nos dados, e a busca olha só o título.' : '') + (FB.ordem === 'pol' ? '. Ordenadas pela proximidade entre votos Sim e Não. Só as votações com voto de cada vereador entram na conta; as demais ficam no fim.' : '');
   const el = document.getElementById('lista');
   if (!r.length) { el.innerHTML = `<div class="empty">Nenhuma votação com esses filtros. Amplie o período ou escolha outro tipo.</div>`; return; }
-  el.innerHTML = r.slice(0, FB.limite).map(v => voteItem(v, `${fmtData(v.d)}${(FB.ordem === 'pol' || FB.ordem === 'div') && placar(v) ? `. Placar: ${placar(v).S} Sim × ${placar(v).N} Não` : ''}${D.MAT[v.m] ? '. ' + esc((D.MAT[v.m][3]||'').slice(0,120)) + ((D.MAT[v.m][3]||'').length > 120 ? '…' : '') : ''}`)).join('') +
+  el.innerHTML = r.slice(0, FB.limite).map(v => voteItem(v, {d:true, txt:[(FB.ordem === 'pol' || FB.ordem === 'div') && placar(v) ? `Placar: ${placar(v).S} Sim × ${placar(v).N} Não` : '', D.MAT[v.m] ? esc((D.MAT[v.m][3]||'').slice(0,120)) + ((D.MAT[v.m][3]||'').length > 120 ? '…' : '') : ''].filter(Boolean).join('. ')})).join('') +
     (r.length > FB.limite ? `<button class="btn ghost more" id="mais" type="button">Mostrar mais ${Math.min(40, r.length - FB.limite)}</button>` : '');
   document.getElementById('mais')?.addEventListener('click', () => { FB.limite += 40; renderBusca(); });
 }
@@ -1828,7 +1893,7 @@ function viewPerfil(id){
   const minhasAut = VT.filter(x => { const m = D.MAT[x.m]; return m && (m[4] || []).some(a => norm(a) === nomeN); });
   const nAut = new Set(minhasAut.map(x => x.m)).size;
   const recentes = [...minhas].sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id).slice(0, 4);
-  const vmeta = x => { const k = NOM[x.id] ? NOM[x.id][id] : null; return k ? `${fmtData(x.d)}. Votou: <span class="voto-tag" style="--c:var(--${VCOR[k]})">${VOTO[k]}</span>` : `${fmtData(x.d)}. Votação simbólica`; };
+  const vmeta = x => { const k = NOM[x.id] ? NOM[x.id][id] : null; return {d:true, txt:k ? `Votou: <span class="voto-tag" style="--c:var(--${VCOR[k]})">${VOTO[k]}</span>` : 'Votação simbólica'}; };
   app.innerHTML = `<a class="back" href="#vereadores">‹ Vereadores</a>
   <div class="phead">${av(id,'xxl')}<div class="pdados"><h1>${esc(v.nome)}</h1>
     <p class="lede" style="margin:.3rem 0 0"><strong>${esc(v.partido || 'Partido não informado')}</strong></p>
@@ -2305,7 +2370,7 @@ function rota(){
   document.title = titulo + ' – Xereta';
   document.querySelectorAll('nav.tabs a').forEach(a => { if (a.dataset.view === tab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
 }
-window.addEventListener('hashchange', () => { fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
+window.addEventListener('hashchange', () => { const ac = document.querySelector('.abox.cheio'); if (ac) telaCheia(ac, false); document.body.classList.remove('mapa-cheio'); fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
 rota();
 })();
 </script>
