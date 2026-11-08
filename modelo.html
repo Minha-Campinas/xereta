@@ -110,6 +110,22 @@ h3{font-size:1.15rem;font-weight:600}
 .hero{padding:1.5rem 0 .5rem}
 .hero h1{font-size:clamp(2.1rem,6vw,3.6rem);max-width:21ch;letter-spacing:-.025em}
 .hero p{font-size:1.2rem;color:var(--muted);max-width:46ch;margin:1rem 0 0}
+.passeio{margin-top:1rem;max-width:32rem;border-bottom:2px solid var(--bd)}
+.passeio canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.crs{margin-top:2.5rem}
+.crs-topo{display:flex;align-items:center;justify-content:space-between;gap:.6rem 1rem;flex-wrap:wrap}
+.crs-ctl{display:flex;gap:.4rem}
+.crs-ctl .tool{font-size:1.5rem;line-height:1}
+.crs-vp{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;cursor:grab;margin-top:.7rem;-webkit-mask-image:linear-gradient(90deg,transparent,#000 2rem,#000 calc(100% - 2rem),transparent);mask-image:linear-gradient(90deg,transparent,#000 2rem,#000 calc(100% - 2rem),transparent)}
+.crs-vp::-webkit-scrollbar{display:none}
+.crs-vp.arrastando{cursor:grabbing;user-select:none;-webkit-user-select:none}
+.crs-trilho{display:flex;gap:.4rem;width:max-content;padding:.4rem .2rem .8rem}
+.crs-trilho .face{flex:none;width:7.5rem}
+.crs-trilho img{pointer-events:none;-webkit-user-drag:none;user-select:none}
+.crs-mais{margin:.2rem 0 0;font-size:.95rem}
+.atalhos{display:grid;gap:.9rem}
+.atalhos .paths{margin-top:0}
+.calhome{max-width:24rem;margin-top:.8rem}
 .paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.9rem;margin-top:2.25rem}
 .path{display:flex;flex-direction:column;gap:.4rem;padding:1.4rem 1.4rem 1.3rem;border-radius:18px;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--ink);min-height:9.5rem;transition:border-color .15s}
 .path:hover{border-color:var(--accent)}
@@ -601,8 +617,9 @@ tr.psel td{background:var(--accent-soft)}
   .cint .person .av.sm{width:3.2rem;height:3.2rem}
   .cint .person small{font-size:.72rem}
   /* ordem das seções no celular */
-  #app[data-view="inicio"],#app[data-view="votacoes"]{display:flex;flex-direction:column}
-  #app[data-view="inicio"]>.eme-hero{order:5;margin-top:2.5rem}
+  #app[data-view="votacoes"]{display:flex;flex-direction:column}
+  .crs-trilho .face{width:6.4rem}
+  .calhome{max-width:none}
   #app[data-view="votacoes"]>.sessions{order:1}
   #app[data-view="votacoes"]>.gchart{order:2;margin-top:2rem}
   #app[data-view="votacoes"]>.comofunc{order:3}
@@ -962,26 +979,156 @@ function viewInicio(){
   const u = ultima; const uv = u ? votosSessao[u.id] : [];
   const apr = uv.filter(v => RESG.aprov.includes(v.res)).length;
   app.innerHTML = `<section class="hero"><h1>Acompanhe a Câmara de Campinas</h1>
-    <p>Escolha um dia no calendário ou um vereador para começar.</p></section>
+    <p>Curioso pra saber o que seu vereador anda fazendo? Começa a xeretar por aqui.</p>
+    <div class="passeio"><canvas id="passeio" width="176" height="64" role="img" aria-label="Animação: o cachorro do Xereta entra pulando, anda, fareja o chão e sai correndo"></canvas></div></section>
   ${EME ? emendasDestaque() : ''}
-  <section class="homecal" aria-labelledby="h-cal">
-    <div class="cal" id="cal"><h2 class="sr" id="h-cal">Escolha uma sessão no calendário</h2></div>
-    <div class="side">
-      ${u ? `<div class="latest col"><div><div class="note">Última sessão com votações</div><strong style="font-size:1.2rem">${esc(tipoCurto(u))} de ${fmtData(u.d)}</strong><div class="note">${num(uv.length)} votações, ${num(apr)} aprovadas${PRES[u.id] ? `, ${PRES[u.id].size} vereadores presentes` : ''}</div></div>
-        <div class="linkrow"><a class="btn" href="#s-${u.id}">Ver a última sessão</a><a class="btn ghost" href="#busca">Buscar votações por período</a></div></div>` : ''}
-      <nav class="paths ${EME ? 'three' : 'two'}" aria-label="Outras seções">
-        ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada vereador destinou e para quem o dinheiro foi pago. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
-        <a class="path" href="#presenca"><span class="ico">${ICO.pre}</span><strong>Presença</strong><span>Quem compareceu às sessões.</span></a>
-        <a class="path" href="#comissoes"><span class="ico">${ICO.com}</span><strong>Comissões</strong><span>Quem analisa os projetos e as reuniões.</span></a>
-      </nav>
-    </div>
+  <section class="crs" id="crs" aria-labelledby="h-ver" aria-roledescription="carrossel">
+    <div class="crs-topo"><h2 id="h-ver">Os vereadores</h2>
+      <div class="crs-ctl"><button type="button" class="tool" id="crsAnt" aria-label="Vereadores anteriores">‹</button><button type="button" class="tool" id="crsPausa" aria-pressed="false" aria-label="Pausar o carrossel">${ICO_PAUSA}</button><button type="button" class="tool" id="crsProx" aria-label="Próximos vereadores">›</button></div></div>
+    <div class="crs-vp" id="crsVp"><div class="crs-trilho">${[0, 1].map(c => ATIVOS.map(v => `<a class="face" href="#v-${v.id}"${c ? ' aria-hidden="true" tabindex="-1"' : ''}>${av(v.id,'lg')}<span class="nm">${esc(v.nome)}</span><span class="pt">${esc(v.partido||'')}</span></a>`).join('')).join('')}</div></div>
+    <p class="crs-mais"><a href="#vereadores">Ver todos os vereadores e buscar por nome ou partido</a></p>
   </section>
-  <section class="section" aria-labelledby="h-ver"><h2 id="h-ver">Escolha um vereador</h2>
-    <div class="faces">${ATIVOS.map(v => `<a class="face" href="#v-${v.id}">${av(v.id,'lg')}<span class="nm">${esc(v.nome)}</span><span class="pt">${esc(v.partido||'')}</span></a>`).join('')}</div></section>`;
-  const cal = document.getElementById('cal'); calendario(cal, {picker:true});
-  cal.insertAdjacentHTML('afterbegin', '<h2 class="sr" id="h-cal">Escolha uma sessão no calendário</h2>');
+  <section class="section atalhos" aria-label="Por onde começar">
+    ${u ? `<div class="latest col"><div><div class="note">Última sessão com votações</div><strong style="font-size:1.2rem">${esc(tipoCurto(u))} de ${fmtData(u.d)}</strong><div class="note">${num(uv.length)} votações, ${num(apr)} aprovadas${PRES[u.id] ? `, ${PRES[u.id].size} vereadores presentes` : ''}</div></div>
+      <div class="linkrow"><a class="btn" href="#s-${u.id}">Ver a última sessão</a><a class="btn ghost" href="#busca">Buscar votações por período</a></div></div>` : ''}
+    <nav class="paths ${EME ? 'three' : 'two'}" aria-label="Outras seções">
+      ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada vereador destinou e para quem o dinheiro foi pago. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
+      <a class="path" href="#presenca"><span class="ico">${ICO.pre}</span><strong>Presença</strong><span>Quem compareceu às sessões.</span></a>
+      <a class="path" href="#comissoes"><span class="ico">${ICO.com}</span><strong>Comissões</strong><span>Quem analisa os projetos e as reuniões.</span></a>
+    </nav>
+  </section>
+  <section class="section" aria-labelledby="h-cal"><h2 id="h-cal">Sessões no calendário</h2>
+    <div class="cal calhome" id="cal"></div></section>`;
+  passeioXereta(document.getElementById('passeio'));
+  carrossel(document.getElementById('crs'));
+  calendario(document.getElementById('cal'), {picker:true});
+}
+const ICO_PAUSA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+const ICO_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg>';
+/* Carrossel de vereadores: anda sozinho da direita para a esquerda, sem fim (a lista está duplicada e a rolagem
+   "dá a volta" no meio). Dá para arrastar (mouse ou dedo) e usar as setas; para com o mouse em cima, com o foco
+   do teclado dentro dele ou com o botão de pausa. Com "reduzir movimento", não anda sozinho. */
+function carrossel(box){
+  if (!box) return;
+  const vp = box.querySelector('.crs-vp'), trilho = box.querySelector('.crs-trilho');
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)'), VEL = 28;      // pixels por segundo
+  const bPausa = box.querySelector('#crsPausa');
+  let pos = 0, ultimo = performance.now(), sobre = false, foco = false, mexendo = 0, pausado = reduz.matches, visivel = true, arrasto = null, engole = false;
+  const meia = () => trilho.scrollWidth / 2;
+  // a posição fica sempre entre 1 e metade+1: passou do fim, volta uma metade; chegou no zero, avança uma metade
+  const fora = () => vp.scrollLeft >= meia() + 1 || vp.scrollLeft < 1;
+  const volta = () => { const m = meia(); if (!m) return; if (vp.scrollLeft >= m + 1) vp.scrollLeft -= m; else if (vp.scrollLeft < 1) vp.scrollLeft += m; pos = vp.scrollLeft; };
+  const marcaPausa = () => { bPausa.innerHTML = pausado ? ICO_PLAY : ICO_PAUSA; bPausa.setAttribute('aria-pressed', pausado); bPausa.setAttribute('aria-label', pausado ? 'Fazer o carrossel andar' : 'Pausar o carrossel'); };
+  marcaPausa();
+  const espera = ms => { mexendo = performance.now() + ms; };
+  function laco(agora){
+    if (!box.isConnected) return;
+    const dt = Math.min(64, agora - ultimo); ultimo = agora;
+    if (Math.abs(vp.scrollLeft - Math.round(pos)) > 2) pos = vp.scrollLeft;   // a pessoa rolou: segue de onde ela deixou
+    if (visivel && !pausado && !sobre && !foco && !arrasto && agora > mexendo) { pos += VEL * dt / 1000; vp.scrollLeft = pos; if (fora()) volta(); }
+    requestAnimationFrame(laco);
+  }
+  vp.scrollLeft = 1; pos = 1; requestAnimationFrame(laco);
+  vp.addEventListener('scroll', () => { if (fora()) volta(); }, {passive:true});
+  // setas: avançam ou voltam cerca de três fotos
+  const passo = () => { const f = trilho.querySelector('.face'); return f ? (f.getBoundingClientRect().width + 6) * 3 : 300; };
+  const anda = dir => { espera(1800); if (dir < 0 && vp.scrollLeft < passo() + 2) { vp.scrollLeft += meia(); pos = vp.scrollLeft; } if (dir > 0 && vp.scrollLeft + passo() >= meia() + 1) { vp.scrollLeft -= meia(); pos = vp.scrollLeft; }
+    vp.scrollBy({left: dir * passo(), behavior: reduz.matches ? 'auto' : 'smooth'}); };
+  box.querySelector('#crsAnt').addEventListener('click', () => anda(-1));
+  box.querySelector('#crsProx').addEventListener('click', () => anda(1));
+  bPausa.addEventListener('click', () => { pausado = !pausado; marcaPausa(); });
+  // arrastar com o mouse (no toque, a rolagem do próprio celular já resolve)
+  vp.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; arrasto = {x:e.clientX, sl:vp.scrollLeft, movido:false, id:e.pointerId}; });
+  vp.addEventListener('pointermove', e => { if (!arrasto) return; const dx = e.clientX - arrasto.x; if (!arrasto.movido && Math.abs(dx) > 5) { arrasto.movido = true; vp.classList.add('arrastando'); try { vp.setPointerCapture(arrasto.id); } catch (_) {} }
+    if (!arrasto.movido) return;
+    vp.scrollLeft = arrasto.sl - dx; if (fora()) { volta(); arrasto.sl = vp.scrollLeft + dx; } });
+  const solta = () => { if (!arrasto) return; engole = arrasto.movido; arrasto = null; vp.classList.remove('arrastando'); pos = vp.scrollLeft; espera(1200); };
+  vp.addEventListener('pointerup', solta); vp.addEventListener('pointercancel', solta);
+  vp.addEventListener('dragstart', e => e.preventDefault());   // sem o 'arrastar link' do navegador
+  vp.addEventListener('click', e => { if (engole) { e.preventDefault(); e.stopPropagation(); engole = false; } }, true);
+  vp.addEventListener('touchstart', () => espera(100000), {passive:true});
+  vp.addEventListener('touchend', () => espera(1800), {passive:true});
+  vp.addEventListener('mouseenter', () => { sobre = true; }); vp.addEventListener('mouseleave', () => { sobre = false; });
+  box.addEventListener('focusin', () => { foco = true; }); box.addEventListener('focusout', e => { if (!box.contains(e.relatedTarget)) foco = false; });
+  new IntersectionObserver(es => es.forEach(e => { visivel = e.isIntersecting; })).observe(box);
 }
 
+
+/* ---------- Início: cachorro do Xereta passeando (pixel art) ----------
+   Entra pulando pela esquerda, anda, fareja o chão, acha alguma coisa ("!") e sai acelerando pela direita.
+   Pausa fora da tela; com "reduzir movimento" ligado, fica parado. Desenhos: caracteres por pixel, comprimidos por linha. */
+const SPRITE = {"W":60,"H":42,"chao":39,"pal":{"#":"#1b120c","o":"#de9e58","d":"#b8763e","l":"#f0be82","n":"#4a2f20","e":"#28180e","g":"#1f8a3c","y":"#f2c81c","t":"#e8e2c8","w":"#ffffff"},"q":{"salto":["60.|60.|60.|60.|60.|31.7#22.|30.#4d3l8#14.|30.#4d2oe5l3n#13.|30.#4d2o2e4o3n#13.|29.#5d10o#14.|29.#o4d8o2d#14.|29.#2o2d6o2d3#15.|7.#21.#8o2d3#17.|6.#l#19.#loy4o2d2#20.|5.#ld#18.2#ogy2g2o2#22.|5.#o#18.#2logy2g2o#23.|4.#lo#13.5#l3og2yg2o#23.|4.#do#10.3#5l4o2gyg2o#23.|5.#dl#3.6#3l11oy3ol#22.|6.#ol#.#6l19o#22.|6.#dol#l20o3tod#22.|7.#dol22ot2o#23.|8.#d15o2d8od#23.|9.#12o3d2#d7o#24.|9.#10o2d3#2.#3d4o#24.|9.#d9o2#6.3#4o#24.|10.#d8o#8.#4o#25.|11.#2d5od#8.#4o2#24.|12.2#5o#10.#5o#23.|13.#d3o#12.2#3o#23.|12.#d4o#14.#o#24.|11.#d4o#16.#25.|11.#d3o#43.|11.#d3o#43.|11.#d2o#44.|10.#2d2o#44.|10.#2d2o#44.|9.#2d3o#44.|10.#d3o#44.|11.4#45.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|34.4#22.|33.#4d2#20.|33.#4d2l#19.|32.#5d2ol3#16.|2#30.#4d2owe3l4#12.|2l2#28.#o3d3oe3ol3n#11.|#d2l#26.#lo3d8o3n#11.|.#dol#24.#l14od#12.|2.#dol#22.#lgoy6o2d2o2d#13.|3.#dol2#3.6#.10#lo2gyg3o2d6#14.|4.#2d2l#.#6l#10l2og2yg2od2#2.2#16.|5.2#dol#l6ol12og2yg2o#22.|7.#2dl20ogy2g2o#22.|8.2#22oyog2o#22.|8.#l27o#22.|9.#23o2t2o#22.|9.#d8o8d6o2tod#22.|10.#d7o8#d7od#23.|11.#7o#7.#d6o2#23.|11.#6od#8.#2d5od2#21.|10.2#d4od#10.3#6od#20.|9.#d5o2#14.#5od#20.|9.#d4o#17.2#4od2#18.|8.#d4o#20.2#2o3d#17.|7.#2d2o2#23.#3od#17.|6.#2d3o#24.#3o#18.|6.#d3o#26.3#19.|7.#2o#49.|8.2#50.|60.|60.","60.|60.|60.|8.#51.|7.#l#50.|7.#o#50.|7.#o#50.|7.#ol#49.|7.#2o#49.|7.#do#49.|8.#o#49.|8.#ol#48.|8.#dol#26.#20.|9.#do6#19.2#d#19.|10.#o6l#17.#4d#18.|10.#7ol2#14.#5dl2#16.|10.#8o2l4#9.#l5do2l#15.|9.#l10o4l3#4.2#lo4d4o#15.|9.#15o3l4#2l3o3d2o2e2#14.|9.#d17o4logy7oeo2l2#12.|10.#d20o2gyg10o2l2#10.|11.#20og2yg11o3n#9.|11.#6o3d10o2gy2g2o5d4o3n#9.|10.2#6o3#3d8o2yg2od7#o2d2#10.|9.#d6od#2.3#2d8og2o#5.5#12.|9.#5o3#6.2#6ot3od#7.#14.|9.#3o2#10.#6o2t2o#23.|10.#2o#11.#d5ot2od#23.|9.#d2od#11.#2d5od#24.|10.#3o#12.2#4od#25.|11.3#14.#3od#26.|28.#3o#27.|27.#3od#27.|27.#3od#27.|27.#3od#27.|27.#3od#27.|27.#2od#28.|26.#3od#28.|26.#3od#28.|26.#3o2d#27.|60.|60.","60.|60.|60.|60.|60.|60.|60.|11.#48.|9.2#l#47.|8.#2l#25.#22.|8.#o#25.#d2#20.|8.#o#24.#4d2#18.|8.#o#23.#5d2l#17.|8.#ol#22.#4d3ol#16.|8.#2o#2.2#17.#l4d2owe2#15.|8.#do3#2l3#13.#l2o3d2o2e2l4#11.|9.#o3l2o3l7#5.#l3od8o2l2n#10.|9.#9o7l5#lgoy11o4n#9.|9.#16o5logy2g11o2n#10.|9.#22ogy2g2o6d2o2d#11.|9.#21o2gy2g2o10#12.|9.#d20o2gyg2od#5.2#14.|10.#d21oyg2o#22.|11.#7o7d11o#22.|11.#6od7#6o2t2od#22.|11.#2d3od#6.#d5o2t2o#23.|12.2#3o#8.#d7od#23.|13.#3o#9.#2d4od#24.|13.#3od#9.2#3od#25.|13.#3od#10.#3od#25.|13.#4o#10.#3od#25.|14.#2o#11.#3od#25.|14.#2o#11.#3od#25.|14.#2o#11.#3o#26.|13.#3od#10.#2od#26.|13.#3od#10.#2od#26.|14.#o2#11.#2od#26.|15.#12.#3od#26.|28.#3od#26.|29.4#27.|60.|60."],"anda":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#4od#24.|12.#2d4o#9.#4od#24.|12.#3d3o#9.#3o3d#23.|11.#4d4o#8.#3o3d#23.|11.#3d2#3o#7.#4o3d#23.|11.#3d#.#3o#6.#3o#3d#23.|11.#2d#3.#3o2#4.#2o#.#2d#23.|11.#2d#4.#4o#3.#2o#.#3d#22.|11.#3d#3.#4o#2.#3o#2.#3d#21.|11.#3d#4.4#3.#3o#2.#3d#21.|12.3#13.3#4.3#22.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d4od#24.|13.#3od#9.2#d3o#25.|12.#4o2d#10.#4o#24.|12.#3o3d#9.#2d3o#24.|11.#4o4d#8.#2d3o#24.|11.#3o2#3d#8.#2d4o#23.|11.#3o#.#3d#7.#3d2o#24.|11.#2o#3.#3d2#4.#3d2#2o#23.|11.#2o#4.#4d#3.#2d#.#2o#23.|11.#3o#3.#4d#2.#3d#.#3o#22.|11.#3o#4.4#3.#3d#.#4o#21.|12.3#13.3#3.#o2#22.|35.#24.|60.|60."],"fareja":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|5.2#53.|4.#2l#52.|4.#2o#52.|4.#do#52.|5.#ol#51.|5.#do#51.|6.#ol#4.2#14.3#27.|6.#dol4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gyg#21.|9.#25ogygl#20.|9.#d8o8d8ogygol2#18.|10.#d7o8#8ogyg4d2#16.|11.#d5od#6.#d7ogy2g3d2l#15.|12.#d4o#8.#2d6ogyg3d2ol#14.|13.#4o#9.2#d3o2dgyg3d3ol#13.|13.#4o#11.#3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|14.#2o#12.#3o#3.#7d3o3n#7.|14.#3o#11.#2od#4.9#2d2#8.|15.#2o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gyg#21.|9.#25ogygl#20.|9.#d8o8d8ogygol2#18.|10.#d7o8#8ogyg4d2#16.|11.#d5od#6.#d7ogy2g3d2l#15.|12.#d4o#8.#2d6ogyg3d2ol#14.|13.#4o#9.2#d3o2dgyg3d3ol#13.|13.#4o#11.#3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|14.#2o#12.#3o#3.#7d3o3n#7.|14.#3o#11.#2od#4.9#2d2#8.|15.#2o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60."],"andar":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#4od#dy3d2oweo2#12.|12.#2d4o#9.#4od2#2t2d2o2eo2l3#9.|12.#3d3o#9.#3o3d#2td8ol2n#8.|11.#4d4o#8.#3o3d2#d10o3n#7.|11.#3d2#3o#7.#4o3d#.#7d3o3n#7.|11.#3d#.#3o#6.#3o#3d#2.9#2d2#8.|11.#2d#3.#3o2#4.#2o#.#2d#9.4#10.|11.#2d#4.#4o#3.#2o#.#3d#22.|11.#3d#3.#4o#2.#3o#2.#3d#21.|11.#3d#4.4#3.#3o#2.#3d#21.|12.3#13.3#4.3#22.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d4o2dgyg3d3ol#13.|13.#3od#9.2#d3o2#dy3d2oweo2#12.|12.#4o2d#10.#4o2#2t2d2o2eo2l3#9.|12.#3o3d#9.#2d3o2#2td8ol2n#8.|11.#4o4d#8.#2d3o#.#d10o3n#7.|11.#3o2#3d#8.#2d4o#.#7d3o3n#7.|11.#3o#.#3d#7.#3d2o#3.9#2d2#8.|11.#2o#3.#3d2#4.#3d2#2o#9.4#10.|11.#2o#4.#4d#3.#2d#.#2o#23.|11.#3o#3.#4d#2.#3d#.#3o#22.|11.#3o#4.4#3.#3d#.#4o#21.|12.3#13.3#3.#o2#22.|35.#24.|60.|60."],"alta":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60."],"trote":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#5o#8.#2d5o#24.|12.#d5o#8.2#4od#24.|12.#3d3o#9.#4od#24.|11.#4d4o#8.#3o3d#23.|11.#3d2#3o#7.#4o3d#23.|11.#2d#2.#3o#6.#3o#4d#22.|10.#3d#3.#3o3#3.#3o2#3d#22.|10.#2d#5.#5o#.#3o#2.#2d#22.|10.#2d#6.#4o#.#2o#3.#2d2#21.|9.#4d#6.#o2#.#3o#4.#3d#20.|10.#d2#8.#3.#2o#5.#3d#20.|11.#15.2#7.3#21.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#5o#8.#2d4od#24.|12.#4o2d#8.2#d3o#25.|12.#3o3d#10.#4o#24.|11.#4o4d#8.#2d3o#24.|11.#3o2#3d#8.#2d4o#23.|11.#2o#2.#3d#6.#4d3o#23.|10.#3o#3.#3d3#3.#3d#3o#23.|10.#2o#5.#5d#2.#2d#.#3o#22.|10.#2o#6.#4d#.#2d#3.#2o2#21.|9.#4o#6.#d2#.#4d#2.#4o#20.|10.#o2#8.#4.#d2#4.#2o#21.|11.#16.#7.2#22.|60.|60."],"corre":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.2#23.|34.#2d3#20.|33.#4d2l#19.|#32.#4d2ol#18.|l2#29.#5doewl6#12.|d2l#28.#o4do2eo4l2n#11.|2#dl#26.#lo3d8o4n#10.|2.#dl#24.#l3od10o2n#11.|3.#dl#22.2#2oy7od3o2d#12.|4.#ol2#3.6#.10#2l2gyg3o3d6#13.|4.#2d2l3#6l#10l2o2gyg3o3#.3#15.|5.2#2d3l6ol12og2yg2od#21.|7.2#d21og2yg2o#22.|9.#22oy2g2o#22.|8.#l27o#22.|9.#23o2t2o#22.|9.#d8o8d6o2tod#22.|10.#d7o8#d7od#23.|11.#d6o#7.#d6o#24.|12.#5od#8.#2d4od2#22.|11.#d4od#10.3#5od#21.|10.#d4o2#14.#5od#20.|9.#d4o#17.#4od#20.|9.#d3o#19.#3o2d3#17.|8.#2d2o#21.2#2o4d#16.|8.#d3o#22.#4od#17.|7.#2d2o#24.#3o#18.|7.#d4o#24.3#19.|8.2#o2#47.|10.#49.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|#33.#3d3#19.|l3#30.#3d3l#18.|#3l#28.#4d3ol#17.|.#dol#27.#4d2owe6#12.|2.#do#26.#l4d2o2e4l2n#11.|3.#dl#24.#l2o2d9o3n#10.|4.#dl2#5.2#14.#l14o3n#10.|5.#d2l#.3#2l11#.2#l2gy7o2d2o2d2#11.|6.#2dl#3l2o11l#2lo2gyg3o3d6#13.|7.2#dl16ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d3od#8.#2d5o#24.|13.#3o#10.2#d3od#24.|13.#3o#12.#4o#24.|12.#d3o#13.#3od#23.|12.#d3o#13.#3od#23.|12.#d2o#14.#3od#23.|12.#d2o#15.#2od#23.|12.#d2o#15.#2od#23.|12.#d3o#14.#3od#22.|12.#d4o#13.#3o2d#21.|13.#do2#15.#od2#22.|14.2#18.2#24.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|#59.|l2#57.|#2l2#31.3#21.|.#d2l#29.#3d2#19.|2.#do#28.#4d2l#18.|3.#dl#26.#5d2ol#17.|4.#dl#25.#o4d2owl2#15.|5.#ol#23.#lo4do2eo2l4#11.|5.#2dl2#.6#13.#l2o3d7ol3n#10.|6.2#d2l#6l9#2.2#l14o4n#9.|8.#dol6o9l2#2logyg12o2n#10.|9.#17o2l3ogy2g2o5d#4d#11.|9.#21o2gy2g2o10#12.|9.#21o2gyg2od#21.|9.#22ogyg2o#22.|9.#d26o#22.|10.#d7o7d6o3t2o#22.|11.#7o7#d5o2t2od#22.|11.#d6o#6.#d7od#23.|12.#2d3od#7.#d5od#24.|13.2#4od#7.#5o#25.|15.#4o#7.#4od#25.|16.#3o#7.#4o#26.|15.#3o#7.#4o#27.|15.#2o#8.#3o#28.|14.#3od#8.#2o2#27.|14.#3o#9.#3od#26.|15.3#10.#4o#26.|29.#o2#27.|30.#29.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|36.2#22.|2#33.#2d2#20.|2l2#30.#4dl2#18.|#d2l#28.#4d2o2l#17.|.2#dl#27.#4d2owe4#14.|3.#ol#25.#l4d2o2e4l3#11.|3.#dol#23.#l2o3d8o3n#10.|4.#dol#4.4#13.#l3od10o3n#10.|5.#2dl4#4l10#.3#ogy12o2d#11.|6.2#d4l4o10l#3l2gy2g2o5d2#d2#12.|8.#d17ol3o2gyg3o8#14.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#24og2o#22.|9.#d26o#22.|10.#d7o8d5o3tod#22.|11.#7o8#5o3to#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d4od#24.|13.2#3o#9.2#4o#25.|14.#3o#10.#4o#25.|14.#4o#9.#3od#25.|14.#d3o#9.#3od#25.|14.#d3o#8.#4od#25.|15.#2o#10.#2od#26.|14.#d2o#10.#2od#26.|14.#d3o#9.#2od#26.|14.#d3o#9.#3od#25.|15.#do#10.#2o2d#25.|16.2#12.4#26.|60.|60."]}};
+function passeioXereta(canvas){
+  const W = canvas.width, H = canvas.height, CHAO = H - 3;
+  const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  const Q = {}; for (const [nome, lista] of Object.entries(SPRITE.q)) Q[nome] = lista.map(txt => { const linhas = txt.split('|').map(l => l.replace(/(\d+)(\D)/g, (m, n, ch) => ch.repeat(+n))); const c = document.createElement('canvas'); c.width = SPRITE.W; c.height = SPRITE.H; const x = c.getContext('2d');
+    linhas.forEach((l, y) => [...l].forEach((ch, xx) => { if (ch !== '.') { x.fillStyle = SPRITE.pal[ch]; x.fillRect(xx, y, 1, 1); } })); return c; });
+  const px = (x, y, w = 1, h = 1) => ctx.fillRect(Math.round(x), Math.round(y), w, h);
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)');
+  const topo = CHAO - SPRITE.chao, SW = SPRITE.W;
+  const suave = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  // linha do tempo de uma rodada (ms) e posições
+  const XS = -46, XP = 14, XF = Math.round((W - SW) / 2) + 4;          // começo do salto (fora da tela), pouso, onde fareja
+  const T_TROTE = 0, SALTO = [[170, 0, 4], [460, 1, 0], [190, 2, 0], [220, 3, 0]];   // [duração, quadro, altura]: impulso, voo, pouso na frente, acomoda
+  const T_SALTO = T_TROTE + SALTO.reduce((s, q) => s + q[0], 0), T_ANDA = T_SALTO + 1900, T_FAREJA = T_ANDA + 3800, T_OLHA = T_FAREJA + 700, T_CORRE = T_OLHA + 2600, CICLO = T_CORRE + 1200;
+  const passos = [[T_ANDA + 1300, T_ANDA + 1700, 6], [T_ANDA + 2600, T_ANDA + 2900, 4]];
+  const XFIM = XF + passos.reduce((s, p) => s + p[2], 0);
+  const EXCL = ['..#..','..#..','..#..','..#..','..#..','.....','..#..'];
+  const fumaca = (t, nx, ny) => { for (let i = 0; i < 3; i++) { const f = (t / 700 + i / 3) % 1, x = nx + 2 + f * 10, y = ny - f * 8 + Math.round(Math.sin(f * 8 + i));
+    ctx.globalAlpha = Math.sin(f * Math.PI) * .9; ctx.fillStyle = '#a8774a'; px(x, y, 2, 1); px(x + 2, y - 1, 2, 1); px(x + 4, y, 1, 1); ctx.globalAlpha = 1; } };
+  const poeira = (x, y, idade, dir) => { ctx.fillStyle = '#c9a77f'; for (let i = 0; i < 3; i++) { ctx.globalAlpha = Math.max(0, 1 - idade) * .8; px(x + dir * (2 + i * 3) * (1 + idade * 2), y - i % 2 - idade * 3, 2, 1); } ctx.globalAlpha = 1; };
+  const sombra = (x, alt = 0) => { const e = Math.min(6, Math.round(alt / 2)); ctx.fillStyle = 'rgba(0,0,0,.13)'; px(x + 6 + e, CHAO, SW - 12 - e * 2, 2); px(x + 8 + e, CHAO + 2, SW - 16 - e * 2, 1); };
+  const balao = (bx, by) => { ctx.fillStyle = '#1b120c'; px(bx, by, 13, 12); ctx.fillStyle = '#ffffff'; px(bx + 1, by + 1, 11, 10); ctx.fillStyle = '#1b120c'; px(bx + 2, by + 12, 2, 1); px(bx + 1, by + 13, 2, 1);
+    ctx.fillStyle = '#f32b0a'; EXCL.forEach((l, y) => [...l].forEach((c, x) => { if (c === '#') px(bx + 4 + x, by + 2 + y); })); };
+  const xFareja = t => { let x = XF; for (const [a, b, d] of passos) x += t >= b ? d : t > a ? d * (t - a) / (b - a) : 0; return Math.round(x); };
+  function cena(t){
+    ctx.clearRect(0, 0, W, H);
+    const rabo = Math.floor(t / 110) % 2;
+    if (t < T_SALTO) {                                          // entra num salto: impulso, voo, pousa na frente, acomoda
+      let u = t - T_TROTE, i = 0; while (i < SALTO.length - 1 && u >= SALTO[i][0]) { u -= SALTO[i][0]; i++; }
+      const k = (t - T_TROTE) / (T_SALTO - T_TROTE), x = Math.round(XS + (XP - XS) * Math.sin(k * Math.PI / 2));
+      let alt = SALTO[i][2]; if (i === 1) alt = Math.round(4 + Math.sin(Math.PI * u / SALTO[1][0]) * 10);
+      sombra(x, alt); ctx.drawImage(Q.salto[SALTO[i][1]], x, topo - alt);
+      if (i >= 2) poeira(x + 44, CHAO - 1, (t - (T_TROTE + 630)) / 500, 1);
+    } else if (t < T_ANDA) {                                    // anda abanando o rabo
+      const k = (t - T_SALTO) / (T_ANDA - T_SALTO), x = Math.round(XP + (XF - XP) * k);
+      sombra(x); ctx.drawImage(Q.anda[Math.floor(t / 140) % 4], x, topo);
+    } else if (t < T_FAREJA) {                                  // fica um bom tempo farejando
+      const x = xFareja(t), anda = passos.some(([a, b]) => t > a && t < b);
+      sombra(x); ctx.drawImage(anda ? Q.andar[Math.floor(t / 110) % 4] : Q.fareja[Math.floor(t / 150) % 4], x, topo);
+      fumaca(t, x + 51, topo + 33);
+    } else if (t < T_OLHA) {                                    // achou alguma coisa!
+      const pulo = t < T_FAREJA + 180 ? 2 : t < T_FAREJA + 280 ? 1 : 0;
+      sombra(XFIM); ctx.drawImage(Q.alta[rabo], XFIM, topo - pulo);
+      if (t > T_FAREJA + 150) balao(XFIM + 44, topo - 5);
+    } else if (t < T_CORRE) {                                   // sai acelerando: anda, trota e dispara no galope
+      // velocidade cresce em linha reta (começa em 15% da final); a distância é a área embaixo dessa reta
+      const k = (t - T_OLHA) / (T_CORRE - T_OLHA), v0 = .15, d = (v0 * k + (1 - v0) * k * k / 2) / (v0 + (1 - v0) / 2);
+      const dist = (W + 4 - XFIM) * d, x = Math.round(XFIM + dist);
+      // as pernas acompanham a distância percorrida, para as patas não escorregarem
+      const marcha = k < .28 ? 'anda' : k < .5 ? 'trote' : 'corre', passada = {anda: 4, trote: 6, corre: 9}[marcha];
+      const q = Math.floor(dist / passada) % 4;
+      if (marcha === 'corre') {
+        for (let i = 0; i < 3; i++) poeira(x + 8, CHAO - 1, ((t / 300) + i / 3) % 1, -1);
+        if (k > .65) { ctx.fillStyle = '#c9a77f'; px(x - 4, topo + 18, 5, 1); px(x - 8, topo + 23, 7, 1); px(x - 3, topo + 28, 4, 1); }
+      }
+      sombra(x); ctx.drawImage(Q[marcha][q], x, topo - (marcha === 'corre' && q === 2 ? 1 : marcha === 'trote' ? q % 2 : 0));
+    }
+  }
+  let inicio = performance.now(), visivel = true, ultimo = -1, rodando = false;
+  function laco(agora){
+    if (!visivel || reduz.matches || !canvas.isConnected) { rodando = false; return; }
+    const t = (agora - inicio) % CICLO, q = Math.floor((agora - inicio) / 60);
+    if (q !== ultimo) { ultimo = q; cena(t); }
+    requestAnimationFrame(laco);
+  }
+  const comeca = () => { if (!rodando && !reduz.matches) { rodando = true; requestAnimationFrame(laco); } };
+  const parado = () => { ctx.clearRect(0, 0, W, H); sombra(XF); ctx.drawImage(Q.alta[0], XF, topo); };
+  if (reduz.matches) parado(); else comeca();
+  reduz.addEventListener('change', () => { if (reduz.matches) parado(); else comeca(); });
+  new IntersectionObserver(es => es.forEach(e => { visivel = e.isIntersecting; if (visivel) comeca(); })).observe(canvas);
+  return {tocar(){ inicio = performance.now(); ultimo = -1; comeca(); }};
+}
 /* ---------- Votações: por sessão ---------- */
 const segVot = atual => `<nav class="segnav" aria-label="Modo de ver as votações"><a href="#votacoes" ${atual==='s'?'aria-current="page"':''}>Por sessão</a><a href="#busca" ${atual==='b'?'aria-current="page"':''}>Todas as votações</a>${AF_BASE.length ? `<a href="#afinidade" ${atual==='a'?'aria-current="page"':''}>Mapa de afinidade</a>` : ''}</nav>`;
 function viewVotacoes(){
