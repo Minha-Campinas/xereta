@@ -604,6 +604,13 @@ tr.psel td{background:var(--accent-soft)}
   table.t.cartoes td:first-child::before,table.t.cartoes td:not([data-l])::before{content:none}
   table.t.cartoes td.obs::before,table.t.cartoes td.ecell::before{display:block;max-width:none;margin-bottom:.15rem}
   table.t.cartoes td.ev{text-align:right}
+  /* pagamentos de emendas: cada informação numa linha, com o nome em cima */
+  table.t.cartoes.tpag td{display:block;text-align:left;padding:.2rem 0}
+  table.t.cartoes.tpag td::before{display:block;max-width:none;margin-bottom:.05rem}
+  table.t.cartoes.tpag td.ev{font-weight:700;font-size:1.05rem}
+  /* "Para quem foi o dinheiro" e "Em quais áreas": nome em cima, valor e % embaixo */
+  .efor .eh{flex-direction:column;gap:.05rem}
+  .efor .eh span:last-child{white-space:normal}
   .tablewrap{overflow-x:visible}
   /* página do vereador: foto em cima, dados recolhidos em "Mais informações" */
   .phead{flex-direction:column;align-items:center;text-align:center;gap:.9rem;margin-bottom:1.25rem}
@@ -1896,7 +1903,7 @@ const nomeVer = n => { const id = IDV[chaveEme(n)]; return id ? V[id].nome : tc(
 const fotoVer = (n, cls) => { const id = IDV[chaveEme(n)]; return id ? av(id, cls) : `<span class="av ${cls}" aria-hidden="true">${esc(iniciais(tc(n)))}</span>`; };
 const linkVer = n => { const id = IDV[chaveEme(n)]; return id ? `<a href="#v-${id}">${esc(V[id].nome)}</a>` : `${esc(tc(n))} <span class="note">sem página nesta legislatura</span>`; };
 const obsCell = t => { if (!t) return '<td class="obs">—</td>'; if (t.length <= 140) return `<td class="obs">${esc(t)}</td>`; const curto = t.slice(0, 140).replace(/\s+\S*$/, '') + '…'; return `<td class="obs"><details><summary>${esc(curto)}</summary><p>${esc(t)}</p></details></td>`; };
-const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Vereador</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(comVer ? r[5] : r[4])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
+const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Vereador</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(comVer ? r[5] : r[4])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
 const barraForn = (nome, val, total, max, outros) => `<div class="efor"><div class="eh"><span>${esc(limpaForn(nome))}</span><span>${brl(val)} · ${(100 * val / total).toLocaleString('pt-BR', {maximumFractionDigits:1})}%</span></div><div class="ebar${outros ? ' outros' : ''}" aria-hidden="true"><i style="width:${Math.min(100, 100 * val / max)}%"></i></div></div>`;
 const aviso = () => EME && EME.parcial ? `<p class="note"><strong>Prévia:</strong> a lista de pagamentos está carregada só para alguns vereadores.</p>` : '';
 
