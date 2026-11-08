@@ -581,7 +581,11 @@ tr.psel td{background:var(--accent-soft)}
   .filters label[style]{flex:1 1 100%!important;min-width:0}
   .eme-big,.big,h1,h2{overflow-wrap:anywhere}
   .sec-filtros>h2{display:none}
-  .sec-filtros{margin-top:1.25rem}
+  .sec-filtros{margin-top:1.25rem;margin-bottom:1.25rem}
+  /* emendas: total pago na largura toda, os outros quadros lado a lado */
+  .stats .stat-total{grid-column:1 / -1}
+  .stats .stat-larga{grid-column:1 / -1}
+  .stats .stat-total ~ .stat:last-child:nth-child(2){grid-column:1 / -1}
   .ftoggle{width:100%}
   .modal{width:100%}
   /* abas em pasta viram botões em duas colunas */
@@ -1962,7 +1966,7 @@ function viewEmendas(){
     const GL = Object.values(G).map(g => ({n:g.n, pago:g.pago, forn:g.fs ? g.fs.size : g.forn})).sort(FE.ord === 'nome' ? (a, b) => nomeVer(a.n).localeCompare(nomeVer(b.n), 'pt-BR') : (a, b) => b.pago - a.pago);
     const total = resumo ? EME.total : somaR(R);
     const nForn = new Set(R.map(r => limpaForn(r[1]))).size;
-    document.getElementById('estats').innerHTML = `<div class="stats"><div class="stat"><h3>Total pago</h3><div class="big">${brlMi(total)}</div></div>
+    document.getElementById('estats').innerHTML = `<div class="stats"><div class="stat stat-total"><h3>Total pago</h3><div class="big">${brlMi(total)}</div></div>
         <div class="stat"><h3>Vereadores</h3><div class="big">${GL.length}</div></div>
         ${resumo ? '' : `<div class="stat"><h3>Pagamentos</h3><div class="big">${num(R.length)}</div><div class="note">${num(nForn)} fornecedores</div></div>`}</div>
       ${!semFiltro && EME.parcial ? `<p class="note"><strong>Prévia:</strong> com filtros, só entram os pagamentos carregados (${num(L0.length)}).</p>` : aviso()}`;
@@ -2051,7 +2055,7 @@ function secEmendas(v){
   const gaL = Object.entries(ga).sort((a, b) => b[1] - a[1]).slice(0, 3), totR = somaR(rows);
   const areasCard = gaL.length ? `<h3 style="margin:1rem 0 .2rem">Em quais áreas</h3>${gaL.map(([n, p]) => barraForn(n, p, totR, gaL[0][1], false)).join('')}${EME.parcial ? '<p class="note" style="margin:.3rem 0 0">Prévia: só os pagamentos carregados.</p>' : ''}` : '';
   return cab + `<div class="stats">
-      <div class="stat"><h3>Total pago</h3><div class="big">${brlMi(e.pago)}</div><div class="note">${rank}º de ${EME.v.length} no ranking</div></div>
+      <div class="stat stat-total"><h3>Total pago</h3><div class="big">${brlMi(e.pago)}</div><div class="note">${rank}º de ${EME.v.length} no ranking</div></div>
       <div class="stat"><h3>Fornecedores</h3><div class="big">${num(e.forn)}</div>${conc !== null ? `<div class="note">Os 3 maiores receberam ${conc}%.</div>` : ''}</div></div>
     ${top.length ? `<h3 style="margin:1rem 0 .2rem">Para quem foi o dinheiro</h3>${top.map(([n, p]) => barraForn(n, p, e.pago, top[0][1], false)).join('')}` : ''}
     ${areasCard}
@@ -2078,7 +2082,7 @@ function ligaEmendasV(v){
     const lista = usaResumo ? (e.f || []) : agrupaForn(R);
     const top = lista.slice(0, 8), resto = pago - top.reduce((a, x) => a + x[1], 0);
     document.getElementById('evstats').innerHTML = `<div class="stats">
-      <div class="stat"><h3>Total pago${filtrado ? ' (filtro)' : ''}</h3><div class="big">${brlMi(pago)}</div></div>
+      <div class="stat stat-total"><h3>Total pago${filtrado ? ' (filtro)' : ''}</h3><div class="big">${brlMi(pago)}</div></div>
       <div class="stat"><h3>Fornecedores</h3><div class="big">${num(nforn)}</div><div class="note">${usaResumo ? '' : num(R.length) + ' ' + (R.length === 1 ? 'pagamento' : 'pagamentos')}</div></div></div>`;
     document.getElementById('evgraf').innerHTML = top.length ? `<h3 style="margin:1.1rem 0 .3rem">Para quem foi o dinheiro</h3>${top.map(([n, p]) => barraForn(n, p, pago, top[0][1], false)).join('')}${resto > 1 && nforn > top.length ? barraForn('Outros ' + (nforn - top.length) + ' fornecedores', resto, pago, top[0][1], true) : ''}` : '';
     const gm = {}; R.forEach(r => { const a = areaDe(r[3]); gm[a] = (gm[a] || 0) + r[2]; });
@@ -2184,7 +2188,7 @@ function viewProjetos(){
     document.getElementById('pstats').innerHTML = `<div class="stats" style="margin-top:1.25rem">
       <div class="stat"><h3>Projetos</h3><div class="big">${num(L.length)}</div><div class="note">com os filtros escolhidos</div></div>
       <div class="stat"><h3>Homenagens, nomes de ruas, datas e utilidade pública</h3><div class="big">${L.length ? pct(nSimb, L.length) + '%' : '—'}</div><div class="note">${num(nSimb)} ${nSimb === 1 ? 'projeto' : 'projetos'}</div></div>
-      <div class="stat"><h3>Área temática com mais projetos</h3><div class="big" style="font-size:1.6rem">${topT ? esc(topT[0]) : '—'}</div><div class="note">${topT ? num(topT[1]) + (topT[1] === 1 ? ' projeto' : ' projetos') : 'nenhum projeto temático'}</div></div></div>`;
+      <div class="stat stat-larga"><h3>Área temática com mais projetos</h3><div class="big" style="font-size:1.6rem">${topT ? esc(topT[0]) : '—'}</div><div class="note">${topT ? num(topT[1]) + (topT[1] === 1 ? ' projeto' : ' projetos') : 'nenhum projeto temático'}</div></div></div>`;
     document.querySelectorAll('.pasta [role=tab]').forEach(b => { const on = b.dataset.aba === FPJ.aba; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
     const pn = document.getElementById('ppanel'), q = qtdDe(FPJ.n);
     if (FPJ.aba === 'area') {
