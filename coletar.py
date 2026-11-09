@@ -478,6 +478,246 @@ def categoria(rot):
     return 'out'
 
 
+
+# ---------------------------------------------------------------- orçamento da Prefeitura (RREO do 6º bimestre)
+# As planilhas ficam na pasta "orcamento" (uma por ano, baixadas do Siconfi). Os nomes de linhas ficam como no relatório.
+PASTA_ORC = 'orcamento'
+# IPCA do ano (dezembro a dezembro, IBGE) e população de Campinas (estimativa do IBGE; 2022 = Censo; em 2023 o IBGE
+# não publicou estimativa e vale o Censo). Anos novos são buscados nas APIs do IBGE; se falhar, a página avisa.
+IPCA_ANO = {2016: 6.29, 2017: 2.95, 2018: 3.75, 2019: 4.31, 2020: 4.52, 2021: 10.06, 2022: 5.79, 2023: 4.62, 2024: 4.83, 2025: 4.26}
+POP_CAMPINAS = {2016: 1173370, 2017: 1182429, 2018: 1194094, 2019: 1204073, 2020: 1213792, 2021: 1223237,
+                2022: 1139047, 2023: 1139047, 2024: 1185977, 2025: 1187974}
+
+def _ipca_ibge(ano):
+    try:
+        j = requests.get(f'https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/2265/p/{ano}12', timeout=30).json()
+        return float(j[1]['V'].replace(',', '.'))
+    except Exception as e:
+        log(f'IPCA de {ano} não encontrado no IBGE ({e})'); return None
+
+def _pop_ibge(ano):
+    try:
+        j = requests.get(f'https://servicodados.ibge.gov.br/api/v3/agregados/6579/periodos/{ano}/variaveis/9324?localidades=N6[3509502]', timeout=30).json()
+        return int(j[0]['resultados'][0]['series'][0]['serie'][str(ano)])
+    except Exception as e:
+        log(f'População de {ano} não encontrada no IBGE ({e})'); return None
+
+def num(v):
+    try: return float(v)
+    except (TypeError, ValueError): return None
+
+def recuo(s): return len(s) - len(s.lstrip(' '))
+
+def linhas(sh, ini, fim):
+    for r in range(ini, fim):
+        row = [c.value for c in sh.row(r)]
+        if not str(row[0]).strip(): continue
+        yield str(row[0]), row
+
+def quadro(sh, titulo_ini):
+    """intervalo de linhas de dados do quadro cujo título começa com titulo_ini"""
+    ini = None
+    for r in range(sh.nrows):
+        t = str(sh.cell_value(r, 0)).strip()
+        if t.startswith('Quadro:'):
+            if ini is not None: return ini, r
+            if t[7:].strip().startswith(titulo_ini): ini = r + 1
+    return ini, sh.nrows
+
+def anexo01(b):
+    sh = b.sheet_by_name('RREO-Anexo 01')
+    rec = []; i, f = quadro(sh, 'Receitas Orçament')
+    dentro = False
+    for nome, row in linhas(sh, i, f):
+        n = nome.strip()
+        if n.startswith('RECEITAS (EXCETO INTRA'): dentro = True
+        elif dentro and (n.startswith('RECEITAS (INTRA') or n.startswith('SUBTOTAL') or n.startswith('OPERAÇÕES DE CRÉDITO / REFINANC')): break
+        if dentro: rec.append(dict(n=n, nivel=recuo(nome), ini=num(row[1]), atu=num(row[2]), real=num(row[5])))
+    des = []; i, f = quadro(sh, 'Despesas Orçament')
+    dentro = False
+    for nome, row in linhas(sh, i, f):
+        n = nome.strip()
+        if n.startswith('DESPESAS (EXCETO INTRA'): dentro = True
+        elif dentro and (n.startswith('DESPESAS (INTRA') or n.startswith('SUBTOTAL')): break
+        if dentro: des.append(dict(n=n, nivel=recuo(nome), ini=num(row[1]), atu=num(row[2]), emp=num(row[4]), liq=num(row[7]), pago=num(row[9])))
+    return rec, des
+
+def anexo02(b):
+    sh = b.sheet_by_name('RREO-Anexo 02')
+    i, f = quadro(sh, 'Função/Subfunção')
+    out = []; dentro = False
+    for nome, row in linhas(sh, i, f):
+        n = nome.strip()
+        if n.startswith('DESPESAS (EXCETO INTRA'): dentro = True; total = dict(ini=num(row[1]), atu=num(row[2]), emp=num(row[4]), liq=num(row[8])); continue
+        if dentro and (n.startswith('DESPESAS (INTRA') or n.startswith('TOTAL')): break
+        if dentro: out.append(dict(n=n, nivel=recuo(nome), ini=num(row[1]), atu=num(row[2]), emp=num(row[4]), liq=num(row[8])))
+    return total, out
+
+def anexo03(b):
+    sh = b.sheet_by_name('RREO-Anexo 03')
+    col = None
+    for r in range(sh.nrows):
+        for c in range(sh.ncols):
+            if str(sh.cell_value(r, c)).strip().upper().startswith('TOTAL (ÚLTIMOS'): col = c; break
+        if col is not None: break
+    out = []
+    i, f = quadro(sh, ''); 
+    for r in range(sh.nrows):
+        n = str(sh.cell_value(r, 0)).strip()
+        if n.startswith('RECEITAS CORRENTES (I)'): ini = r; break
+    for r in range(ini, sh.nrows):
+        n = str(sh.cell_value(r, 0)).strip()
+        if n.startswith('RECEITA CORRENTE LÍQUIDA (III)'): out.append(dict(n=n, v=num(sh.cell_value(r, col)))); break
+        if n: out.append(dict(n=n, v=num(sh.cell_value(r, col))))
+    return out
+
+def ler(pasta):
+    anos = {}
+    for arq in sorted(glob.glob(os.path.join(pasta, '*.xls'))):
+        b = xlrd.open_workbook(arq)
+        sh = b.sheet_by_name('RREO-Anexo 01')
+        ano = per = None
+        for r in range(15):
+            t = str(sh.cell_value(r, 0))
+            m = re.search(r'Exercício:\s*(\d{4})', t); ano = ano or (m and int(m.group(1)))
+            if 'Período:' in t: per = t.split(':', 1)[1].strip()
+        if not per or not per.startswith('6'):
+            print(f'{arq}: período "{per}" não é o 6º bimestre; ignorado'); continue
+        rec, des = anexo01(b); tf, fun = anexo02(b)
+        anos[ano] = dict(rec=rec, des=des, funTotal=tf, fun=fun, rcl=anexo03(b))
+    return anos
+
+
+# ---------------------------------------------------------------- montagem para a página
+def _linha(sh_rows, prefixo):
+    for x in sh_rows:
+        if x['n'].startswith(prefixo): return x
+    return None
+
+def extras_anexo01(b):
+    """linhas que ficam depois do subtotal: refinanciamento e as intra-orçamentárias"""
+    sh = b.sheet_by_name('RREO-Anexo 01')
+    out = {}
+    for r in range(sh.nrows):
+        n = re.sub(r'\s*/\s*', ' / ', str(sh.cell_value(r, 0)).strip()); row = [c.value for c in sh.row(r)]
+        if n.startswith('OPERAÇÕES DE CRÉDITO / REFINANCIAMENTO') and 'ref_rec' not in out: out['ref_rec'] = dict(ini=num(row[1]) or 0, atu=num(row[2]) or 0, real=num(row[5]) or 0)
+        if n.startswith('AMORTIZAÇÃO DA DÍVIDA / REFINANCIAMENTO') and 'ref_des' not in out: out['ref_des'] = dict(ini=num(row[1]) or 0, atu=num(row[2]) or 0, liq=num(row[7]) or 0)
+        if n.startswith('RECEITAS (INTRA') and 'intra_rec' not in out: out['intra_rec'] = num(row[5]) or 0
+        if n.startswith('DESPESAS (INTRA') and 'intra_des' not in out: out['intra_des'] = num(row[7]) or 0
+    return out
+
+def montar_ano(arq):
+    b = xlrd.open_workbook(arq)
+    rec, des = anexo01(b); tf, fun = anexo02(b); rcl = anexo03(b); ex = extras_anexo01(b)
+    z = lambda v: v or 0
+    def soma(lista, *prefixos, nivel=None):
+        return sum(z(x['real']) for x in lista if (nivel is None or x['nivel'] == nivel) and any(x['n'].startswith(p) for p in prefixos))
+    # blocos do anexo 1 (receitas): correntes e capital
+    ic = next(i for i, x in enumerate(rec) if x['n'] == 'RECEITAS CORRENTES')
+    ik = next(i for i, x in enumerate(rec) if x['n'] == 'RECEITAS DE CAPITAL')
+    cor, cap = rec[ic + 1:ik], rec[ik + 1:]
+    def filhos(bloco, pai):
+        i = next((k for k, x in enumerate(bloco) if x['n'].upper().startswith(pai)), None)
+        if i is None: return []
+        nv = bloco[i]['nivel']; out = []
+        for x in bloco[i + 1:]:
+            if x['nivel'] <= nv: break
+            out.append(x)
+        return out
+    def pai(bloco, nome):
+        x = next((x for x in bloco if x['n'].upper().startswith(nome)), None); return z(x and x['real'])
+    total = rec[0]; ref = ex.get('ref_rec', dict(ini=0, atu=0, real=0))
+    R = dict(real=z(total['real']) + ref['real'], ini=z(total['ini']) + ref['ini'], atu=z(total['atu']) + ref['atu'])
+    # por imposto e repasse (anexo 3, valores cheios) + receitas de capital (anexo 1) − retenção para o FUNDEB
+    v3 = {x['n']: z(x['v']) for x in rcl}
+    def a3(*nomes):
+        return sum(v for n, v in v3.items() if any(n.startswith(p) for p in nomes))
+    imp = [
+        ('ISS', a3('ISS')), ('IPTU', a3('IPTU')), ('ITBI', a3('ITBI')), ('IRRF', a3('IRRF')),
+        ('TRIB', a3('Outras Receitas Tributárias', 'Outros Impostos, Taxas')),
+        ('CONTRIB', a3('Receita de Contribuições', 'Contribuições')),
+        ('PATRIM', a3('Receita Patrimonial')), ('SERV', a3('Receita de Serviços', 'Receita Agropecuária', 'Receita Industrial')),
+        ('OUTCOR', a3('Outras Receitas Correntes')),
+        ('ICMS', a3('Cota-Parte do ICMS')), ('IPVA', a3('Cota-Parte do IPVA')), ('LC61', a3('Transferências da LC nº 61')),
+        ('FPM', a3('Cota-Parte do FPM')), ('ITR', a3('Cota-Parte do ITR')), ('LC87', a3('Transferências da LC nº 87')),
+        ('FUNDEB', a3('Transferências do FUNDEB')), ('OUTTRANSF', a3('Outras Transferências Correntes')),
+        ('CRED', pai(cap, 'OPERAÇÕES DE CRÉDITO') + ref['real']), ('TCAP', pai(cap, 'TRANSFERÊNCIAS DE CAPITAL')),
+        ('OUTCAP', pai(cap, 'ALIENAÇÃO') + pai(cap, 'AMORTIZAÇÕES') + pai(cap, 'OUTRAS RECEITAS DE CAPITAL')),
+        ('DEDFUNDEB', -a3('Dedução de Receita para Formação do FUNDEB')),
+    ]
+    rc_bruta = a3('RECEITAS CORRENTES (I)')
+    # por quem arrecada (anexo 1, valores líquidos)
+    tc = filhos(cor, 'TRANSFERÊNCIAS CORRENTES'); tk = filhos(cap, 'TRANSFERÊNCIAS DE CAPITAL')
+    def st(nomes): return sum(z(x['real']) for x in tc + tk if any(x['n'].startswith(p) for p in nomes))
+    uniao = st(['Transferências da União']); estado = st(['Transferências dos Estados'])
+    outras = st(['Transferências de Outras Instituições', 'Transferências de Instituições Privadas', 'Transferências dos Municípios', 'Transferências do Exterior', 'Demais Transferências', 'Transferências de Pessoas', 'Transferências para o Combate'])
+    semdet = st(['Transferências Intergovernamentais', 'Transferências de Convênios'])
+    transf_total = pai(cor, 'TRANSFERÊNCIAS CORRENTES') + pai(cap, 'TRANSFERÊNCIAS DE CAPITAL')
+    cred = pai(cap, 'OPERAÇÕES DE CRÉDITO') + ref['real']
+    cidade = R['real'] - transf_total - cred
+    esf = [('CIDADE', cidade), ('ESTADO', estado), ('UNIAO', uniao), ('OUTINST', outras), ('SEMDET', semdet), ('CRED', cred)]
+    resto = transf_total - (uniao + estado + outras + semdet)
+    if abs(resto) > 1: esf.append(('SEMDET', resto))
+    # despesas por tipo (anexo 1)
+    def d1(nome):
+        x = next((x for x in des if x['n'].startswith(nome)), None)
+        return [z(x and x['liq']), z(x and x['ini']), z(x and x['atu'])]
+    rd = ex.get('ref_des', dict(ini=0, atu=0, liq=0)); am = d1('AMORTIZAÇÃO DA DÍVIDA')
+    tipo = [('PESSOAL', *d1('PESSOAL E ENCARGOS')), ('CUSTEIO', *d1('OUTRAS DESPESAS CORRENTES')), ('INVEST', *d1('INVESTIMENTOS')),
+            ('JUROS', *d1('JUROS E ENCARGOS')), ('AMORT', am[0] + rd['liq'], am[1] + rd['ini'], am[2] + rd['atu']), ('INVERS', *d1('INVERSÕES FINANCEIRAS')),
+            ('RESERVA', *d1('RESERVA DE CONTINGÊNCIA'))]
+    # despesas por área (anexo 2): funções e subfunções, nomes como no relatório
+    F = []
+    for x in fun:
+        if x['nivel'] == 2: F.append([x['n'], z(x['liq']), z(x['ini']), z(x['atu']), []])
+        elif F and z(x['liq']) > 0: F[-1][4].append([x['n'], z(x['liq'])])
+    F = [f for f in F if f[1] or f[2] or f[3]]
+    D = dict(liq=z(tf['liq']), emp=z(tf['emp']), ini=z(tf['ini']), atu=z(tf['atu']))
+    # conferências
+    alertas = []
+    if abs(sum(v for _, v in imp) - R['real']) > 1e6: alertas.append(f"imposto: soma {sum(v for _, v in imp):.0f} x arrecadado {R['real']:.0f}")
+    if abs(sum(v for _, v in esf) - R['real']) > 1e3: alertas.append('quem arrecada não fecha')
+    if abs(sum(t[1] for t in tipo) - D['liq']) > 1e6: alertas.append(f"tipo: soma {sum(t[1] for t in tipo):.0f} x gasto {D['liq']:.0f}")
+    if abs(sum(f[1] for f in F) - D['liq']) > 1e6: alertas.append('áreas não fecham')
+    r = lambda v: round(v, 2)
+    return dict(rec=dict((k, r(v)) for k, v in R.items()), des=dict((k, r(v)) for k, v in D.items()),
+                imp=[[k, r(v)] for k, v in imp if abs(v) >= 0.5], esf=[[k, r(v)] for k, v in esf if abs(v) >= 0.5],
+                tipo=[[k, r(a), r(b_), r(c)] for k, a, b_, c in tipo if a or b_ or c],
+                fun=[[n, r(a), r(b_), r(c), [[s, r(v)] for s, v in sub]] for n, a, b_, c, sub in F],
+                intra=dict(rec=r(ex.get('intra_rec', 0)), des=r(ex.get('intra_des', 0))), alertas=alertas)
+
+
+def ler_orcamento():
+    if not os.path.isdir(PASTA_ORC) or not glob.glob(os.path.join(PASTA_ORC, '*.xls')):
+        return None
+    global xlrd
+    try:
+        import xlrd
+    except ImportError:
+        import subprocess; subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', 'xlrd'], check=False); import xlrd
+    anos = {}
+    for arq in sorted(glob.glob(os.path.join(PASTA_ORC, '*.xls'))):
+        try:
+            b = xlrd.open_workbook(arq); sh = b.sheet_by_name('RREO-Anexo 01')
+            ano = per = None
+            for r in range(15):
+                t = str(sh.cell_value(r, 0)); m = re.search(r'Exercício:\s*(\d{4})', t)
+                if m: ano = int(m.group(1))
+                if 'Período:' in t: per = t.split(':', 1)[1].strip()
+            if not ano or not per or not per.startswith('6'):
+                log(f'Orçamento: {arq} não é o relatório do 6º bimestre; ficou de fora'); continue
+            d = montar_ano(arq)
+            for a in d.pop('alertas'): log(f'Orçamento {ano}: conferir ({a})')
+            anos[ano] = d
+        except Exception as e:
+            log(f'Orçamento: não consegui ler {arq} ({e})')
+    if not anos:
+        return None
+    ipca = {a: IPCA_ANO.get(a) or _ipca_ibge(a) for a in anos}
+    pop = {a: POP_CAMPINAS.get(a) or _pop_ibge(a) for a in anos}
+    log(f'Orçamento: {len(anos)} anos ({min(anos)} a {max(anos)})')
+    return dict(anos={str(a): v for a, v in sorted(anos.items())}, ipca={str(a): v for a, v in ipca.items()}, pop={str(a): v for a, v in pop.items()})
+
 def montar(R, saida='index.html'):
     hoje = R.get('hoje') or HOJE
     leg = R.get('legislatura') or {}
@@ -584,6 +824,10 @@ def montar(R, saida='index.html'):
     dados['AREAS_P'] = nomes_areas
     if PROJ:
         dados['PROJ'] = PROJ
+    if atual:
+        orc = ler_orcamento()
+        if orc:
+            dados['ORC'] = orc
     if atual and R.get('emendas'):
         dados['EME'] = R['emendas']
         nomes = {chave_nome(v['nome']) for v in V}

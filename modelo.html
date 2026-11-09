@@ -448,6 +448,84 @@ h1,h2,h3{letter-spacing:0;font-weight:700}
 :focus-visible{border-radius:0}
 header.top{border-bottom:3px solid var(--bd)}
 footer{border-top:3px solid var(--bd)}
+/* orçamento */
+.obase{margin:.2rem 0 0}
+.ocard>h2{margin-bottom:.8rem}
+.sw{display:inline-flex;align-items:center;gap:.6rem;cursor:pointer;font-weight:700;min-height:2.6rem;position:relative}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw-c{flex:none;width:2.8rem;height:1.5rem;border:2px solid var(--bd);background:var(--soft);position:relative;box-shadow:2px 2px 0 var(--sh)}
+.sw-c::after{content:'';position:absolute;top:2px;left:2px;width:1rem;height:1rem;background:var(--bd);transition:left .12s}
+.sw input:checked+.sw-c{background:var(--accent)}
+.sw input:checked+.sw-c::after{left:calc(100% - 1rem - 2px);background:#fff}
+.sw input:focus-visible+.sw-c{outline:3px solid var(--focus);outline-offset:2px}
+.oleg{list-style:none;display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin:.6rem 0 .8rem;padding:0;font-size:.85rem}
+.oleg li{display:inline-flex;align-items:center;gap:.4rem}
+.oleg i,.obar .on i{display:inline-block;flex:none;width:.85rem;height:.85rem;border:2px solid var(--bd)}
+.ocols{display:flex;align-items:stretch;gap:.4rem;height:16rem;padding:.5rem .2rem 0;border-bottom:3px solid var(--bd);margin-top:.8rem}
+.ocol{all:unset;box-sizing:border-box;flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;padding:0 .1rem}
+.ocol:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.opilhas{flex:1;display:flex;align-items:flex-end;gap:2px;min-height:0}
+.opilha{flex:1;display:flex;flex-direction:column;border:2px solid var(--bd);border-bottom:0;min-height:2px}
+.opilha i{display:block;min-height:0;border-top:1px solid rgba(0,0,0,.35)}
+.opilha i:first-child{border-top:0}
+.ocol .oano{text-align:center;font-weight:700;font-size:.85rem;padding:.3rem 0;color:var(--muted)}
+.ocol.sel .oano{color:var(--accent-ink);background:var(--accent)}
+.ocol.sel .opilha{box-shadow:3px 0 0 var(--sh)}
+.ocol:not(.sel) .opilhas{opacity:.78}
+.ocol:hover .opilhas{opacity:1}
+.oescala{margin:.4rem 0 0}
+.obar{margin:.6rem 0}
+.oh{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.obar .on{display:flex;gap:.55rem;align-items:flex-start;min-width:0}
+.obar .on i{margin-top:.3rem}
+.obar .on small{display:block;color:var(--muted);font-size:.82rem;line-height:1.35}
+.obar .ov{text-align:right;white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.obar .ov small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+.orel{display:block;font-style:italic}
+.otrack{height:.85rem;border:2px solid var(--bd);background:var(--soft);margin-top:.3rem;overflow:hidden}
+.otrack b{display:block;height:100%}
+.obar.neg .ov{color:var(--bad-ink,#b3261e)}
+details.oarea{border-bottom:1px solid var(--line)}
+details.oarea>summary{list-style:none;cursor:pointer;padding:.1rem 0}
+details.oarea>summary::-webkit-details-marker{display:none}
+details.oarea>summary strong::after{content:' ▸';color:var(--muted);font-size:.85em}
+details.oarea[open]>summary strong::after{content:' ▾'}
+.osub{padding:.2rem 0 .8rem 1.4rem;border-left:3px solid var(--line);margin-left:.4rem}
+.osubt{margin:1rem 0 .3rem;font-size:1.05rem}
+.oplan{display:grid;grid-template-columns:6.5rem minmax(0,1fr) auto;gap:.6rem;align-items:center;margin:.35rem 0}
+.oplan .otrack{margin:0}
+.oplan .ov{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.oleitura{min-height:1.6rem;margin:.6rem 0 0;font-variant-numeric:tabular-nums}
+.ocols .opilha{border-bottom:0}
+.omini{display:grid;grid-template-columns:repeat(auto-fill,minmax(13.5rem,1fr));gap:.8rem}
+.omcard{background:var(--surface);border:2px solid var(--bd);box-shadow:3px 3px 0 var(--sh);padding:.7rem .8rem .6rem;min-width:0}
+.omtit{display:flex;align-items:flex-start;gap:.45rem;font-size:.92rem;line-height:1.25;min-height:2.3rem}
+.omtit i{flex:none;width:.85rem;height:.85rem;border:2px solid var(--bd);margin-top:.15rem}
+.omval{margin:.2rem 0 .4rem;font-variant-numeric:tabular-nums}
+.omval b{font-family:var(--display);font-size:1.35rem}
+.omcols{display:flex;align-items:flex-end;gap:3px;height:4.5rem;border-bottom:2px solid var(--bd)}
+.omcol{all:unset;box-sizing:border-box;flex:1 1 0;height:100%;display:flex;align-items:flex-end;cursor:pointer}
+.omcol span{display:block;width:100%;border:2px solid var(--bd);border-bottom:0;min-height:2px;opacity:.55}
+.omcol.sel span,.omcol:hover span,.omcol:focus-visible span{opacity:1}
+.omcol:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.omanos{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:.15rem}
+.omtend{margin:.2rem 0 0;font-size:.8rem}
+.ogrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.4rem;margin-top:2rem;align-items:stretch}
+.oblk{display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--bd);box-shadow:4px 4px 0 var(--sh);padding:1.1rem 1.2rem 1rem;min-width:0}
+.oblk>h2{margin:0 0 .7rem;font-size:1.35rem}
+.oblk-corpo{max-height:32rem;overflow:hidden;position:relative;flex:1}
+.oblk.sobra .oblk-corpo::after{content:'';position:absolute;left:0;right:0;bottom:0;height:4rem;background:linear-gradient(to bottom,transparent,var(--surface));pointer-events:none}
+.oblk-mais{align-self:flex-start;margin-top:.8rem}
+.oplena{margin-top:1.4rem}
+.ojan .obar{margin:.6rem 0}
+.oplena .tablewrap{margin-top:.4rem}
+.oblk .obar{margin:.5rem 0}
+.oblk .tablewrap{box-shadow:none}
+@media (max-width:900px){.ogrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.omini{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}.omcard{padding:.55rem .55rem .5rem}.omval b{font-size:1.1rem}.omcols{height:3.5rem;gap:2px}.oblk{padding:.9rem .85rem .9rem}.oblk-corpo{max-height:28rem}}
+.ocamara h2{margin-top:0}
+.ocamara p{margin:.7rem 0 0}
+@media (max-width:640px){.ocols{height:12rem;gap:.15rem}.ocol .oano{font-size:.75rem}.oplan{grid-template-columns:5.2rem minmax(0,1fr);}.oplan .ov{grid-column:2;text-align:left}.oh{gap:.6rem}}
 /* rodapé: logo da Minha Campinas (num quadro claro, para aparecer bem também no tema escuro) e o texto ao lado */
 .rodape{display:flex;align-items:center;gap:1rem 1.5rem;flex-wrap:wrap}
 .rodape p{margin:0;flex:1 1 20rem}
@@ -760,6 +838,7 @@ tr.psel td{background:var(--accent-soft)}
       <a href="#afinidade" data-view="afinidade">Afinidade</a>
       <a href="#projetos" data-view="projetos" id="tabProj" hidden>Projetos</a>
       <a href="#emendas" data-view="emendas" id="tabEme" hidden>Emendas</a>
+      <a href="#orcamento" data-view="orcamento" id="tabOrc" hidden>Orçamento</a>
       <a href="#presenca" data-view="presenca">Presença</a>
       <a href="#comissoes" data-view="comissoes">Comissões</a>
       <a href="#vereadores" data-view="vereadores">Parlamentares</a>
@@ -1097,6 +1176,7 @@ function itemSessao(s){
 
 /* ---------- Início ---------- */
 const ICO = {
+  orc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   pre:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 11l2 2 4-4"/></svg>',
   eme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M14.6 9.3a3.2 3.2 0 0 0-2.6-1.3c-1.7 0-3 .9-3 2.1s1.2 1.7 3 2 3 .9 3 2.1-1.3 2.1-3 2.1a3.3 3.3 0 0 1-2.9-1.5"/><path d="M12 6v2M12 16v2"/></svg>',
   com:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="3"/><circle cx="5" cy="14" r="2.5"/><circle cx="19" cy="14" r="2.5"/><path d="M8 21a4 4 0 0 1 8 0M1.5 21a3.5 3.5 0 0 1 6 0M16.5 21a3.5 3.5 0 0 1 6 0"/></svg>'
@@ -1117,8 +1197,9 @@ function viewInicio(){
   <section class="section atalhos" aria-label="Por onde começar">
     ${u ? `<div class="latest col"><div><div class="note">Última sessão com votações</div><strong style="font-size:1.2rem">${esc(tipoCurto(u))} de ${fmtData(u.d)}</strong><div class="note">${num(uv.length)} votações, ${num(apr)} aprovadas${PRES[u.id] ? `, ${PRES[u.id].size} parlamentares presentes` : ''}</div></div>
       <div class="linkrow"><a class="btn" href="#s-${u.id}">Ver a última sessão</a><a class="btn ghost" href="#busca">Buscar votações por período</a></div></div>` : ''}
-    <nav class="paths ${EME ? 'three' : 'two'}" aria-label="Outras seções">
+    <nav class="paths ${(!!EME + !!D.ORC) === 1 ? 'three' : 'two'}" aria-label="Outras seções">
       ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada parlamentar destinou e para quem o dinheiro foi pago. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
+      ${D.ORC ? `<a class="path" href="#orcamento"><span class="ico">${ICO.orc}</span><strong>Orçamento</strong><span>De onde vem e para onde vai o dinheiro da Prefeitura, ano a ano.</span></a>` : ''}
       <a class="path" href="#presenca"><span class="ico">${ICO.pre}</span><strong>Presença</strong><span>Quem compareceu às sessões.</span></a>
       <a class="path" href="#comissoes"><span class="ico">${ICO.com}</span><strong>Comissões</strong><span>Quem analisa os projetos e as reuniões.</span></a>
     </nav>
@@ -2351,7 +2432,9 @@ function viewSobre(){
   ${EME ? `<h2>De onde vêm os dados das emendas</h2>
   <p>As emendas não vêm do SAPL. Os dados vêm do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, de onde se baixa a planilha de execução das emendas parlamentares. Cada linha é um empenho, com a autoria parlamentar, o fornecedor, a secretaria responsável e os valores empenhados, liquidados e pagos. A planilha foi consultada pela última vez em ${fmtData(EME.atualizado)}.${EME.fonte ? ' Fonte: ' + esc(EME.fonte) + '.' : ''}</p>
   <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL. As áreas, como Saúde e Cultura e Turismo, são um agrupamento feito pelo Xereta a partir do órgão que executa cada emenda. Os órgãos aparecem como na planilha, com os nomes padronizados.</p>` : ''}
-  ${PROJ.length ? `<h2>Como os projetos são separados por área</h2>
+  ${PROJ.length ? `${D.ORC ? `<h2>De onde vêm os dados do orçamento</h2>
+  <p>A página Orçamento usa o Relatório Resumido da Execução Orçamentária (RREO) do 6º bimestre de cada ano, que a Prefeitura de Campinas publica no <a href="https://siconfi.tesouro.gov.br" target="_blank" rel="noopener">Siconfi</a>, o sistema do Tesouro Nacional. Os valores e os nomes das linhas são os do relatório. A correção pela inflação usa o IPCA do IBGE, e o valor por habitante usa a população estimada pelo IBGE. Veja os detalhes em “Como funciona”, no fim da página Orçamento.</p>` : ''}
+  <h2>Como os projetos são separados por área</h2>
   <p>A aba Projetos lista os projetos de lei (ordinária e complementar), de decreto legislativo, de resolução e de emenda à Lei Orgânica apresentados na legislatura, com data de apresentação e autoria, tirados do SAPL. Requerimentos, moções e indicações não entram.</p>
   <p>A área de cada projeto é escolhida automaticamente pelas palavras da ementa: “concede título” ou “diploma” vira Homenagens e títulos, “denomina rua” vira Nomes de ruas e locais, “escola” vira Educação, e assim por diante. Cada projeto fica em uma única área, a primeira regra que combinar. Por isso a classificação pode errar em ementas que tratam de mais de um tema ou usam palavras pouco comuns; o que não combina com nenhuma regra fica em “Outros”.</p>
   <p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de uma autoria conta para cada pessoa autora. Prefeitura, Mesa da Câmara, comissões e outras autorias que não são de parlamentares aparecem nos filtros, mas ficam fora do ranking.</p>
@@ -2504,7 +2587,250 @@ function secProjetos(v){
 }
 
 /* ---------- Rotas ---------- */
-const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Afinidade de votação','afinidade'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
+/* ---------- Orçamento da Prefeitura (RREO do 6º bimestre, Siconfi) ---------- */
+const ORC = D.ORC || null;
+if (ORC) { const t = document.getElementById('tabOrc'); if (t) t.hidden = false; }
+const ORC_ANOS = ORC ? Object.keys(ORC.anos).map(Number).sort((a, b) => a - b) : [];
+const FO = {ano: ORC_ANOS[ORC_ANOS.length - 1], infl: true, pc: false, modo: 'total', rec: 'imp', gasto: 'area', abertas: new Set()};
+// fator para levar valores de cada ano a reais de dezembro do último ano (IPCA acumulado nos anos seguintes)
+const orcFator = ano => { let f = 1; for (const a of ORC_ANOS) if (a > ano) { const r = ORC.ipca[a]; if (r == null) return null; f *= 1 + r / 100; } return f; };
+const ORC_FAT = {}; ORC_ANOS.forEach(a => { ORC_FAT[a] = orcFator(a); });
+const orcSemIpca = () => ORC_ANOS.some(a => ORC_FAT[a] == null);
+const orcV = (v, ano) => { let x = v; if (FO.infl && ORC_FAT[ano] != null) x *= ORC_FAT[ano]; if (FO.pc && ORC.pop[ano]) x /= ORC.pop[ano]; return x; };
+const orcFmt = v => {
+  if (FO.pc) return (v < 0 ? '−' : '') + 'R$ ' + Math.round(Math.abs(v)).toLocaleString('pt-BR');
+  const a = Math.abs(v), s = v < 0 ? '−' : '';
+  if (a >= 1e9) return s + 'R$ ' + (a / 1e9).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' bi';
+  if (a >= 1e6) return s + 'R$ ' + (a / 1e6).toLocaleString('pt-BR', {maximumFractionDigits: 1}) + ' mi';
+  return s + 'R$ ' + Math.round(a).toLocaleString('pt-BR');
+};
+const orcPct = (a, b) => b ? (100 * a / b).toLocaleString('pt-BR', {maximumFractionDigits: 1}) + '%' : '—';
+// esferas (cores fixas, com borda escura: funcionam no tema claro e no escuro)
+const ESF = {cidade: ['A própria cidade', '#7a4eb6'], estado: ['Governo do Estado', '#f9992a'], uniao: ['Governo Federal', '#3d7fc4'],
+  fundeb: ['FUNDEB e outras instituições', '#1f8a5b'], misto: ['Origem não separada no relatório', '#cfc8bd'], cred: ['Empréstimos', '#8a9097'], ded: ['Retenção', '#f32b0a']};
+// nomes simples (nossos) e o nome usado no relatório, para cada origem da receita
+const RECK = {
+  ISS: ['ISS', 'Imposto sobre serviços, cobrado pela cidade', 'ISS', 'cidade'],
+  IPTU: ['IPTU', 'Imposto sobre imóveis urbanos, cobrado pela cidade', 'IPTU', 'cidade'],
+  ITBI: ['ITBI', 'Imposto sobre a venda de imóveis, cobrado pela cidade', 'ITBI', 'cidade'],
+  IRRF: ['Imposto de renda retido', 'Descontado pela Prefeitura dos salários e pagamentos que ela faz; fica com a cidade', 'IRRF', 'cidade'],
+  TRIB: ['Taxas e outros tributos', 'Taxas de licença, coleta, fiscalização e outros', 'Outros Impostos, Taxas e Contribuições de Melhoria', 'cidade'],
+  CONTRIB: ['Contribuições', 'Iluminação pública e previdência de servidores, entre outras', 'Contribuições', 'cidade'],
+  PATRIM: ['Rendimentos e patrimônio', 'Juros de aplicações financeiras, aluguéis e concessões', 'Receita Patrimonial', 'cidade'],
+  SERV: ['Serviços prestados', 'Serviços cobrados pela Prefeitura', 'Receita de Serviços', 'cidade'],
+  OUTCOR: ['Multas, dívida ativa e outras', 'Multas, cobrança de impostos atrasados, indenizações e outras', 'Outras Receitas Correntes', 'cidade'],
+  ICMS: ['Parte do ICMS', 'Imposto estadual sobre mercadorias e serviços; 25% vai para as cidades', 'Cota-Parte do ICMS', 'estado'],
+  IPVA: ['Parte do IPVA', 'Imposto estadual sobre veículos; metade fica com a cidade onde o carro está registrado', 'Cota-Parte do IPVA', 'estado'],
+  LC61: ['Parte do IPI-exportação', 'Repasse do Estado ligado ao imposto federal sobre produtos exportados', 'Transferências da LC nº 61/1989', 'estado'],
+  FPM: ['FPM', 'Fundo de Participação dos Municípios, repasse do Governo Federal', 'Cota-Parte do FPM', 'uniao'],
+  ITR: ['Parte do ITR', 'Imposto federal sobre propriedades rurais', 'Cota-Parte do ITR', 'uniao'],
+  LC87: ['Compensação da Lei Kandir', 'Repasse federal que compensava a isenção de ICMS nas exportações', 'Transferências da LC nº 87/1996', 'uniao'],
+  FUNDEB: ['FUNDEB', 'Fundo da educação básica: recebe parte dos impostos e devolve conforme o número de matrículas', 'Transferências do FUNDEB', 'fundeb'],
+  OUTTRANSF: ['Outros repasses', 'Saúde (SUS), assistência social, convênios e outros; o relatório não separa de quem veio', 'Outras Transferências Correntes', 'misto'],
+  CRED: ['Empréstimos', 'Financiamentos contratados pela Prefeitura', 'Operações de Crédito', 'cred'],
+  TCAP: ['Repasses para obras e equipamentos', 'Dinheiro de outros governos para investimentos', 'Transferências de Capital', 'misto'],
+  OUTCAP: ['Venda de bens e outras', 'Venda de imóveis e outros bens, devolução de empréstimos e outras receitas de capital', 'Alienação de Bens, Amortizações de Empréstimos e Outras Receitas de Capital', 'cidade'],
+  DEDFUNDEB: ['Retido para o FUNDEB', 'Parte do ICMS, IPVA, FPM e outros que vai para o fundo e volta como FUNDEB', 'Dedução de Receita para Formação do FUNDEB', 'ded'],
+};
+const ESFK = {CIDADE: 'cidade', ESTADO: 'estado', UNIAO: 'uniao', OUTINST: 'fundeb', SEMDET: 'misto', CRED: 'cred'};
+const ESFD = {cidade: 'Impostos, taxas, contribuições, rendimentos e outras receitas da própria Prefeitura',
+  estado: 'ICMS, IPVA e outros repasses do Estado de São Paulo', uniao: 'FPM, SUS e outros repasses federais',
+  fundeb: 'Principalmente o FUNDEB, fundo da educação formado por impostos do Estado e das cidades', misto: 'Repasses de governos que o relatório desse ano não separa por origem',
+  cred: 'Financiamentos contratados pela Prefeitura'};
+const TIPOK = {PESSOAL: ['Salários e encargos', 'Pagamento de servidores ativos, aposentados e pensionistas', 'Pessoal e Encargos Sociais'],
+  CUSTEIO: ['Custeio e serviços', 'Contratos, materiais, repasses a hospitais e entidades, transporte, limpeza e outras despesas do dia a dia', 'Outras Despesas Correntes'],
+  INVEST: ['Investimentos', 'Obras e compra de equipamentos', 'Investimentos'],
+  JUROS: ['Juros da dívida', 'Juros e encargos de empréstimos', 'Juros e Encargos da Dívida'],
+  AMORT: ['Pagamento da dívida', 'Parcelas dos empréstimos', 'Amortização da Dívida'],
+  INVERS: ['Inversões financeiras', 'Compra de imóveis, participação em empresas e empréstimos concedidos', 'Inversões Financeiras'],
+  RESERVA: ['Reserva de contingência', 'Valor guardado no orçamento para imprevistos; só aparece no planejado', 'Reserva de Contingência']};
+const TIPOC = {PESSOAL: '#7a4eb6', CUSTEIO: '#f9992a', INVEST: '#1f8a5b', JUROS: '#f32b0a', AMORT: '#3d7fc4', INVERS: '#f2c81c', RESERVA: '#cfc8bd'};
+const AREAC = ['#7a4eb6', '#f9992a', '#3d7fc4', '#1f8a5b', '#f06aa8', '#f2c81c', '#c5fc1d', '#f32b0a'];
+// explicações curtas de áreas com nome técnico (o nome continua como no relatório)
+const AREAX = {'Encargos Especiais': 'dívidas, precatórios e outros pagamentos que não pertencem a uma área específica',
+  'Previdência Social': 'aposentadorias e pensões de servidores municipais', 'Administração': 'gestão da Prefeitura, planejamento, arrecadação e informática',
+  'Urbanismo': 'manutenção da cidade, vias, iluminação, limpeza urbana e transporte coletivo', 'Saneamento': 'água, esgoto e drenagem',
+  'Direitos da Cidadania': 'direitos humanos, defesa do consumidor e de grupos específicos', 'Gestão Ambiental': 'meio ambiente, parques e controle ambiental',
+  'Legislativa': 'a Câmara Municipal'};
+// as 8 maiores áreas do último ano, sempre com a mesma cor; o resto vira "Outras áreas"
+const ORC_TOP = ORC ? ORC.anos[ORC_ANOS[ORC_ANOS.length - 1]].fun.slice().sort((a, b) => b[1] - a[1]).slice(0, 8).map(f => f[0]) : [];
+const areaCor = n => { const i = ORC_TOP.indexOf(n); return i >= 0 ? AREAC[i] : '#cfc8bd'; };
+const interruptor = (id, rot, on) => `<label class="sw"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="sw-c" aria-hidden="true"></span>${esc(rot)}</label>`;
+const legendaCores = itens => `<ul class="oleg">${itens.map(([n, c]) => `<li><i style="background:${c}"></i>${esc(n)}</li>`).join('')}</ul>`;
+// barra horizontal com nome, explicação, valor e % (a % é sempre sobre o total positivo)
+const barraO = (nome, sub, v, max, total, cor, extra = '') => `<div class="obar${v < 0 ? ' neg' : ''}">
+  <div class="oh"><span class="on"><i style="background:${cor}"></i><span><strong>${esc(nome)}</strong>${sub ? `<small>${sub}</small>` : ''}</span></span><span class="ov">${orcFmt(v)}<small>${v < 0 ? 'retido' : orcPct(v, total)}</small></span></div>
+  <div class="otrack" aria-hidden="true"><b style="width:${Math.min(100, 100 * Math.abs(v) / max)}%;background:${cor}"></b></div>${extra}</div>`;
+
+function viewOrcamento(){
+  if (!ORC) { app.innerHTML = `<h1>Orçamento de Campinas</h1><div class="empty">Os dados do orçamento ainda não foram carregados.</div>`; return; }
+  const ult = ORC_ANOS[ORC_ANOS.length - 1];
+  app.innerHTML = `<h1>Orçamento de Campinas</h1>
+  <p class="lede">De onde vem e para onde vai o dinheiro da Prefeitura, de ${ORC_ANOS[0]} a ${ult}.</p>
+  <section class="section sec-filtros" aria-labelledby="h-of"><h2 id="h-of">Filtros</h2>${btnFiltros('ofil')}
+    <div class="filters${fechadoCel()}" id="ofil">
+      <div class="frow" id="oano"><span class="flabel">Ano</span>${chips('Ano', ORC_ANOS.slice().reverse().map(a => [String(a), String(a)]), String(FO.ano))}</div>
+      <div class="frow">${interruptor('oinfl', `Corrigir pela inflação (reais de dezembro de ${ult})`, FO.infl)}${interruptor('opc', 'Por habitante', FO.pc)}</div>
+    </div>
+  </section>
+  <p class="note obase" id="obase" aria-live="polite"></p>
+  <section class="section ocard" aria-labelledby="h-oevo"><h2 id="h-oevo">Evolução de ${ORC_ANOS[0]} a ${ult}</h2>
+    <div class="frow" id="omodo">${chips('O que mostrar', [['total','Arrecadado e gasto'],['area','Para onde foi'],['esf','De onde veio'],['tipo','Como foi gasto']], FO.modo)}</div>
+    <div id="oevo"></div><p class="note">Toque numa coluna para ver os detalhes desse ano abaixo.</p></section>
+  <div id="oano-sec"></div>
+  <section class="section callout ocamara" aria-labelledby="h-ocam"><h2 id="h-ocam">O papel da Câmara</h2>
+    <p>Todo ano a Prefeitura manda para a Câmara o projeto da Lei Orçamentária Anual, com a previsão de quanto vai arrecadar e quanto pode gastar em cada área. Parlamentares discutem, apresentam emendas e votam. Só depois de aprovado o orçamento pode ser executado.</p>
+    <p>Durante o ano, a Câmara também fiscaliza: acompanha os relatórios de execução, chama a Prefeitura para audiências públicas e julga as contas, com parecer do Tribunal de Contas do Estado. Em “Planejado e executado” dá para ver quanto do que foi aprovado virou gasto de verdade.</p>
+    <p><a href="#emendas">Veja as emendas parlamentares pagas</a> · <a href="#busca">Veja as votações da Câmara</a></p></section>
+  ${comoFunciona(`<p>Os números vêm do Relatório Resumido da Execução Orçamentária (RREO) do 6º bimestre de cada ano, que fecha o ano, publicado pela Prefeitura de Campinas no Siconfi, o sistema do Tesouro Nacional. Os nomes das áreas e das receitas aparecem como no relatório; as explicações curtas embaixo são do Xereta.</p>
+    <p><strong>Gasto</strong> é a despesa liquidada: o serviço foi prestado ou a compra foi entregue. <strong>Arrecadado</strong> é a receita realizada no ano. A diferença entre os dois não é exatamente “sobra”: parte dela já está comprometida com despesas contratadas e ainda não entregues, e em alguns anos a Prefeitura gastou dinheiro guardado de anos anteriores.</p>
+    <p>Ficam de fora as receitas e despesas intra-orçamentárias, que são dinheiro passando de um órgão da Prefeitura para outro, principalmente a contribuição da Prefeitura para a previdência dos próprios servidores. Somá-las contaria o mesmo dinheiro duas vezes. Em ${ult}, foram ${orcFmtBruto(ORC.anos[ult].intra.des)} em despesas desse tipo.</p>
+    <p>Em “Por imposto e repasse”, os impostos aparecem pelo valor cheio. Parte do ICMS, do IPVA, do FPM e de outros repasses é retida para o FUNDEB, o fundo da educação básica, e volta para a cidade como FUNDEB, conforme o número de matrículas. Por isso há uma linha negativa “Retido para o FUNDEB”. Em “Por quem arrecada”, os valores já vêm sem essa retenção. Em ${ORC_ANOS[0]} e ${ORC_ANOS[0] + 1} o relatório não separa os repasses por governo.</p>
+    <p>A correção pela inflação usa o IPCA anual do IBGE e leva todos os anos a reais de dezembro de ${ult}. O valor por habitante divide pela população estimada pelo IBGE para cada ano. Em 2022 vale o Censo, que contou menos gente do que as estimativas anteriores previam, por isso o valor por habitante dá um salto nesse ano; para 2023 o IBGE não publicou estimativa e vale também o Censo.</p>
+    <p>O relatório não separa as despesas por secretaria e não traz o cálculo oficial dos mínimos constitucionais de saúde e educação.</p>`)}`;
+  ligarToggle();
+  ligarChips('#oano', k => { FO.ano = +k; desenhaAno(); desenhaEvo(); });
+  ligarChips('#omodo', k => { FO.modo = k; desenhaEvo(); });
+  document.getElementById('oinfl').addEventListener('change', e => { FO.infl = e.target.checked; tudo(); });
+  document.getElementById('opc').addEventListener('change', e => { FO.pc = e.target.checked; tudo(); });
+  marcaFiltros('ofil', (FO.ano !== ult) + !FO.infl + FO.pc);
+  const tudo = () => { marcaFiltros('ofil', (FO.ano !== ult) + !FO.infl + FO.pc); base(); desenhaEvo(); desenhaAno(); };
+  const base = () => { document.getElementById('obase').textContent = (FO.infl ? `Valores corrigidos pela inflação, em reais de dezembro de ${ult}` : 'Valores da época, sem correção pela inflação') + (FO.pc ? ', por habitante.' : '.') + (FO.infl && orcSemIpca() ? ' Falta o IPCA de algum ano; esses anos aparecem sem correção.' : ''); };
+  // ----- evolução: "Arrecadado e gasto" em colunas lado a lado; as outras visões em quadrinhos, um por categoria
+  const serieCat = () => {
+    // devolve [{nome, cor, sub, vals:{ano: valor}}]
+    const S = {};
+    const add = (k, nome, cor, sub, a, v) => { (S[k] = S[k] || {nome, cor, sub, vals: {}}).vals[a] = (S[k].vals[a] || 0) + v; };
+    ORC_ANOS.forEach(a => { const d = ORC.anos[a];
+      if (FO.modo === 'area') d.fun.forEach(f => { const k = ORC_TOP.includes(f[0]) ? f[0] : 'Outras áreas'; add(k, k, areaCor(k), AREAX[k] || '', a, f[1]); });
+      else if (FO.modo === 'esf') d.esf.forEach(([k, v]) => { const e = ESFK[k]; add(e, ESF[e][0], ESF[e][1], ESFD[e], a, v); });
+      else d.tipo.filter(t => t[1] > 0).forEach(t => add(t[0], TIPOK[t[0]][0], TIPOC[t[0]], TIPOK[t[0]][1], a, t[1]));
+    });
+    const ordem = FO.modo === 'area' ? [...ORC_TOP, 'Outras áreas'] : FO.modo === 'esf' ? ['cidade', 'estado', 'uniao', 'fundeb', 'misto', 'cred'] : Object.keys(TIPOC);
+    return ordem.filter(k => S[k]).map(k => S[k]);
+  };
+  function desenhaEvo(){
+    const el = document.getElementById('oevo'), ult = ORC_ANOS[ORC_ANOS.length - 1];
+    if (FO.modo === 'total') {
+      const S = ORC_ANOS.map(a => ({a, r: orcV(ORC.anos[a].rec.real, a), g: orcV(ORC.anos[a].des.liq, a)}));
+      const max = Math.max(...S.flatMap(s => [s.r, s.g])) || 1;
+      const leg = s => `<strong>${s.a}</strong> · Arrecadado ${orcFmt(s.r)} · Gasto ${orcFmt(s.g)} · Diferença ${orcFmt(s.r - s.g)}`;
+      el.innerHTML = `<p class="oleitura" id="oleit" aria-live="polite">${leg(S.find(s => s.a === FO.ano) || S[S.length - 1])}</p>
+        <div class="ocols" role="group" aria-label="Arrecadado e gasto por ano">${S.map(s => `<button type="button" class="ocol${s.a === FO.ano ? ' sel' : ''}" data-a="${s.a}" aria-pressed="${s.a === FO.ano}" aria-label="${s.a}: arrecadado ${orcFmt(s.r)}, gasto ${orcFmt(s.g)}">
+          <span class="opilhas"><span class="opilha" style="height:${100 * s.r / max}%;background:#7a4eb6"></span><span class="opilha" style="height:${100 * s.g / max}%;background:#f9992a"></span></span>
+          <span class="oano">${String(s.a).slice(2)}<span class="sr">${s.a}</span></span></button>`).join('')}</div>
+        ${legendaCores([['Arrecadado', '#7a4eb6'], ['Gasto', '#f9992a']])}`;
+      const leit = el.querySelector('#oleit');
+      el.querySelectorAll('.ocol').forEach(b => { const s = S.find(x => x.a === +b.dataset.a);
+        ['mouseenter', 'focus'].forEach(ev => b.addEventListener(ev, () => { leit.innerHTML = leg(s); }));
+        ['mouseleave', 'blur'].forEach(ev => b.addEventListener(ev, () => { leit.innerHTML = leg(S.find(x => x.a === FO.ano)); }));
+        b.addEventListener('click', () => escolheAno(s.a)); });
+      return;
+    }
+    const C = serieCat();
+    el.innerHTML = `<p class="note" style="margin:.2rem 0 .6rem">Um quadro para cada ${FO.modo === 'area' ? 'área' : FO.modo === 'esf' ? 'origem' : 'tipo de gasto'}, cada um na sua escala. Passe o mouse ou toque numa coluna para ver o valor.</p>
+      <div class="omini">${C.map((c, ci) => { const mx = Math.max(...ORC_ANOS.map(a => orcV(c.vals[a] || 0, a))) || 1;
+        const vSel = orcV(c.vals[FO.ano] || 0, FO.ano), v0 = orcV(c.vals[ORC_ANOS[0]] || 0, ORC_ANOS[0]), vU = orcV(c.vals[ult] || 0, ult);
+        const tend = v0 > 0 ? `${vU >= v0 ? '▲' : '▼'} ${orcPct(Math.abs(vU - v0), v0)} de ${ORC_ANOS[0]} a ${ult}` : '';
+        return `<div class="omcard"><div class="omtit"><i style="background:${c.cor}"></i><strong>${esc(c.nome)}</strong></div>
+          <div class="omval" data-ci="${ci}"><b>${orcFmt(vSel)}</b> <span class="note">em ${FO.ano}</span></div>
+          <div class="omcols">${ORC_ANOS.map(a => { const v = orcV(c.vals[a] || 0, a);
+            return `<button type="button" class="omcol${a === FO.ano ? ' sel' : ''}" data-a="${a}" data-ci="${ci}" data-v="${v}" aria-label="${esc(c.nome)}, ${a}: ${orcFmt(v)}"><span style="height:${100 * Math.max(v, 0) / mx}%;background:${c.cor}"></span></button>`; }).join('')}</div>
+          <div class="omanos"><span>${String(ORC_ANOS[0]).slice(2)}</span><span>${String(ult).slice(2)}</span></div>
+          <div class="note omtend">${tend}</div></div>`; }).join('')}</div>`;
+    el.querySelectorAll('.omcol').forEach(b => { const card = b.closest('.omcard'), val = card.querySelector('.omval');
+      const mostra = () => { val.innerHTML = `<b>${orcFmt(+b.dataset.v)}</b> <span class="note">em ${b.dataset.a}</span>`; };
+      const volta = () => { const sel = card.querySelector('.omcol.sel'); val.innerHTML = `<b>${orcFmt(+sel.dataset.v)}</b> <span class="note">em ${sel.dataset.a}</span>`; };
+      b.addEventListener('mouseenter', mostra); b.addEventListener('focus', mostra); b.addEventListener('mouseleave', volta); b.addEventListener('blur', volta);
+      b.addEventListener('click', () => escolheAno(+b.dataset.a)); });
+  }
+  const escolheAno = a => { FO.ano = a; app.querySelectorAll('#oano .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === String(a))); tudo(); };
+  // ----- detalhes do ano escolhido
+  function desenhaAno(){
+    const a = FO.ano, d = ORC.anos[a], ant = ORC.anos[a - 1];
+    const R = orcV(d.rec.real, a), G = orcV(d.des.liq, a);
+    const varia = (v, va) => va == null ? '' : `<div class="note">${v >= va ? '▲' : '▼'} ${orcPct(Math.abs(v - va), va)} em relação a ${a - 1}${FO.infl ? ', já descontada a inflação' : ''}</div>`;
+    // de onde veio
+    const recHtml = () => {
+      if (FO.rec === 'imp') {
+        const pos = d.imp.filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]), neg = d.imp.filter(([, v]) => v < 0);
+        const tb = pos.reduce((s, [, v]) => s + v, 0), mx = pos.length ? pos[0][1] : 1;
+        return `${legendaCores(['cidade', 'estado', 'uniao', 'fundeb', 'misto', 'cred'].map(k => ESF[k]))}
+          ${pos.map(([k, v]) => barraO(RECK[k][0], esc(RECK[k][1]) + (RECK[k][2] !== RECK[k][0] ? ` <span class="orel">No relatório: ${esc(RECK[k][2])}</span>` : ''), orcV(v, a), orcV(mx, a), orcV(tb, a), ESF[RECK[k][3]][1])).join('')}
+          ${neg.map(([k, v]) => barraO(RECK[k][0], esc(RECK[k][1]), orcV(v, a), orcV(mx, a), orcV(tb, a), ESF.ded[1])).join('')}
+          <p class="note">Soma dos impostos e repasses pelo valor cheio: ${orcFmt(orcV(tb, a))}. Depois da retenção para o FUNDEB: ${orcFmt(R)}.</p>`;
+      }
+      const g = {}; d.esf.forEach(([k, v]) => { const e = ESFK[k]; g[e] = (g[e] || 0) + v; });
+      const L = Object.entries(g).sort((x, y) => y[1] - x[1]), mx = L.length ? L[0][1] : 1;
+      return `${L.map(([e, v]) => barraO(ESF[e][0], esc(ESFD[e]), orcV(v, a), orcV(mx, a), R, ESF[e][1])).join('')}
+        <p class="note">Quanto Campinas depende de outros governos: ${orcPct((g.estado || 0) + (g.uniao || 0) + (g.fundeb || 0) + (g.misto || 0), d.rec.real)} do que entrou veio de repasses${g.cred ? ` e ${orcPct(g.cred, d.rec.real)} de empréstimos` : ''}.</p>`;
+    };
+    // para onde foi
+    const F = d.fun.filter(f => f[1] > 0).sort((x, y) => y[1] - x[1]);
+    const top = F.filter(f => ORC_TOP.includes(f[0])), outras = F.filter(f => !ORC_TOP.includes(f[0]));
+    const mxF = F.length ? F[0][1] : 1;
+    const linhaArea = (f, cor) => `<details class="oarea" data-n="${esc(f[0])}"${FO.abertas.has(f[0]) ? ' open' : ''}><summary>${barraO(f[0], AREAX[f[0]] ? esc(AREAX[f[0]]) : '', orcV(f[1], a), orcV(mxF, a), G, cor)}</summary>
+      <div class="osub">${f[4].length ? f[4].slice().sort((x, y) => y[1] - x[1]).map(([n, v]) => barraO(n, '', orcV(v, a), orcV(f[4].reduce((m, s) => Math.max(m, s[1]), 0), a), orcV(f[1], a), cor)).join('') : '<p class="note">Sem subdivisões com gasto neste ano.</p>'}</div></details>`;
+    const somaOut = outras.reduce((s, f) => s + f[1], 0);
+    const gastoHtml = () => FO.gasto === 'area' ? `<p class="note" style="margin-top:0">Toque numa área para ver as subdivisões.</p>
+      ${top.map(f => linhaArea(f, areaCor(f[0]))).join('')}
+      ${outras.length ? `<details class="oarea"${FO.abertas.has('__outras') ? ' open' : ''} data-n="__outras"><summary>${barraO('Outras áreas', outras.length + ' áreas menores', orcV(somaOut, a), orcV(mxF, a), G, '#cfc8bd')}</summary><div class="osub">${outras.map(f => linhaArea(f, '#cfc8bd')).join('')}</div></details>` : ''}`
+      : T.map(t => barraO(TIPOK[t[0]][0], esc(TIPOK[t[0]][1]) + ` <span class="orel">No relatório: ${esc(TIPOK[t[0]][2])}</span>`, orcV(t[1], a), orcV(mxT, a), G, TIPOC[t[0]])).join('');
+    // como foi gasto
+    const T = d.tipo.filter(t => t[1] > 0).sort((x, y) => y[1] - x[1]), mxT = T.length ? T[0][1] : 1;
+    // planejado e executado
+    const tr = (rot, v, mx, cor) => `<div class="oplan"><span>${rot}</span><div class="otrack"><b style="width:${100 * v / mx}%;background:${cor}"></b></div><span class="ov">${orcFmt(v)}</span></div>`;
+    const mxP = Math.max(d.rec.ini, d.rec.atu, d.rec.real, d.des.ini, d.des.atu, d.des.liq);
+    const bloco = (id, titulo, corpo) => `<section class="ocard oblk" id="${id}" aria-labelledby="h-${id}"><h2 id="h-${id}">${titulo}</h2><div class="oblk-corpo">${corpo}</div>
+      <button type="button" class="btn ghost sm oblk-mais" aria-haspopup="dialog">Ver tudo</button></section>`;
+    document.getElementById('oano-sec').innerHTML = `
+    <section class="section" aria-labelledby="h-oresumo"><h2 id="h-oresumo">Em ${a}</h2>
+      <div class="stats">
+        <div class="stat stat-total"><h3>Arrecadado</h3><div class="big">${orcFmt(R)}</div>${ant ? varia(R, orcV(ant.rec.real, a - 1)) : ''}</div>
+        <div class="stat"><h3>Gasto</h3><div class="big">${orcFmt(G)}</div>${ant ? varia(G, orcV(ant.des.liq, a - 1)) : ''}</div>
+        <div class="stat"><h3>Diferença</h3><div class="big">${orcFmt(R - G)}</div><div class="note">${R >= G ? 'Entrou mais do que foi gasto' : 'Foi gasto mais do que entrou'}</div></div>
+      </div></section>
+    <div class="ogrid">
+    ${bloco('orecb', 'De onde veio o dinheiro', `<div class="frow" id="orecm">${chips('Como ver a receita', [['imp','Por imposto e repasse'],['esf','Por quem arrecada']], FO.rec)}</div><div id="orec">${recHtml()}</div>`)}
+    ${bloco('oareab', 'Para onde foi', `<div class="frow" id="ogastom">${chips('Como ver o gasto', [['area','Por área'],['tipo','Por tipo de gasto']], FO.gasto)}</div><div id="ogasto">${gastoHtml()}</div>`)}
+    </div>
+    <section class="ocard oblk oplena" id="oplanb" aria-labelledby="h-oplanb"><h2 id="h-oplanb">Planejado e executado em ${a}</h2><div><p class="note" style="margin-top:0"><strong>Aprovado</strong> é o orçamento votado pela Câmara. <strong>Atualizado</strong> inclui as mudanças feitas ao longo do ano.</p>
+      <h3 class="osubt">Receita</h3>${tr('Aprovado', orcV(d.rec.ini, a), orcV(mxP, a), '#d6c5ff')}${tr('Atualizado', orcV(d.rec.atu, a), orcV(mxP, a), '#b79bf0')}${tr('Arrecadado', R, orcV(mxP, a), '#7a4eb6')}
+      <p class="note">Arrecadou ${orcPct(d.rec.real, d.rec.ini)} do previsto no orçamento aprovado.</p>
+      <h3 class="osubt">Despesa</h3>${tr('Aprovado', orcV(d.des.ini, a), orcV(mxP, a), '#fcd29e')}${tr('Atualizado', orcV(d.des.atu, a), orcV(mxP, a), '#fbb664')}${tr('Gasto', G, orcV(mxP, a), '#f9992a')}
+      <p class="note">Gastou ${orcPct(d.des.liq, d.des.ini)} do valor aprovado e ${orcPct(d.des.liq, d.des.atu)} do atualizado.</p>
+      <h3 class="osubt">Por área</h3>
+      <div class="tablewrap"><table class="t"><caption class="sr">Planejado e executado por área em ${a}</caption><thead><tr><th scope="col">Área</th><th scope="col" class="ev">Aprovado</th><th scope="col" class="ev">Atualizado</th><th scope="col" class="ev">Gasto</th><th scope="col" class="ev">Gasto / aprovado</th></tr></thead>
+        <tbody>${d.fun.filter(f => f[1] || f[2]).sort((x, y) => y[2] - x[2]).map(f => `<tr><td>${esc(f[0])}</td><td class="ev">${orcFmt(orcV(f[2], a))}</td><td class="ev">${orcFmt(orcV(f[3], a))}</td><td class="ev">${orcFmt(orcV(f[1], a))}</td><td class="ev">${f[2] ? orcPct(f[1], f[2]) : '—'}</td></tr>`).join('')}</tbody></table></div></div></section>`;
+    const ajusta = () => requestAnimationFrame(() => app.querySelectorAll('.oblk:not(.oplena)').forEach(bl => bl._cabe && bl._cabe()));
+    // "Ver tudo" abre uma janela sobreposta com o conteúdo inteiro e as mesmas abas; o quadro da página não muda de tamanho
+    const JAN = {orecb: ['De onde veio o dinheiro em ' + a, 'rec', [['imp','Por imposto e repasse'],['esf','Por quem arrecada']], () => recHtml()],
+                 oareab: ['Para onde foi em ' + a, 'gasto', [['area','Por área'],['tipo','Por tipo de gasto']], () => gastoHtml()]};
+    const abreBloco = id => { const [tit, chave, ops, html] = JAN[id];
+      abreJanela(tit, `<div class="frow" id="mjchips">${chips('Como ver', ops, FO[chave])}</div><div id="mjcorpo" class="ojan">${html()}</div>`, () => {
+        const corpo = document.getElementById('mjcorpo');
+        const liga = () => corpo.querySelectorAll('details.oarea').forEach(dt => dt.addEventListener('toggle', e => { e.stopPropagation(); if (dt.open) FO.abertas.add(dt.dataset.n); else FO.abertas.delete(dt.dataset.n); }));
+        liga();
+        ligarChips('#mjchips', k => { FO[chave] = k; corpo.innerHTML = html(); liga();
+          // a página atrás acompanha a aba escolhida
+          if (chave === 'rec') { document.getElementById('orec').innerHTML = recHtml(); app.querySelectorAll('#orecm .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === k)); }
+          else { document.getElementById('ogasto').innerHTML = gastoHtml(); ligaAreas(); app.querySelectorAll('#ogastom .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === k)); }
+          ajusta(); });
+      }); };
+    app.querySelectorAll('.oblk:not(.oplena)').forEach(bl => { const bt = bl.querySelector('.oblk-mais'), corpo = bl.querySelector('.oblk-corpo');
+      const cabe = () => { bt.hidden = corpo.scrollHeight <= corpo.clientHeight + 4; bl.classList.toggle('sobra', !bt.hidden); };
+      bt.addEventListener('click', () => abreBloco(bl.id));
+      bl._cabe = cabe; requestAnimationFrame(cabe); });
+    ligarChips('#orecm', k => { FO.rec = k; document.getElementById('orec').innerHTML = recHtml(); ajusta(); });
+    ligarChips('#ogastom', k => { FO.gasto = k; document.getElementById('ogasto').innerHTML = gastoHtml(); ligaAreas(); ajusta(); });
+    const ligaAreas = () => app.querySelectorAll('details.oarea').forEach(dt => dt.addEventListener('toggle', e => { e.stopPropagation(); if (dt.open) FO.abertas.add(dt.dataset.n); else FO.abertas.delete(dt.dataset.n); ajusta(); }));
+    ligaAreas();
+  }
+  base(); desenhaEvo(); desenhaAno();
+}
+function orcFmtBruto(v){ return v >= 1e9 ? 'R$ ' + (v / 1e9).toLocaleString('pt-BR', {maximumFractionDigits: 2}) + ' bi' : 'R$ ' + Math.round(v / 1e6).toLocaleString('pt-BR') + ' mi'; }
+
+const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Afinidade de votação','afinidade'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], orcamento:[viewOrcamento,'Orçamento','orcamento'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
 function rota(){
   const h = location.hash.replace('#','');
   let tab, titulo;
