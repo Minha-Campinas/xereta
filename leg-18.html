@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Xereta – De olho nos vereadores de Campinas</title>
-<meta name="description" content="Xereta: De olho nos vereadores de Campinas. Veja o que foi votado em cada sessão, quem esteve presente e quem faz parte de cada comissão.">
+<title>Xereta – De olho na Câmara de Campinas</title>
+<meta name="description" content="Xereta: De olho na Câmara de Campinas. Veja o que foi votado em cada sessão, quem esteve presente e quem faz parte de cada comissão.">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -110,8 +110,18 @@ h3{font-size:1.15rem;font-weight:600}
 .hero{padding:1.5rem 0 .5rem}
 .hero h1{font-size:clamp(2.1rem,6vw,3.6rem);max-width:21ch;letter-spacing:-.025em}
 .hero p{font-size:1.2rem;color:var(--muted);max-width:46ch;margin:1rem 0 0}
-.passeio{margin-top:1rem;max-width:32rem;border-bottom:2px solid var(--bd)}
-.passeio canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.passeio{position:relative;margin-top:1.25rem;aspect-ratio:16 / 9;border:3px solid var(--bd);box-shadow:6px 6px 0 var(--sh);background:#9dcdf6;overflow:hidden}
+/* cenário urbano em pixel art (320×180, desenhado por cenaXereta) em duas camadas, atrás e na frente do cachorro (320×64), na mesma escala, com as patas na calçada */
+.passeio canvas{display:block;position:absolute;left:0;bottom:8.3333%;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.passeio #cena,.passeio #cenaF{inset:0;height:100%}
+/* computador: o quadro do cachorro à esquerda; a frase num quadro roxo mais largo, à direita */
+@media (min-width:641px){
+  .hero{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:2rem;align-items:stretch;padding:1.75rem 0 .75rem}
+  .hero .passeio{order:-1;margin:0;width:100%;align-self:center}
+  .hero-txt{display:flex;flex-direction:column;justify-content:center;background:var(--accent);color:var(--accent-ink);border:3px solid var(--bd);box-shadow:6px 6px 0 var(--sh);padding:1.5rem 2rem}
+  .hero-txt h1{color:inherit;max-width:none;font-size:clamp(2rem,3.4vw,2.9rem)}
+  .hero-txt p{color:inherit;opacity:.92;font-size:1.15rem;max-width:none;margin-top:.6rem}
+}
 .crs{margin-top:2.5rem}
 .crs-topo{display:flex;align-items:center;justify-content:space-between;gap:.6rem 1rem;flex-wrap:wrap}
 .crs-ctl{display:flex;gap:.4rem}
@@ -456,6 +466,7 @@ footer{border-top:3px solid var(--bd)}
 .chip{border:2px solid var(--bd);border-radius:0;box-shadow:2px 2px 0 var(--sh);font-weight:700}
 .chip[aria-pressed="true"]{background:var(--p2);color:var(--p5);border-color:var(--bd);transform:translate(2px,2px);box-shadow:none}
 nav.tabs a{border:2px solid transparent;border-radius:0}
+@media (min-width:641px){nav.tabs{gap:.1rem}nav.tabs a{padding:.5rem .7rem}}
 nav.tabs a[aria-current="page"]{border-color:var(--bd);box-shadow:3px 3px 0 var(--sh)}
 .seg,.segnav{border:2px solid var(--bd);border-radius:0;background:var(--surface)}
 .seg button,.segnav a{border-radius:0}
@@ -569,6 +580,21 @@ tr.psel td{background:var(--accent-soft)}
 #atab td{font-size:.92rem}
 /* ===== celular (até 640 px). No computador nada disso vale. ===== */
 .menubtn,.so-cel{display:none}
+/* computador: menu lateral à esquerda, que abre e fecha pelo botão roxo no canto de cima */
+.lado-btn{display:none}
+@media (min-width:641px){
+  header.top>.wrap{max-width:none}
+  .lado-btn{display:inline-flex;align-items:center;justify-content:center;width:2.9rem;height:2.9rem;flex:none;cursor:pointer;color:var(--accent-ink);background:var(--accent);border:2px solid var(--bd);box-shadow:3px 3px 0 var(--sh);transition:transform .08s,box-shadow .08s}
+  .lado-btn:active{transform:translate(3px,3px);box-shadow:none}
+  .lado-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  nav.tabs{position:fixed;left:0;top:var(--topo-h,4.5rem);bottom:0;width:13rem;z-index:4;flex-direction:column;gap:.2rem;overflow-y:auto;margin:0;padding:1rem .75rem 1.5rem;
+    background:var(--surface);border-right:3px solid var(--bd)}
+  nav.tabs a{width:100%}
+  body:not(.menu-lado) nav.tabs{display:none}
+  /* com o menu aberto, o conteúdo se centraliza no espaço que sobra à direita do menu */
+  body.menu-lado main.wrap,body.menu-lado footer .wrap{margin-left:calc(13rem + max(0px, (100vw - 13rem - 66rem) / 2));margin-right:auto}
+  body.menu-lado .lado-btn{transform:translate(3px,3px);box-shadow:none}   /* aberto: botão afundado */
+}
 .comofunc{margin-top:2.5rem;border:2px solid var(--bd);background:var(--surface);box-shadow:4px 4px 0 var(--sh)}
 .comofunc>summary{cursor:pointer;padding:.7rem 1rem;min-height:2.75rem;font-family:var(--display);font-size:1.3rem;font-size-adjust:0.5;list-style-position:inside}
 .comofunc[open]>summary{border-bottom:2px solid var(--bd)}
@@ -714,7 +740,8 @@ tr.psel td{background:var(--accent-soft)}
 <header class="top">
   <div class="wrap">
     <div class="bar1">
-      <a class="brand" href="#inicio"><img class="logo" src="logo.png" alt="" width="44" height="44"><span class="brandtxt">Xereta<small>De olho nos vereadores de Campinas</small></span></a>
+      <button class="lado-btn" id="btnLado" type="button" aria-expanded="true" aria-controls="menuSec" aria-label="Menu" title="Mostrar ou esconder o menu"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><rect x="3" y="5" width="18" height="3"/><rect x="3" y="10.5" width="18" height="3"/><rect x="3" y="16" width="18" height="3"/></svg></button>
+      <a class="brand" href="#inicio"><img class="logo" src="logo.png" alt="" width="44" height="44"><span class="brandtxt">Xereta<small>De olho na Câmara de Campinas</small></span></a>
       <div class="tools">
         <button class="tool" id="btnTexto" type="button" aria-label="Aumentar o tamanho do texto">A<span aria-hidden="true" style="font-size:.8em">+</span></button>
         <button class="tool menubtn" id="btnMenu" type="button" aria-expanded="false" aria-controls="menuSec">Menu</button>
@@ -724,11 +751,12 @@ tr.psel td{background:var(--accent-soft)}
     <nav class="tabs" id="menuSec" aria-label="Seções">
       <a href="#inicio" data-view="inicio">Início</a>
       <a href="#votacoes" data-view="votacoes">Votações</a>
+      <a href="#afinidade" data-view="afinidade">Afinidade</a>
       <a href="#projetos" data-view="projetos" id="tabProj" hidden>Projetos</a>
       <a href="#emendas" data-view="emendas" id="tabEme" hidden>Emendas</a>
       <a href="#presenca" data-view="presenca">Presença</a>
       <a href="#comissoes" data-view="comissoes">Comissões</a>
-      <a href="#vereadores" data-view="vereadores">Vereadores</a>
+      <a href="#vereadores" data-view="vereadores">Parlamentares</a>
       <a href="#sobre" data-view="sobre">Sobre os dados</a>
     </nav>
   </div>
@@ -819,6 +847,13 @@ document.getElementById('btnTema').addEventListener('click', () => {
 /* ---------- celular: menu recolhido, topo que some ao rolar, filtros recolhidos, tabelas em cartões ---------- */
 const celular = matchMedia('(max-width:640px)');
 const topo = document.querySelector('header.top'), btnMenu = document.getElementById('btnMenu');
+// menu lateral do computador: aberto ou fechado, lembrado entre as visitas
+const btnLado = document.getElementById('btnLado');
+const ladoAberto = ab => { document.body.classList.toggle('menu-lado', ab); btnLado.setAttribute('aria-expanded', ab); btnLado.setAttribute('aria-label', ab ? 'Esconder o menu' : 'Mostrar o menu'); try { localStorage.setItem('xereta-menu', ab ? '1' : '0'); } catch (e) {} };
+{ let guardado = null; try { guardado = localStorage.getItem('xereta-menu'); } catch (e) {} ladoAberto(guardado ? guardado === '1' : innerWidth >= 1100); }   // na primeira visita, aberto só em telas largas
+btnLado.addEventListener('click', () => ladoAberto(!document.body.classList.contains('menu-lado')));
+const alturaTopo = () => document.documentElement.style.setProperty('--topo-h', topo.getBoundingClientRect().height + 'px');
+alturaTopo(); new ResizeObserver(alturaTopo).observe(topo);
 const fechaMenu = () => { topo.classList.remove('aberto'); btnMenu.setAttribute('aria-expanded', 'false'); };
 btnMenu.addEventListener('click', () => { const ab = topo.classList.toggle('aberto'); btnMenu.setAttribute('aria-expanded', ab); topo.classList.remove('oculto'); });
 document.querySelectorAll('nav.tabs a').forEach(a => a.addEventListener('click', fechaMenu));
@@ -833,7 +868,7 @@ window.addEventListener('scroll', () => {
   ultimoY = y;
 }, {passive:true});
 celular.addEventListener('change', () => { topo.classList.remove('oculto'); fechaMenu(); const pm = document.getElementById('pmais'); if (pm && !celular.matches) pm.open = true; });
-const fechadoCel = () => celular.matches ? ' closed' : '';
+const fechadoCel = () => ' closed';   // os filtros começam sempre recolhidos (celular e computador)
 const marcaFiltros = (alvo, n) => { const b = app.querySelector(`[data-ft="${alvo}"]`); if (b) b.textContent = n ? `Filtros (${n})` : 'Filtros'; };
 const comoFunciona = html => `<details class="comofunc"><summary>Como funciona</summary><div class="cf-corpo">${html}</div></details>`;
 // no celular, cada linha de tabela vira um cartão; o título da coluna vai junto de cada valor
@@ -899,7 +934,7 @@ function detalhe(v){
   const mat = D.MAT[v.m]; const m = NOM[v.id];
   let h = '<div class="detail">';
   if (mat) { h += `<p>${esc(mat[3] || 'Sem ementa cadastrada.')}</p>`; if (mat[4] && mat[4].length) h += `<p class="note">Autoria: ${esc(mat[4].join(', '))}</p>`; }
-  else if (!m) h += `<p class="note">Votação simbólica, sem registro do voto de cada vereador. A ementa e os documentos estão na página da matéria.</p>`;
+  else if (!m) h += `<p class="note">Votação simbólica, sem registro do voto de cada parlamentar. A ementa e os documentos estão na página da matéria.</p>`;
   if (m) {
     h += barra(m, true);
     const g = {}; Object.entries(m).forEach(([id,x]) => (g[x] = g[x] || []).push(+id));
@@ -996,7 +1031,7 @@ function ligarPeriodo(id, st, fn){
   }));
 }
 const btnFiltros = alvo => `<button type="button" class="btn ghost ftoggle" aria-expanded="false" aria-controls="${alvo}" data-ft="${alvo}">Filtros</button>`;
-/* botão Filtros: recolhe e expande os filtros (no computador começam abertos; no celular, fechados) */
+/* botão Filtros: recolhe e expande os filtros (começam sempre recolhidos) */
 function ligarToggle(){
   app.querySelectorAll('[data-ft]').forEach(b => {
     const f = document.getElementById(b.dataset.ft); if (!f) return;
@@ -1005,7 +1040,7 @@ function ligarToggle(){
     b.addEventListener('click', () => { const ab = f.classList.toggle('closed') === false; b.setAttribute('aria-expanded', ab); });
   });
 }
-/* tipo de votação: nominal (com o voto de cada vereador) ou simbólica (só o resultado) */
+/* tipo de votação: nominal (com o voto de cada parlamentar) ou simbólica (só o resultado) */
 const TV_OPC = [['todas','Todas'],['nom','Nominais'],['simb','Simbólicas']];
 const passaTV = (v, t) => !t || t === 'todas' || (t === 'nom' ? !!NOM[v.id] : !NOM[v.id] && !RESG.nv.includes(v.res));
 const linhaTV = (id, atual) => `<div class="frow" id="${id}"><span class="flabel">Votação</span>${chips('Tipo de votação', TV_OPC, atual)}</div>`;
@@ -1049,7 +1084,7 @@ function calendario(el, opts){
 }
 function itemSessao(s){
   const vs = votosSessao[s.id] || []; const fut = s.d > HOJE; const nom = vs.filter(v => NOM[v.id]).length;
-  const info = fut ? 'Agendada' : vs.length ? `${num(vs.length)} votações${nom ? `, ${nom} com voto de cada vereador` : ''}` : (s.t === 'Solene' ? 'Sessão solene, sem votações' : 'Sem votações registradas');
+  const info = fut ? 'Agendada' : vs.length ? `${num(vs.length)} votações${nom ? `, ${nom} com voto de cada parlamentar` : ''}` : (s.t === 'Solene' ? 'Sessão solene, sem votações' : 'Sem votações registradas');
   const inner = `<span class="dt"><b>${dt(s.d).getDate()}</b><small>${dt(s.d).toLocaleDateString('pt-BR',{month:'short'}).replace('.','')}</small></span><span class="info"><strong>${esc(sessNome(s))}</strong><span>${diaSemana(s.d)}. ${info}</span></span>`;
   return fut ? `<div class="sitem fut">${inner}</div>` : `<a class="sitem" href="#s-${s.id}">${inner}<span class="go" aria-hidden="true">›</span></a>`;
 }
@@ -1063,21 +1098,21 @@ const ICO = {
 function viewInicio(){
   const u = ultima; const uv = u ? votosSessao[u.id] : [];
   const apr = uv.filter(v => RESG.aprov.includes(v.res)).length;
-  app.innerHTML = `<section class="hero"><h1>Acompanhe a Câmara de Campinas</h1>
-    <p>Curioso pra saber o que seu vereador anda fazendo? Começa a xeretar por aqui.</p>
-    <div class="passeio"><canvas id="passeio" width="176" height="64" role="img" aria-label="Animação: o cachorro do Xereta entra pulando, anda, fareja o chão e sai correndo"></canvas></div></section>
+  app.innerHTML = `<section class="hero"><div class="hero-txt"><h1>Acompanhe a Câmara de Campinas</h1>
+    <p>Quer saber o que acontece na Câmara de Campinas? Comece a xeretar por aqui.</p></div>
+    <div class="passeio"><canvas id="cena" width="320" height="180" aria-hidden="true"></canvas><canvas id="passeio" width="320" height="64" role="img" aria-label="Animação: o cachorro do Xereta entra pulando, anda, fareja o chão e sai correndo"></canvas><canvas id="cenaF" width="320" height="180" aria-hidden="true"></canvas></div></section>
   ${EME ? emendasDestaque() : ''}
   <section class="crs" id="crs" aria-labelledby="h-ver" aria-roledescription="carrossel">
-    <div class="crs-topo"><h2 id="h-ver">Os vereadores</h2>
-      <div class="crs-ctl"><button type="button" class="tool" id="crsAnt" aria-label="Vereadores anteriores">‹</button><button type="button" class="tool" id="crsPausa" aria-pressed="false" aria-label="Pausar o carrossel">${ICO_PAUSA}</button><button type="button" class="tool" id="crsProx" aria-label="Próximos vereadores">›</button></div></div>
+    <div class="crs-topo"><h2 id="h-ver">Parlamentares</h2>
+      <div class="crs-ctl"><button type="button" class="tool" id="crsAnt" aria-label="Voltar o carrossel">‹</button><button type="button" class="tool" id="crsPausa" aria-pressed="false" aria-label="Pausar o carrossel">${ICO_PAUSA}</button><button type="button" class="tool" id="crsProx" aria-label="Avançar o carrossel">›</button></div></div>
     <div class="crs-vp" id="crsVp"><div class="crs-trilho">${[0, 1].map(c => ATIVOS.map(v => `<a class="face" href="#v-${v.id}"${c ? ' aria-hidden="true" tabindex="-1"' : ''}>${av(v.id,'lg')}<span class="nm">${esc(v.nome)}</span><span class="pt">${esc(v.partido||'')}</span></a>`).join('')).join('')}</div></div>
-    <p class="crs-mais"><a href="#vereadores">Ver todos os vereadores e buscar por nome ou partido</a></p>
+    <p class="crs-mais"><a href="#vereadores">Ver a lista completa e buscar por nome ou partido</a></p>
   </section>
   <section class="section atalhos" aria-label="Por onde começar">
-    ${u ? `<div class="latest col"><div><div class="note">Última sessão com votações</div><strong style="font-size:1.2rem">${esc(tipoCurto(u))} de ${fmtData(u.d)}</strong><div class="note">${num(uv.length)} votações, ${num(apr)} aprovadas${PRES[u.id] ? `, ${PRES[u.id].size} vereadores presentes` : ''}</div></div>
+    ${u ? `<div class="latest col"><div><div class="note">Última sessão com votações</div><strong style="font-size:1.2rem">${esc(tipoCurto(u))} de ${fmtData(u.d)}</strong><div class="note">${num(uv.length)} votações, ${num(apr)} aprovadas${PRES[u.id] ? `, ${PRES[u.id].size} parlamentares presentes` : ''}</div></div>
       <div class="linkrow"><a class="btn" href="#s-${u.id}">Ver a última sessão</a><a class="btn ghost" href="#busca">Buscar votações por período</a></div></div>` : ''}
     <nav class="paths ${EME ? 'three' : 'two'}" aria-label="Outras seções">
-      ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada vereador destinou e para quem o dinheiro foi pago. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
+      ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada parlamentar destinou e para quem o dinheiro foi pago. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
       <a class="path" href="#presenca"><span class="ico">${ICO.pre}</span><strong>Presença</strong><span>Quem compareceu às sessões.</span></a>
       <a class="path" href="#comissoes"><span class="ico">${ICO.com}</span><strong>Comissões</strong><span>Quem analisa os projetos e as reuniões.</span></a>
     </nav>
@@ -1085,6 +1120,7 @@ function viewInicio(){
   <section class="section" aria-labelledby="h-cal"><h2 id="h-cal">Sessões no calendário</h2>
     <div class="cal calhome" id="cal"></div></section>`;
   passeioXereta(document.getElementById('passeio'));
+  cenaXereta(document.getElementById('cena'), document.getElementById('cenaF'));
   carrossel(document.getElementById('crs'));
   calendario(document.getElementById('cal'), {picker:true});
 }
@@ -1098,7 +1134,7 @@ function carrossel(box){
   const vp = box.querySelector('.crs-vp'), trilho = box.querySelector('.crs-trilho');
   const reduz = matchMedia('(prefers-reduced-motion: reduce)'), VEL = 28;      // pixels por segundo
   const bPausa = box.querySelector('#crsPausa');
-  let pos = 0, ultimo = performance.now(), sobre = false, foco = false, mexendo = 0, pausado = reduz.matches, visivel = true, arrasto = null, engole = false;
+  let pos = 0, ultimo = performance.now(), sobre = false, foco = false, mexendo = 0, pausado = false, visivel = true, arrasto = null, engole = false;
   const meia = () => trilho.scrollWidth / 2;
   // a posição fica sempre entre 1 e metade+1: passou do fim, volta uma metade; chegou no zero, avança uma metade
   const fora = () => vp.scrollLeft >= meia() + 1 || vp.scrollLeft < 1;
@@ -1143,6 +1179,113 @@ function carrossel(box){
    Entra pulando pela esquerda, anda, fareja o chão, acha alguma coisa ("!") e sai acelerando pela direita.
    Pausa fora da tela; com "reduzir movimento" ligado, fica parado. Desenhos: caracteres por pixel, comprimidos por linha. */
 const SPRITE = {"W":60,"H":42,"chao":39,"pal":{"#":"#1b120c","o":"#de9e58","d":"#b8763e","l":"#f0be82","n":"#4a2f20","e":"#28180e","g":"#1f8a3c","y":"#f2c81c","t":"#e8e2c8","w":"#ffffff"},"q":{"salto":["60.|60.|60.|60.|60.|31.7#22.|30.#4d3l8#14.|30.#4d2oe5l3n#13.|30.#4d2o2e4o3n#13.|29.#5d10o#14.|29.#o4d8o2d#14.|29.#2o2d6o2d3#15.|7.#21.#8o2d3#17.|6.#l#19.#loy4o2d2#20.|5.#ld#18.2#ogy2g2o2#22.|5.#o#18.#2logy2g2o#23.|4.#lo#13.5#l3og2yg2o#23.|4.#do#10.3#5l4o2gyg2o#23.|5.#dl#3.6#3l11oy3ol#22.|6.#ol#.#6l19o#22.|6.#dol#l20o3tod#22.|7.#dol22ot2o#23.|8.#d15o2d8od#23.|9.#12o3d2#d7o#24.|9.#10o2d3#2.#3d4o#24.|9.#d9o2#6.3#4o#24.|10.#d8o#8.#4o#25.|11.#2d5od#8.#4o2#24.|12.2#5o#10.#5o#23.|13.#d3o#12.2#3o#23.|12.#d4o#14.#o#24.|11.#d4o#16.#25.|11.#d3o#43.|11.#d3o#43.|11.#d2o#44.|10.#2d2o#44.|10.#2d2o#44.|9.#2d3o#44.|10.#d3o#44.|11.4#45.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|34.4#22.|33.#4d2#20.|33.#4d2l#19.|32.#5d2ol3#16.|2#30.#4d2owe3l4#12.|2l2#28.#o3d3oe3ol3n#11.|#d2l#26.#lo3d8o3n#11.|.#dol#24.#l14od#12.|2.#dol#22.#lgoy6o2d2o2d#13.|3.#dol2#3.6#.10#lo2gyg3o2d6#14.|4.#2d2l#.#6l#10l2og2yg2od2#2.2#16.|5.2#dol#l6ol12og2yg2o#22.|7.#2dl20ogy2g2o#22.|8.2#22oyog2o#22.|8.#l27o#22.|9.#23o2t2o#22.|9.#d8o8d6o2tod#22.|10.#d7o8#d7od#23.|11.#7o#7.#d6o2#23.|11.#6od#8.#2d5od2#21.|10.2#d4od#10.3#6od#20.|9.#d5o2#14.#5od#20.|9.#d4o#17.2#4od2#18.|8.#d4o#20.2#2o3d#17.|7.#2d2o2#23.#3od#17.|6.#2d3o#24.#3o#18.|6.#d3o#26.3#19.|7.#2o#49.|8.2#50.|60.|60.","60.|60.|60.|8.#51.|7.#l#50.|7.#o#50.|7.#o#50.|7.#ol#49.|7.#2o#49.|7.#do#49.|8.#o#49.|8.#ol#48.|8.#dol#26.#20.|9.#do6#19.2#d#19.|10.#o6l#17.#4d#18.|10.#7ol2#14.#5dl2#16.|10.#8o2l4#9.#l5do2l#15.|9.#l10o4l3#4.2#lo4d4o#15.|9.#15o3l4#2l3o3d2o2e2#14.|9.#d17o4logy7oeo2l2#12.|10.#d20o2gyg10o2l2#10.|11.#20og2yg11o3n#9.|11.#6o3d10o2gy2g2o5d4o3n#9.|10.2#6o3#3d8o2yg2od7#o2d2#10.|9.#d6od#2.3#2d8og2o#5.5#12.|9.#5o3#6.2#6ot3od#7.#14.|9.#3o2#10.#6o2t2o#23.|10.#2o#11.#d5ot2od#23.|9.#d2od#11.#2d5od#24.|10.#3o#12.2#4od#25.|11.3#14.#3od#26.|28.#3o#27.|27.#3od#27.|27.#3od#27.|27.#3od#27.|27.#3od#27.|27.#2od#28.|26.#3od#28.|26.#3od#28.|26.#3o2d#27.|60.|60.","60.|60.|60.|60.|60.|60.|60.|11.#48.|9.2#l#47.|8.#2l#25.#22.|8.#o#25.#d2#20.|8.#o#24.#4d2#18.|8.#o#23.#5d2l#17.|8.#ol#22.#4d3ol#16.|8.#2o#2.2#17.#l4d2owe2#15.|8.#do3#2l3#13.#l2o3d2o2e2l4#11.|9.#o3l2o3l7#5.#l3od8o2l2n#10.|9.#9o7l5#lgoy11o4n#9.|9.#16o5logy2g11o2n#10.|9.#22ogy2g2o6d2o2d#11.|9.#21o2gy2g2o10#12.|9.#d20o2gyg2od#5.2#14.|10.#d21oyg2o#22.|11.#7o7d11o#22.|11.#6od7#6o2t2od#22.|11.#2d3od#6.#d5o2t2o#23.|12.2#3o#8.#d7od#23.|13.#3o#9.#2d4od#24.|13.#3od#9.2#3od#25.|13.#3od#10.#3od#25.|13.#4o#10.#3od#25.|14.#2o#11.#3od#25.|14.#2o#11.#3od#25.|14.#2o#11.#3o#26.|13.#3od#10.#2od#26.|13.#3od#10.#2od#26.|14.#o2#11.#2od#26.|15.#12.#3od#26.|28.#3od#26.|29.4#27.|60.|60."],"anda":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#4od#24.|12.#2d4o#9.#4od#24.|12.#3d3o#9.#3o3d#23.|11.#4d4o#8.#3o3d#23.|11.#3d2#3o#7.#4o3d#23.|11.#3d#.#3o#6.#3o#3d#23.|11.#2d#3.#3o2#4.#2o#.#2d#23.|11.#2d#4.#4o#3.#2o#.#3d#22.|11.#3d#3.#4o#2.#3o#2.#3d#21.|11.#3d#4.4#3.#3o#2.#3d#21.|12.3#13.3#4.3#22.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d4od#24.|13.#3od#9.2#d3o#25.|12.#4o2d#10.#4o#24.|12.#3o3d#9.#2d3o#24.|11.#4o4d#8.#2d3o#24.|11.#3o2#3d#8.#2d4o#23.|11.#3o#.#3d#7.#3d2o#24.|11.#2o#3.#3d2#4.#3d2#2o#23.|11.#2o#4.#4d#3.#2d#.#2o#23.|11.#3o#3.#4d#2.#3d#.#3o#22.|11.#3o#4.4#3.#3d#.#4o#21.|12.3#13.3#3.#o2#22.|35.#24.|60.|60."],"fareja":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|5.2#53.|4.#2l#52.|4.#2o#52.|4.#do#52.|5.#ol#51.|5.#do#51.|6.#ol#4.2#14.3#27.|6.#dol4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gyg#21.|9.#25ogygl#20.|9.#d8o8d8ogygol2#18.|10.#d7o8#8ogyg4d2#16.|11.#d5od#6.#d7ogy2g3d2l#15.|12.#d4o#8.#2d6ogyg3d2ol#14.|13.#4o#9.2#d3o2dgyg3d3ol#13.|13.#4o#11.#3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|14.#2o#12.#3o#3.#7d3o3n#7.|14.#3o#11.#2od#4.9#2d2#8.|15.#2o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gyg#21.|9.#25ogygl#20.|9.#d8o8d8ogygol2#18.|10.#d7o8#8ogyg4d2#16.|11.#d5od#6.#d7ogy2g3d2l#15.|12.#d4o#8.#2d6ogyg3d2ol#14.|13.#4o#9.2#d3o2dgyg3d3ol#13.|13.#4o#11.#3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|14.#2o#12.#3o#3.#7d3o3n#7.|14.#3o#11.#2od#4.9#2d2#8.|15.#2o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60."],"andar":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#4od#dy3d2oweo2#12.|12.#2d4o#9.#4od2#2t2d2o2eo2l3#9.|12.#3d3o#9.#3o3d#2td8ol2n#8.|11.#4d4o#8.#3o3d2#d10o3n#7.|11.#3d2#3o#7.#4o3d#.#7d3o3n#7.|11.#3d#.#3o#6.#3o#3d#2.9#2d2#8.|11.#2d#3.#3o2#4.#2o#.#2d#9.4#10.|11.#2d#4.#4o#3.#2o#.#3d#22.|11.#3d#3.#4o#2.#3o#2.#3d#21.|11.#3d#4.4#3.#3o#2.#3d#21.|12.3#13.3#4.3#22.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d4o2dgyg3d3ol#13.|13.#3od#9.2#d3o2#dy3d2oweo2#12.|12.#4o2d#10.#4o2#2t2d2o2eo2l3#9.|12.#3o3d#9.#2d3o2#2td8ol2n#8.|11.#4o4d#8.#2d3o#.#d10o3n#7.|11.#3o2#3d#8.#2d4o#.#7d3o3n#7.|11.#3o#.#3d#7.#3d2o#3.9#2d2#8.|11.#2o#3.#3d2#4.#3d2#2o#9.4#10.|11.#2o#4.#4d#3.#2d#.#2o#23.|11.#3o#3.#4d#2.#3d#.#3o#22.|11.#3o#4.4#3.#3d#.#4o#21.|12.3#13.3#3.#o2#22.|35.#24.|60.|60."],"alta":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60."],"trote":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#5o#8.#2d5o#24.|12.#d5o#8.2#4od#24.|12.#3d3o#9.#4od#24.|11.#4d4o#8.#3o3d#23.|11.#3d2#3o#7.#4o3d#23.|11.#2d#2.#3o#6.#3o#4d#22.|10.#3d#3.#3o3#3.#3o2#3d#22.|10.#2d#5.#5o#.#3o#2.#2d#22.|10.#2d#6.#4o#.#2o#3.#2d2#21.|9.#4d#6.#o2#.#3o#4.#3d#20.|10.#d2#8.#3.#2o#5.#3d#20.|11.#15.2#7.3#21.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#5o#8.#2d4od#24.|12.#4o2d#8.2#d3o#25.|12.#3o3d#10.#4o#24.|11.#4o4d#8.#2d3o#24.|11.#3o2#3d#8.#2d4o#23.|11.#2o#2.#3d#6.#4d3o#23.|10.#3o#3.#3d3#3.#3d#3o#23.|10.#2o#5.#5d#2.#2d#.#3o#22.|10.#2o#6.#4d#.#2d#3.#2o2#21.|9.#4o#6.#d2#.#4d#2.#4o#20.|10.#o2#8.#4.#d2#4.#2o#21.|11.#16.#7.2#22.|60.|60."],"corre":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.2#23.|34.#2d3#20.|33.#4d2l#19.|#32.#4d2ol#18.|l2#29.#5doewl6#12.|d2l#28.#o4do2eo4l2n#11.|2#dl#26.#lo3d8o4n#10.|2.#dl#24.#l3od10o2n#11.|3.#dl#22.2#2oy7od3o2d#12.|4.#ol2#3.6#.10#2l2gyg3o3d6#13.|4.#2d2l3#6l#10l2o2gyg3o3#.3#15.|5.2#2d3l6ol12og2yg2od#21.|7.2#d21og2yg2o#22.|9.#22oy2g2o#22.|8.#l27o#22.|9.#23o2t2o#22.|9.#d8o8d6o2tod#22.|10.#d7o8#d7od#23.|11.#d6o#7.#d6o#24.|12.#5od#8.#2d4od2#22.|11.#d4od#10.3#5od#21.|10.#d4o2#14.#5od#20.|9.#d4o#17.#4od#20.|9.#d3o#19.#3o2d3#17.|8.#2d2o#21.2#2o4d#16.|8.#d3o#22.#4od#17.|7.#2d2o#24.#3o#18.|7.#d4o#24.3#19.|8.2#o2#47.|10.#49.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|#33.#3d3#19.|l3#30.#3d3l#18.|#3l#28.#4d3ol#17.|.#dol#27.#4d2owe6#12.|2.#do#26.#l4d2o2e4l2n#11.|3.#dl#24.#l2o2d9o3n#10.|4.#dl2#5.2#14.#l14o3n#10.|5.#d2l#.3#2l11#.2#l2gy7o2d2o2d2#11.|6.#2dl#3l2o11l#2lo2gyg3o3d6#13.|7.2#dl16ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d3od#8.#2d5o#24.|13.#3o#10.2#d3od#24.|13.#3o#12.#4o#24.|12.#d3o#13.#3od#23.|12.#d3o#13.#3od#23.|12.#d2o#14.#3od#23.|12.#d2o#15.#2od#23.|12.#d2o#15.#2od#23.|12.#d3o#14.#3od#22.|12.#d4o#13.#3o2d#21.|13.#do2#15.#od2#22.|14.2#18.2#24.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|#59.|l2#57.|#2l2#31.3#21.|.#d2l#29.#3d2#19.|2.#do#28.#4d2l#18.|3.#dl#26.#5d2ol#17.|4.#dl#25.#o4d2owl2#15.|5.#ol#23.#lo4do2eo2l4#11.|5.#2dl2#.6#13.#l2o3d7ol3n#10.|6.2#d2l#6l9#2.2#l14o4n#9.|8.#dol6o9l2#2logyg12o2n#10.|9.#17o2l3ogy2g2o5d#4d#11.|9.#21o2gy2g2o10#12.|9.#21o2gyg2od#21.|9.#22ogyg2o#22.|9.#d26o#22.|10.#d7o7d6o3t2o#22.|11.#7o7#d5o2t2od#22.|11.#d6o#6.#d7od#23.|12.#2d3od#7.#d5od#24.|13.2#4od#7.#5o#25.|15.#4o#7.#4od#25.|16.#3o#7.#4o#26.|15.#3o#7.#4o#27.|15.#2o#8.#3o#28.|14.#3od#8.#2o2#27.|14.#3o#9.#3od#26.|15.3#10.#4o#26.|29.#o2#27.|30.#29.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|36.2#22.|2#33.#2d2#20.|2l2#30.#4dl2#18.|#d2l#28.#4d2o2l#17.|.2#dl#27.#4d2owe4#14.|3.#ol#25.#l4d2o2e4l3#11.|3.#dol#23.#l2o3d8o3n#10.|4.#dol#4.4#13.#l3od10o3n#10.|5.#2dl4#4l10#.3#ogy12o2d#11.|6.2#d4l4o10l#3l2gy2g2o5d2#d2#12.|8.#d17ol3o2gyg3o8#14.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#24og2o#22.|9.#d26o#22.|10.#d7o8d5o3tod#22.|11.#7o8#5o3to#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d4od#24.|13.2#3o#9.2#4o#25.|14.#3o#10.#4o#25.|14.#4o#9.#3od#25.|14.#d3o#9.#3od#25.|14.#d3o#8.#4od#25.|15.#2o#10.#2od#26.|14.#d2o#10.#2od#26.|14.#d3o#9.#2od#26.|14.#d3o#9.#3od#25.|15.#do#10.#2o2d#25.|16.2#12.4#26.|60.|60."]}};
+/* Cenário da abertura (computador): rua de Campinas em pixel art, 320×180, com pixels do mesmo tamanho dos do cachorro.
+   Partes que se mexem: nuvens andando, fios do poste balançando, copa do ipê balançando e pétalas caindo. */
+function cenaXereta(canvas, frente){
+  // canvas: o fundo (atrás do cachorro); frente: poste, placa do ônibus e ipê, que ficam na frente dele
+  const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d'), ctxF = frente.getContext('2d'); ctx.imageSmoothingEnabled = false; ctxF.imageSmoothingEnabled = false;
+  const novo = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return [c, x]; };
+  let g = null; const cor = c => { g.fillStyle = c; }, r = (x, y, w = 1, h = 1) => g.fillRect(x, y, w, h);
+  let semente = 11; const sorte = () => { semente = (semente * 16807) % 2147483647; return (semente - 1) / 2147483646; };
+  const OUT = '#1b120c', MURO = 104, CALC = 150, MEIOFIO = 172;          // alturas: topo do muro, começo da calçada, meio-fio
+  // 1) céu
+  const [ceu, gc] = novo(); g = gc;
+  [[0, '#4f9be0'], [34, '#64aaea'], [64, '#7fbcf1'], [92, '#9dcdf6']].forEach(([y0, c], i, a) => { const y1 = (a[i + 1] || [H])[0]; cor(c); r(0, y0, W, y1 - y0);
+    if (a[i + 1]) { cor(a[i + 1][1]); for (let x = 0; x < W; x += 2) r(x + (y1 % 2), y1 - 1); } });
+  // 2) nuvens (andam devagar)
+  const NUV = [[[6,0,15,4],[0,3,33,6],[21,-3,12,6],[3,8,27,3]], [[4,0,18,4],[0,3,39,6],[24,-2,10,5],[6,8,27,3]], [[3,0,12,3],[0,3,24,4],[13,-2,8,5]]].map(partes => {
+    const c = document.createElement('canvas'); c.width = 42; c.height = 16; const x = c.getContext('2d');
+    partes.forEach(([dx, dy, w, h]) => { x.fillStyle = '#ffffff'; x.fillRect(dx, dy + 3, w, h); });
+    partes.forEach(([dx, dy, w, h]) => { x.fillStyle = '#e2eef9'; x.fillRect(dx, dy + 2 + h, w, 1); }); return c; });
+  const nuvens = [[0, 10, 12, 1.2], [1, 110, 4, 0.8], [2, 210, 22, 1.5], [0, 280, 34, 1], [2, 60, 40, 0.6]];   // [tipo, x inicial, y, px/s]
+  // 3) parte parada: prédios, casas, muro, calçada, ponto de ônibus, placa, lixeira, poste, tronco
+  const [meio, gm] = novo(); g = gm;
+  const predios = (lista, c, janela) => lista.forEach(([x, y, w]) => { cor(c); r(x, y, w, MURO - y); cor(janela);
+    for (let yy = y + 4; yy < MURO - 4; yy += 6) for (let xx = x + 3; xx < x + w - 3; xx += 5) r(xx, yy, 2, 3); });
+  predios([[44,40,22],[150,30,26],[176,52,18],[286,44,26]], '#b7c4d4', '#d6e0ea');
+  const casa = (x, w, parede, tipo) => {
+    const topo = tipo === 'laje' ? 80 : 86;
+    cor(OUT); r(x, topo - 1, w, MURO + 1 - topo); cor(parede); r(x + 1, topo, w - 2, MURO - topo);
+    for (let xx = x + 5; xx < x + w - 8; xx += 12) { cor(OUT); r(xx - 1, topo + 4, 8, 8); cor('#6d8aa6'); r(xx, topo + 5, 6, 6); cor('#ffffff'); r(xx + 3, topo + 5, 1, 6); }
+    if (tipo === 'telhado') {            // telhado de duas águas, de barro
+      const meioX = x + w / 2, alt = Math.round(w / 3.2);
+      for (let i = 0; i <= alt; i++) { const y = topo - 1 - i, a = Math.round(meioX - (w / 2 + 3) * (1 - i / alt)), b = Math.round(meioX + (w / 2 + 3) * (1 - i / alt));
+        cor(OUT); r(a - 1, y, b - a + 2, 1); cor(i % 2 ? '#b5532f' : '#c4633a'); r(a, y, b - a, 1); }
+      cor('#8e3d22'); r(x - 2, topo - 1, w + 4, 1);
+    } else if (tipo === 'laje') {        // laje com caixa d'água azul
+      cor(OUT); r(x, topo - 3, w, 3); cor('#9a9a9a'); r(x + 1, topo - 2, w - 2, 1);
+      cor(OUT); r(x + w - 18, topo - 14, 13, 11); cor('#3d7fc4'); r(x + w - 17, topo - 13, 11, 9); cor('#6aa6de'); r(x + w - 17, topo - 13, 3, 9); cor('#2c5f96'); r(x + w - 17, topo - 13, 11, 1);
+    } else {                             // platibanda reta
+      cor(OUT); r(x - 1, topo - 6, w + 2, 6); cor(parede); r(x, topo - 5, w, 4);
+    }
+  };
+  [[0, 44, '#f3e3a1', 'telhado'], [46, 38, '#cfe3c4', 'laje'], [88, 46, '#f6f1e7', 'telhado'], [196, 44, '#d9e6ef', 'plat'], [242, 48, '#f2c9a0', 'telhado']].forEach(c => casa(...c));
+  // muro de reboco com pilares e um portão de grade
+  cor('#e9dcc0'); r(0, MURO, W, CALC - MURO); cor('#cdbb98'); r(0, MURO - 2, W, 3); cor('#d8c8a5'); for (let x = 0; x < W; x += 46) r(x, MURO - 2, 6, CALC - MURO + 2);
+  cor('#5c6168'); r(232, MURO + 6, 38, CALC - MURO - 6); cor('#7d838b'); for (let x = 233; x < 270; x += 4) r(x, MURO + 6, 1, CALC - MURO - 6); cor('#3e4247'); r(232, MURO + 6, 38, 1); r(232, MURO + 22, 38, 1);
+  cor('#b8a888'); r(0, CALC - 1, W, 1);
+  // calçada de cimento com juntas, meio-fio e rua
+  cor('#d3cec6'); r(0, CALC, W, MEIOFIO - CALC); cor('#bdb7ae'); for (let x = 5; x < W; x += 18) r(x, CALC, 1, MEIOFIO - CALC); r(0, CALC + 11, W, 1);
+  cor('#a39d94'); r(0, CALC, W, 1);
+  cor('#efece6'); r(0, MEIOFIO, W, 2); cor('#9c968d'); r(0, MEIOFIO + 2, W, 1); cor('#4b4f55'); r(0, MEIOFIO + 3, W, H - MEIOFIO - 3); cor('#d9d4c6'); for (let x = 10; x < W; x += 36) r(x, H - 3, 12, 1);
+  // ponto de ônibus: cobertura de metal, vidro ao fundo, banco e placa
+  cor('#bfe0ee'); r(66, 80, 70, 66); cor('#d9eef7'); r(70, 82, 4, 60); r(96, 82, 4, 60);
+  cor(OUT); r(62, 74, 78, 6); cor('#2f6f8f'); r(63, 75, 76, 4); cor('#4f93b5'); r(63, 75, 76, 1);
+  cor(OUT); r(64, 80, 3, 86); r(135, 80, 3, 86); cor('#7d858d'); r(65, 80, 1, 86); r(136, 80, 1, 86);
+  cor(OUT); r(137, 84, 13, 13); cor('#1f5fa8'); r(138, 85, 11, 11); cor('#ffffff'); r(140, 87, 7, 4); r(141, 92, 1, 2); r(145, 92, 1, 2);   // placa do ponto, presa no abrigo
+  cor(OUT); r(72, 136, 56, 4); cor('#9a6a3c'); r(73, 137, 54, 2); cor(OUT); r(76, 140, 3, 14); r(121, 140, 3, 14);
+  // 3b) parte parada que fica na frente do cachorro
+  const [fixo, gf] = novo(); g = gf;
+  // canteiro do ipê
+  cor('#7a5233'); r(266, 164, 26, 5); cor('#5f3f27'); r(266, 164, 26, 1);
+  // tronco do ipê
+  cor(OUT); r(274, 92, 9, 74); cor('#7a5233'); r(275, 92, 7, 74); cor('#5c3b24'); r(280, 92, 1, 74);
+  // lixeira laranja num pé de metal, à esquerda do poste (longe de onde o cachorro fareja)
+  { const lx = 4; cor(OUT); r(lx + 8, 138, 3, 28); r(lx, 116, 19, 23); cor('#f08a24'); r(lx + 1, 117, 17, 21); cor('#f7ad5c'); r(lx + 1, 117, 3, 21); cor('#c96b12'); r(lx + 16, 117, 1, 21); cor(OUT); r(lx + 3, 119, 13, 2); }
+  // poste de concreto com braço de luz
+  cor(OUT); r(28, 8, 10, 160); cor('#a3a9b0'); r(29, 9, 8, 158); cor('#c4c9ce'); r(29, 9, 2, 158); cor('#8a9097'); r(36, 9, 1, 158);
+  cor(OUT); r(16, 14, 34, 4); cor('#8a9097'); r(17, 15, 32, 2); cor('#e8eef2'); r(17, 12, 3, 2); r(46, 12, 3, 2);
+  cor(OUT); r(37, 30, 22, 3); r(56, 28, 10, 6); cor('#f7f1cf'); r(57, 32, 8, 1);
+  // placa verde de direção "CÂMARA →" num poste fino no meio da calçada: o cachorro fareja bem ao pé dela
+  cor(OUT); r(204, 98, 3, 68); cor('#8a9097'); r(205, 98, 1, 68);
+  { const L = {C:['.##','#..','#..','#..','.##'], A:['.#.','#.#','###','#.#','#.#'], M:['#...#','##.##','#.#.#','#...#','#...#'], R:['##.','#.#','##.','#.#','#.#'], '>':['..#..','...#.','#####','...#.','..#..']};
+    const X0 = 207, Y0 = 99, LW = 44, LH = 15, yT = Y0 + 7;
+    cor(OUT); r(X0, Y0, LW, LH); cor('#1f7a3a'); r(X0 + 1, Y0 + 1, LW - 2, LH - 2); cor('#ffffff'); r(X0 + 2, Y0 + 2, LW - 4, 1); r(X0 + 2, Y0 + LH - 3, LW - 4, 1); r(X0 + 2, Y0 + 2, 1, LH - 4); r(X0 + LW - 3, Y0 + 2, 1, LH - 4);
+    cor('#ffffff'); let x = X0 + 5;
+    [...'CAMARA'].forEach((ch, i) => { const gl = L[ch]; gl.forEach((lin, yy) => [...lin].forEach((p, xx) => { if (p === '#') r(x + xx, yT + yy); }));
+      if (i === 1) { r(x + 1, yT - 3); r(x, yT - 2); r(x + 2, yT - 2); }   // acento circunflexo do Â
+      x += gl[0].length + 1; });
+    x += 2; L['>'].forEach((lin, yy) => [...lin].forEach((p, xx) => { if (p === '#') r(x + xx, yT + yy); })); }
+  // 4) copa do ipê (balança em faixas: mais em cima, quase nada perto do tronco)
+  const [copa, gk] = novo(); g = gk;
+  cor('#5c3b24'); [[279,98,300,74],[277,100,254,78],[279,94,282,64]].forEach(([x0,y0,x1,y1]) => { const n = Math.max(Math.abs(x1-x0), Math.abs(y1-y0)); for (let i = 0; i <= n; i++) r(Math.round(x0+(x1-x0)*i/n), Math.round(y0+(y1-y0)*i/n), 2, 2); });
+  [[256,72,12],[280,58,15],[302,70,12],[266,84,10],[292,85,10],[244,88,8],[312,88,8],[283,40,10],[264,52,9],[300,50,9]].forEach(([cx, cy, rr]) => {
+    for (let y = cy - rr; y <= cy + rr; y++) for (let x = cx - rr - 3; x <= cx + rr + 3; x++) { const d = ((x - cx) / (rr + 3)) ** 2 + ((y - cy) / rr) ** 2;
+      if (d <= 1 && sorte() < (d < .7 ? 1 : .6)) { cor(y - cy > rr * .45 ? '#c9427f' : (y - cy < -rr * .4 && sorte() < .5 ? '#ffb3d6' : (sorte() < .72 ? '#f06aa8' : (sorte() < .5 ? '#e2559a' : '#ff8cc0')))); r(x, y); } } });
+  const TOPO_COPA = 28, BASE_COPA = 100;
+  const petalas = Array.from({length: 10}, () => ({x: 230 + sorte() * 90, y: sorte() * 90, v: 4 + sorte() * 4, f: sorte() * 6}));
+  // fios: das pontas da cruzeta até as bordas
+  const FIOS = [[17, 13, 0, 20, 4], [48, 13, W, 10, 16], [48, 16, W, 18, 19], [17, 16, 0, 25, 5]];
+  const fio = (x0, y0, x1, y1, flecha) => { cor('#2a2623'); const n = Math.abs(x1 - x0); let ya = null;
+    for (let i = 0; i <= n; i++) { const u = i / n, x = Math.round(x0 + (x1 - x0) * u), y = Math.round(y0 + (y1 - y0) * u + flecha * 4 * u * (1 - u));
+      if (ya !== null && Math.abs(y - ya) > 1) r(x, Math.min(y, ya) + 1, 1, Math.abs(y - ya) - 1); r(x, y); ya = y; } };
+  function quadro(t){
+    g = ctx; ctx.clearRect(0, 0, W, H); ctx.drawImage(ceu, 0, 0);
+    nuvens.forEach(([k, x0, y, v]) => { const x = Math.round(((x0 + t * v) % (W + 46)) - 44); ctx.drawImage(NUV[k], x, y); });
+    ctx.drawImage(meio, 0, 0);
+    g = ctxF; ctxF.clearRect(0, 0, W, H); ctxF.drawImage(fixo, 0, 0);
+    FIOS.forEach(([x0, y0, x1, y1, f], i) => fio(x0, y0, x1, y1, f + Math.sin(t * 1.4 + i * 1.7) * (f > 8 ? 2.2 : .9)));
+    const vento = Math.sin(t * 0.9) + .35 * Math.sin(t * 2.3);
+    for (let y = TOPO_COPA; y < BASE_COPA; y += 2) { const dx = Math.round(vento * 1.8 * (BASE_COPA - y) / (BASE_COPA - TOPO_COPA)); ctxF.drawImage(copa, 0, y, W, 2, dx, y, W, 2); }
+    petalas.forEach(p => { const y = (p.y + t * p.v) % 90 + 70, x = Math.round(p.x - (t * 3 + p.f * 5) % 50 + Math.sin(t * 2 + p.f) * 2); g.fillStyle = (p.f > 3) ? '#ff8cc0' : '#f06aa8'; r(x, Math.round(y)); });
+  }
+  let visivel = true, rodando = false, ultimo = -1; const inicio = performance.now();
+  const laco = agora => { if (!visivel || !canvas.isConnected) { rodando = false; return; }
+    const q = Math.floor((agora - inicio) / 90); if (q !== ultimo) { ultimo = q; quadro((agora - inicio) / 1000); } requestAnimationFrame(laco); };
+  const comeca = () => { if (!rodando) { rodando = true; requestAnimationFrame(laco); } };
+  quadro(0); comeca();
+  new IntersectionObserver(es => es.forEach(e => { visivel = e.isIntersecting; if (visivel) comeca(); })).observe(canvas);
+}
 function passeioXereta(canvas){
   const W = canvas.width, H = canvas.height, CHAO = H - 3;
   const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
@@ -1155,7 +1298,7 @@ function passeioXereta(canvas){
   // linha do tempo de uma rodada (ms) e posições
   const XS = -46, XP = 14, XF = Math.round((W - SW) / 2) + 4;          // começo do salto (fora da tela), pouso, onde fareja
   const T_TROTE = 0, SALTO = [[170, 0, 4], [460, 1, 0], [190, 2, 0], [220, 3, 0]];   // [duração, quadro, altura]: impulso, voo, pouso na frente, acomoda
-  const T_SALTO = T_TROTE + SALTO.reduce((s, q) => s + q[0], 0), T_ANDA = T_SALTO + 1900, T_FAREJA = T_ANDA + 3800, T_OLHA = T_FAREJA + 700, T_CORRE = T_OLHA + 2600, CICLO = T_CORRE + 1200;
+  const T_SALTO = T_TROTE + SALTO.reduce((s, q) => s + q[0], 0), T_ANDA = T_SALTO + Math.round(1900 * Math.max(1, (XF - XP) / 48)), T_FAREJA = T_ANDA + 3800, T_OLHA = T_FAREJA + 700, T_CORRE = T_OLHA + Math.round(2600 * Math.max(1, (W - XF) / 114)), CICLO = T_CORRE + 1200;
   const passos = [[T_ANDA + 1300, T_ANDA + 1700, 6], [T_ANDA + 2600, T_ANDA + 2900, 4]];
   const XFIM = XF + passos.reduce((s, p) => s + p[2], 0);
   const EXCL = ['..#..','..#..','..#..','..#..','..#..','.....','..#..'];
@@ -1214,7 +1357,7 @@ function passeioXereta(canvas){
   return {tocar(){ inicio = performance.now(); ultimo = -1; comeca(); }};
 }
 /* ---------- Votações: por sessão ---------- */
-const segVot = atual => `<nav class="segnav" aria-label="Modo de ver as votações"><a href="#votacoes" ${atual==='s'?'aria-current="page"':''}>Por sessão</a><a href="#busca" ${atual==='b'?'aria-current="page"':''}>Todas as votações</a>${AF_BASE.length ? `<a href="#afinidade" ${atual==='a'?'aria-current="page"':''}>Mapa de afinidade</a>` : ''}</nav>`;
+const segVot = atual => `<nav class="segnav" aria-label="Modo de ver as votações"><a href="#votacoes" ${atual==='s'?'aria-current="page"':''}>Por sessão</a><a href="#busca" ${atual==='b'?'aria-current="page"':''}>Todas as votações</a></nav>`;
 function viewVotacoes(){
   app.innerHTML = `<h1>Sessões e votações</h1>
   <p class="lede">Toque num dia do calendário para ver o que foi votado.</p>
@@ -1372,9 +1515,8 @@ const pctAf = a => Math.round(100 * a) + '%';
 const nomeCurto = n => n.length <= 16 ? n : (p => p.length > 1 ? p[0] + ' ' + p[p.length - 1][0] + '.' : n.slice(0, 15) + '…')(n.split(/\s+/));
 const listaAf = L => L.length ? L.map(p => `${esc(nomeV(p.id))} (${pctAf(p.af)})`).join(', ') : 'sem votações suficientes em comum';
 function viewAfinidade(){
-  app.innerHTML = `<h1>Mapa de afinidade entre vereadores</h1>
-  <p class="lede">Quem vota parecido fica perto. Toque num vereador.</p>
-  ${segVot('a')}
+  app.innerHTML = `<h1>Afinidade de votação</h1>
+  <p class="lede">Quem vota parecido fica perto. Toque numa foto.</p>
   <section class="gchart amapa" id="amapa" aria-label="Mapa de afinidade"></section>`;
   mapaAfinidade();
 }
@@ -1394,14 +1536,14 @@ function mapaAfinidade(){
       <div class="frow" id="apartbox"></div>
       <details class="avers" id="avers"><summary></summary><div class="avers-in">
         <div class="linkrow"><button type="button" class="btn ghost sm" id="avtodos">Marcar todos</button><button type="button" class="btn ghost sm" id="avnenhum">Desmarcar todos</button></div>
-        <div class="avers-lista" id="avlista" role="group" aria-label="Vereadores no mapa"></div></div></details>
+        <div class="avers-lista" id="avlista" role="group" aria-label="Parlamentares no mapa"></div></div></details>
     </div>
     <div class="abox" id="abox"></div>
     <div class="aleg" id="aleg"></div>
     <div id="ainfo" aria-live="polite"></div>
     <div class="linkrow" style="margin-top:.9rem"><button type="button" class="btn ghost" id="atabbtn" aria-expanded="${FA.tabela}" aria-controls="atab">${FA.tabela ? 'Esconder tabela' : 'Ver em tabela'}</button></div>
     <div id="atab" ${FA.tabela ? '' : 'hidden'}></div>
-    ${comoFunciona(`<p>Cada quadrado é um vereador. Quem vota parecido fica perto; quem vota diferente fica longe. A posição só vale em relação aos outros pontos: os lados e as direções do mapa não têm significado próprio. O cálculo usa só votações nominais (com o voto de cada vereador registrado), e só as que tiveram divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} do lado que perdeu. Abstenções e ausências não entram.</p><p id="aqual"></p><p>A posição vem de um índice de afinidade: a porcentagem de votações em que dois vereadores votaram igual (os dois Sim ou os dois Não), entre as votações em que os dois votaram. Com o mapa recalculado só para alguns vereadores, as posições consideram só esse grupo.</p>`)}`;
+    ${comoFunciona(`<p>Cada quadrado representa um mandato. Quem vota parecido fica perto; quem vota diferente fica longe. A posição só vale em relação aos outros pontos: os lados e as direções do mapa não têm significado próprio. O cálculo usa só votações nominais (com o voto de cada parlamentar registrado), e só as que tiveram divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} do lado que perdeu. Abstenções e ausências não entram.</p><p id="aqual"></p><p>A posição vem de um índice de afinidade: a porcentagem de votações em que duas pessoas votaram igual (os dois Sim ou os dois Não), entre as votações em que os dois votaram. Com o mapa recalculado só para parte de parlamentares, as posições consideram só esse grupo.</p>`)}`;
   ligarToggle();
   let R = null;
   const desenhar = () => {
@@ -1410,7 +1552,7 @@ function mapaAfinidade(){
     marcaFiltros('afil', FA.anos.length + (FA.cat !== 'todos') + !!FA.area + FA.sairam + FA.partidos.length + (FA.vers.length ? 1 : 0));
     if (R.erro) {
       info.innerHTML = ''; leg.innerHTML = ''; tab.innerHTML = '';
-      area.innerHTML = R.pares ? `<div class="empty">Com esses filtros há ${num(R.nVot)} votações com divisão real, mas nenhuma dupla de vereadores votou junta em pelo menos ${AF_MIN_PAR} delas, o mínimo para comparar duas pessoas.${FA.area ? ' Isso acontece na maioria das áreas, porque poucas votações registram o voto de cada vereador. Escolha “Todas” na área ou uma área com mais votações.' : ' Marque mais anos ou escolha “Todos” no tipo.'}</div>` : R.nVot >= AF_MIN_VOT && R.nVer < 3 ? `<div class="empty">Escolha pelo menos 3 vereadores para montar o mapa${R.nVer ? ` (agora ${R.nVer === 1 ? 'há 1' : 'há ' + R.nVer} com votos nesse período)` : ''}. Use os filtros de partido e de vereadores acima.</div>` : `<div class="empty">Poucos dados para montar o mapa com esses filtros: ${num(R.nVot)} ${R.nVot === 1 ? 'votação' : 'votações'} com divisão real${R.nVer < 3 ? ` e ${R.nVer} ${R.nVer === 1 ? 'vereador' : 'vereadores'}` : ''}. São necessárias pelo menos ${AF_MIN_VOT} votações e 3 vereadores. Marque mais anos ou escolha “Todos” no tipo${FA.area ? ' e na área' : ''}.</div>`;
+      area.innerHTML = R.pares ? `<div class="empty">Com esses filtros há ${num(R.nVot)} votações com divisão real, mas nenhuma dupla de parlamentares votou junto em pelo menos ${AF_MIN_PAR} delas, o mínimo para comparar duas pessoas.${FA.area ? ' Isso acontece na maioria das áreas, porque poucas votações registram o voto de cada parlamentar. Escolha “Todas” na área ou uma área com mais votações.' : ' Marque mais anos ou escolha “Todos” no tipo.'}</div>` : R.nVot >= AF_MIN_VOT && R.nVer < 3 ? `<div class="empty">Escolha pelo menos 3 parlamentares para montar o mapa${R.nVer ? ` (agora ${R.nVer === 1 ? 'há 1' : 'há ' + R.nVer} com votos nesse período)` : ''}. Use os filtros de partido e de parlamentares acima.</div>` : `<div class="empty">Poucos dados para montar o mapa com esses filtros: ${num(R.nVot)} ${R.nVot === 1 ? 'votação' : 'votações'} com divisão real${R.nVer < 3 ? ` e ${R.nVer} parlamentares` : ''}. São necessárias pelo menos ${AF_MIN_VOT} votações e 3 parlamentares. Marque mais anos ou escolha “Todos” no tipo${FA.area ? ' e na área' : ''}.</div>`;
       box.querySelector('#atabbtn').hidden = true; return;
     }
     box.querySelector('#atabbtn').hidden = false;
@@ -1418,10 +1560,10 @@ function mapaAfinidade(){
     const expl = Math.round(100 * (R.e1 + R.e2));
     const nivel = R.corr >= 0.9 && expl >= 60 ? 'boa' : R.corr >= 0.75 && expl >= 40 ? 'razoável' : 'baixa';
     const nPoucos = R.pts.filter(p => p.poucos).length;
-    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> · <strong>${R.pts.length} vereadores</strong>${FA.partidos.length || FA.vers.length ? ' (só os escolhidos)' : ''} · qualidade do mapa: <strong>${nivel}</strong>${nPoucos ? ` · ${nPoucos} com poucos votos (borda tracejada)` : ''}</p>`
+    info.innerHTML = `<p class="note am-num"><strong>${num(R.nVot)} votações</strong> · <strong>${R.pts.length} parlamentares</strong>${FA.partidos.length || FA.vers.length ? ' (só os escolhidos)' : ''} · qualidade do mapa: <strong>${nivel}</strong>${nPoucos ? ` · ${nPoucos} com poucos votos (borda tracejada)` : ''}</p>`
       + (nivel === 'baixa' ? `<div class="callout am-aviso"><p><strong>Atenção:</strong> com esses filtros o mapa resume mal as diferenças de voto. Use as distâncias só como uma ideia geral e confira a tabela.</p></div>` : '')
       + '';
-    const aq = box.querySelector('#aqual'); if (aq) aq.textContent = `Com os filtros atuais, as distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo). A qualidade é boa com correlação a partir de 0,9 e 60% explicados. Vereadores com borda tracejada têm poucas votações em comum com os demais, e a posição deles é aproximada.`;
+    const aq = box.querySelector('#aqual'); if (aq) aq.textContent = `Com os filtros atuais, as distâncias no mapa acompanham as diferenças reais de voto com correlação de ${fmt(R.corr)} (1 seria perfeito), e os dois eixos explicam ${expl}% da variação (${Math.round(100 * R.e1)}% o primeiro e ${Math.round(100 * R.e2)}% o segundo). A qualidade é boa com correlação a partir de 0,9 e 60% explicados. Parlamentares com borda tracejada têm poucas votações em comum com o restante, e a posição fica aproximada.`;
     // cores por partido (as maiores bancadas primeiro); a partir da 10ª, cinza
     const total = {}; AF_POOL.filter(id => V[id].ativo).forEach(id => { const s = partidoAf(id); total[s] = (total[s] || 0) + 1; });
     AF_POOL.forEach(id => { const s = partidoAf(id); if (!(s in total)) total[s] = 0; });
@@ -1431,7 +1573,7 @@ function mapaAfinidade(){
     const corDe = id => cor[partidoAf(id)];
     leg.innerHTML = `<span class="flabel">Partidos</span>` + siglas.map(s => `<span><i style="--c:${cor[s]}"></i>${esc(s)} (${bancada[s]})</span>`).join('') + (nPoucos ? `<span><i class="trac"></i>Poucos votos para analisar</span>` : '');
     pintarMapa(area, R, corDe);
-    tab.innerHTML = `<div class="tablewrap"><table class="t"><caption class="sr">Mais parecidos e mais diferentes de cada vereador</caption><thead><tr><th scope="col">Vereador</th><th scope="col">Partido</th><th scope="col" class="ev">Votações usadas</th><th scope="col">Mais parecidos</th><th scope="col">Mais diferentes</th></tr></thead><tbody>${R.pts.slice().sort((a, b) => nomeV(a.id).localeCompare(nomeV(b.id), 'pt-BR')).map(p => `<tr><td><a href="#v-${p.id}">${esc(nomeV(p.id))}</a>${p.poucos ? '<br><span class="note">poucos votos para analisar</span>' : ''}</td><td>${esc(V[p.id].partido || '')}</td><td class="ev">${num(p.votos)}</td><td>${listaAf(p.parecidos)}</td><td>${p.diferentes.length ? listaAf(p.diferentes) : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+    tab.innerHTML = `<div class="tablewrap"><table class="t"><caption class="sr">Com quem cada parlamentar vota mais parecido e mais diferente</caption><thead><tr><th scope="col">Parlamentar</th><th scope="col">Partido</th><th scope="col" class="ev">Votações usadas</th><th scope="col">Vota mais parecido com</th><th scope="col">Vota mais diferente de</th></tr></thead><tbody>${R.pts.slice().sort((a, b) => nomeV(a.id).localeCompare(nomeV(b.id), 'pt-BR')).map(p => `<tr><td><a href="#v-${p.id}">${esc(nomeV(p.id))}</a>${p.poucos ? '<br><span class="note">poucos votos para analisar</span>' : ''}</td><td>${esc(V[p.id].partido || '')}</td><td class="ev">${num(p.votos)}</td><td>${listaAf(p.parecidos)}</td><td>${p.diferentes.length ? listaAf(p.diferentes) : '—'}</td></tr>`).join('')}</tbody></table></div>`;
   };
   ligaCaixasAno('aano', s => { FA.anos = s; desenhar(); });
   // partidos e vereadores: a lista de vereadores mostra só os dos partidos marcados; o mapa é recalculado só com os escolhidos
@@ -1448,7 +1590,7 @@ function mapaAfinidade(){
     FA.vers = FA.vers.filter(id => lista.includes(id)); if (FA.vers.length === lista.length) FA.vers = [];
     const marcado = id => !FA.vers.length || FA.vers.includes(id);
     box.querySelector('#avlista').innerHTML = lista.map(id => `<label class="check"><input type="checkbox" value="${id}" ${marcado(id) ? 'checked' : ''}>${esc(nomeV(id))} <span class="note">${esc(partidoAf(id))}</span></label>`).join('');
-    const resumo = () => { const n = FA.vers.length; box.querySelector('#avers summary').textContent = `Vereadores no mapa: ${n ? `${n} de ${lista.length} escolhidos` : `todos (${lista.length})`}`; };
+    const resumo = () => { const n = FA.vers.length; box.querySelector('#avers summary').textContent = `Parlamentares no mapa: ${n ? `${n} de ${lista.length} escolhidos` : `${lista.length} (todas as pessoas)`}`; };
     resumo();
     const caixas = [...box.querySelectorAll('#avlista input')];
     const ler = () => { const s = caixas.filter(c => c.checked).map(c => +c.value); FA.vers = s.length === caixas.length ? [] : (s.length ? s : [-1]); resumo(); desenhar(); };
@@ -1539,11 +1681,11 @@ function pintarMapa(area, R, corDe){
     });
   }
   const desc = q => { const p = q.p, v = V[p.id];
-    return `${v.nome}${v.partido ? ', ' + v.partido : ''}. Mais parecidos: ${p.parecidos.length ? p.parecidos.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') : 'sem dados suficientes'}.${p.diferentes.length ? ' Mais diferentes: ' + p.diferentes.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') + '.' : ''} ${p.votos} votações usadas.${p.poucos ? ' Poucos votos para analisar.' : ''} Abre a página do vereador.`; };
+    return `${v.nome}${v.partido ? ', ' + v.partido : ''}. Vota mais parecido com: ${p.parecidos.length ? p.parecidos.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') : 'sem dados suficientes'}.${p.diferentes.length ? ' Vota mais diferente de: ' + p.diferentes.map(x => nomeV(x.id) + ' ' + pctAf(x.af)).join(', ') + '.' : ''} ${p.votos} votações usadas.${p.poucos ? ' Poucos votos para analisar.' : ''} Abre a página de cada parlamentar.`; };
   arranja();
   const toque = matchMedia('(pointer: coarse)').matches;
   area.innerHTML = `<div class="azoom" role="group" aria-label="Aproximar o mapa"><span class="note azdica">${toque ? 'Dois dedos aproximam o mapa' : 'Aproxime para ver mais nomes'}</span><button type="button" class="tool" data-z="1.6" aria-label="Aproximar">+</button><button type="button" class="tool" data-z="0.625" aria-label="Afastar">−</button><button type="button" class="tool azero" data-z="0" hidden>Ver tudo</button><button type="button" class="tool acheio-b" aria-pressed="${cheio}" aria-label="${cheio ? 'Sair da tela cheia' : 'Tela cheia'}" title="${cheio ? 'Sair da tela cheia' : 'Tela cheia'}">${cheio ? ICO_SAI_CHEIO : ICO_CHEIO}</button></div>
-  <svg class="asvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Mapa de afinidade: ${R.pts.length} vereadores. Use Tab para percorrer os pontos e Enter para abrir a página do vereador.">
+  <svg class="asvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Mapa de afinidade de votação: ${R.pts.length} parlamentares. Use Tab para percorrer os pontos e Enter para abrir a página de cada parlamentar.">
     ${P.map(q => { const v = V[q.p.id], c = corDe(q.p.id), x = -T / 2, y = -T / 2;
       return `<a href="#v-${v.id}" class="apt${q.p.poucos ? ' poucos' : ''}" data-i="${q.i}" transform="translate(${q.x} ${q.y})" aria-label="${esc(desc(q))}">
         <rect class="aring" x="${x - 5}" y="${y - 5}" width="${T + 10}" height="${T + 10}"></rect>
@@ -1606,8 +1748,8 @@ function pintarMapa(area, R, corDe){
     const q = P[+el.dataset.i], p = q.p, v = V[p.id];
     area.querySelectorAll('.apt.on').forEach(x => x.classList.remove('on')); el.classList.add('on');
     tip.innerHTML = `<h3>${esc(v.nome)}</h3><p class="note">${esc(v.partido || 'Sem partido')}${v.completo && v.completo !== v.nome ? ' · ' + esc(v.completo) : ''}</p>
-      <p><strong>Mais parecidos</strong> <span class="note">(concordância)</span></p><ul>${p.parecidos.length ? p.parecidos.map(x => `<li>${esc(nomeV(x.id))}: ${pctAf(x.af)}</li>`).join('') : '<li>Sem votações suficientes em comum</li>'}</ul>
-      ${p.diferentes.length ? `<p><strong>Mais diferentes</strong></p><ul>${p.diferentes.map(x => `<li>${esc(nomeV(x.id))}: ${pctAf(x.af)}</li>`).join('')}</ul>` : ''}
+      <p><strong>Vota mais parecido com</strong> <span class="note">(concordância)</span></p><ul>${p.parecidos.length ? p.parecidos.map(x => `<li>${esc(nomeV(x.id))}: ${pctAf(x.af)}</li>`).join('') : '<li>Sem votações suficientes em comum</li>'}</ul>
+      ${p.diferentes.length ? `<p><strong>Vota mais diferente de</strong></p><ul>${p.diferentes.map(x => `<li>${esc(nomeV(x.id))}: ${pctAf(x.af)}</li>`).join('')}</ul>` : ''}
       <p class="note">${num(p.votos)} ${p.votos === 1 ? 'votação usada' : 'votações usadas'}.${p.poucos ? ' <strong>Poucos votos para analisar:</strong> a posição é aproximada.' : ''}</p>
       ${comLink ? `<a class="btn sm" href="#v-${v.id}">Abrir a página</a>` : ''}`;
     tip.hidden = false;
@@ -1639,7 +1781,7 @@ function viewBusca(){
   app.innerHTML = `<h1>Todas as votações</h1>
   <p class="lede">Filtre por período, tipo de proposta e resultado.</p>
   ${segVot('b')}
-  <div class="frow" style="margin-top:1rem"><label style="flex:1 1 20rem"><span class="sr">Buscar</span><input id="bq" type="search" placeholder="Buscar por palavra da ementa, número ou autor" value="${esc(FB.q)}"></label>${btnFiltros('bf')}</div>
+  <div class="frow" style="margin-top:1rem"><label style="flex:1 1 20rem"><span class="sr">Buscar</span><input id="bq" type="search" placeholder="Buscar por palavra da ementa, número ou autoria" value="${esc(FB.q)}"></label>${btnFiltros('bf')}</div>
   <div class="filters closed" id="bf">
     ${blocoPeriodo('bper', FB)}
     <div class="frow" id="bcat"><span class="flabel">Tipo</span>${chips('Tipo de proposta', [['proj','Projetos e emendas'],['req','Requerimentos'],['moc','Moções'],['ata','Atas e outros'],['todos','Todos']], FB.cat)}</div>
@@ -1649,7 +1791,6 @@ function viewBusca(){
     <div class="frow"><label class="f">Ordenar <select id="bord"><option value="rec">Mais recentes</option><option value="ant">Mais antigas</option><option value="div">Mais votos contrários</option><option value="pol">Mais polêmicas (Sim e Não mais próximos)</option></select></label></div>
   </div>
   <p class="count" id="count" aria-live="polite"></p><div id="lista"></div>`;
-  if (matchMedia('(min-width:641px)').matches) document.getElementById('bf').classList.remove('closed');
   ligarToggle();
   const upd = () => { FB.limite = 40; renderBusca(); };
   document.getElementById('bord').value = FB.ordem;
@@ -1666,7 +1807,7 @@ const passaCat = (v, c) => c === 'todos' || (c === 'ata' ? ['ata','out'].include
 const passaRes = (v, r) => r === 'todos' || RESG[r].includes(v.res);
 const termosBusca = q => norm(q).trim().split(/\s+/).filter(Boolean);
 const bateMat = (lbl, mid, termos) => { if (!termos.length) return true; const mat = D.MAT[mid]; const hay = norm((lbl || '') + ' ' + (mat ? mat[3] + ' ' + (mat[4] || []).join(' ') : '')); return termos.every(t => hay.includes(t)); };
-const campoBusca = (id, valor) => `<div class="frow"><label style="flex:1 1 20rem"><span class="sr">Buscar por palavra da ementa, número ou autor</span><input id="${id}" type="search" placeholder="Buscar por palavra da ementa, número ou autor" value="${esc(valor)}"></label></div>`;
+const campoBusca = (id, valor) => `<div class="frow"><label style="flex:1 1 20rem"><span class="sr">Buscar por palavra da ementa, número ou autoria</span><input id="${id}" type="search" placeholder="Buscar por palavra da ementa, número ou autoria" value="${esc(valor)}"></label></div>`;
 function renderBusca(){
   const termos = termosBusca(FB.q);
   let r = VT.filter(v => v.d >= FB.de && v.d <= FB.ate && passaCat(v, FB.cat) && passaRes(v, FB.res) && passaArea(v.m, FB.area) && passaTV(v, FB.tv) && bateMat(v.lbl, v.m, termos));
@@ -1678,7 +1819,7 @@ function renderBusca(){
     : FB.ordem === 'div' ? contra(b) - contra(a) || b.d.localeCompare(a.d)
     : FB.ordem === 'pol' ? pol(b) - pol(a) || ((placar(b) || {t:0}).t - (placar(a) || {t:0}).t) || b.d.localeCompare(a.d)
     : b.d.localeCompare(a.d) || b.id - a.id);
-  document.getElementById('count').textContent = `${num(r.length)} ${r.length === 1 ? 'votação' : 'votações'} de ${fmtData(FB.de)} a ${fmtData(FB.ate)}` + (FB.q && VT.some(v => !D.MAT[v.m]) ? '. Em algumas votações a ementa não está nos dados, e a busca olha só o título.' : '') + (FB.ordem === 'pol' ? '. Ordenadas pela proximidade entre votos Sim e Não. Só as votações com voto de cada vereador entram na conta; as demais ficam no fim.' : '');
+  document.getElementById('count').textContent = `${num(r.length)} ${r.length === 1 ? 'votação' : 'votações'} de ${fmtData(FB.de)} a ${fmtData(FB.ate)}` + (FB.q && VT.some(v => !D.MAT[v.m]) ? '. Em algumas votações a ementa não está nos dados, e a busca olha só o título.' : '') + (FB.ordem === 'pol' ? '. Ordenadas pela proximidade entre votos Sim e Não. Só as votações com voto de cada parlamentar entram na conta; as demais ficam no fim.' : '');
   const el = document.getElementById('lista');
   if (!r.length) { el.innerHTML = `<div class="empty">Nenhuma votação com esses filtros. Amplie o período ou escolha outro tipo.</div>`; return; }
   el.innerHTML = r.slice(0, FB.limite).map(v => voteItem(v, {d:true, txt:[(FB.ordem === 'pol' || FB.ordem === 'div') && placar(v) ? `Placar: ${placar(v).S} Sim × ${placar(v).N} Não` : '', D.MAT[v.m] ? esc((D.MAT[v.m][3]||'').slice(0,120)) + ((D.MAT[v.m][3]||'').length > 120 ? '…' : '') : ''].filter(Boolean).join('. ')})).join('') +
@@ -1707,8 +1848,8 @@ function viewSessao(id){
   <div class="facts">
     <div class="fact"><b>${num(vs.length)}</b><span>votações</span></div>
     <div class="fact"><b>${num(apr)}</b><span>aprovadas</span></div>
-    <div class="fact"><b>${vs.filter(v => NOM[v.id]).length}</b><span>com voto de cada vereador</span></div>
-    <div class="fact"><b>${pres ? pres.size : '–'}</b><span>vereadores presentes</span></div>
+    <div class="fact"><b>${vs.filter(v => NOM[v.id]).length}</b><span>com voto de cada parlamentar</span></div>
+    <div class="fact"><b>${pres ? pres.size : '–'}</b><span>parlamentares presentes</span></div>
   </div>
   ${(s.pauta || s.ata) ? `<div class="docs">${s.pauta ? `<a class="btn ghost" href="${esc(s.pauta)}" target="_blank" rel="noopener">Pauta (PDF)</a>` : ''}${s.ata ? `<a class="btn ghost" href="${esc(s.ata)}" target="_blank" rel="noopener">Ata (PDF)</a>` : ''}</div>` : ''}`;
   if (vs.length && vs.every(v => v.res === 3)) h += `<div class="callout" style="margin-top:1.5rem"><p>Nenhum item da pauta foi votado nesta sessão. O sistema da Câmara não informa o motivo, que pode ser falta de quórum, pedido de adiamento ou encerramento antecipado.</p></div>`;
@@ -1734,7 +1875,7 @@ function viewSessao(id){
     const nom = L.filter(v => NOM[v.id]); const outras = L.filter(v => !NOM[v.id]);
     let x = '';
     if (!L.length) x = `<div class="empty">Nenhuma votação desta sessão com esses filtros.</div>`;
-    if (nom.length) x += `<h3 style="margin:.4rem 0 .3rem">Com voto de cada vereador (${nom.length})</h3>${legenda()}${nom.map(v => voteItem(v)).join('')}`;
+    if (nom.length) x += `<h3 style="margin:.4rem 0 .3rem">Com voto de cada parlamentar (${nom.length})</h3>${legenda()}${nom.map(v => voteItem(v)).join('')}`;
     if (outras.length) {
       x += `<h3 style="margin:1.6rem 0 .3rem">Votações simbólicas (${outras.length})</h3><p class="note" style="margin:0 0 .8rem">Registram só o resultado. Toque em um grupo para abrir.</p>`;
       ['proj','req','moc','ata'].forEach(c => {
@@ -1767,7 +1908,7 @@ function viewPresenca(){
     <div class="frow"><span class="flabel">Ordenar</span><select id="pord" aria-label="Ordenar"><option value="nome">Nome</option><option value="maior">Maior presença</option><option value="menor">Menor presença</option><option value="partido">Partido</option></select>
     <label class="check"><input type="checkbox" id="pex">Incluir quem saiu ou foi suplente</label></div></div>
   <p class="count" id="pcount" aria-live="polite"></p><div class="plist" id="plist"></div>
-  ${comoFunciona(`<p>Quantas sessões ordinárias e extraordinárias cada vereador frequentou, contando só o período em que cada um esteve em exercício, da primeira presença registrada até o fim do mandato. Quem assumiu no meio da legislatura, como suplente, não é cobrado pelas sessões anteriores.</p><p>O sistema da Câmara não registra licenças e afastamentos junto da presença. Um vereador licenciado aparece com presença menor, mesmo sem ter faltado. Para ver quem estava em um dia específico, <a href="#votacoes">abra a sessão no calendário</a>.</p>`)}`;
+  ${comoFunciona(`<p>Quantas sessões ordinárias e extraordinárias cada parlamentar frequentou, contando só o período em que cada parlamentar esteve em exercício, da primeira presença registrada até o fim do mandato. Quem assumiu no meio da legislatura, como suplente, não é cobrado pelas sessões anteriores.</p><p>O sistema da Câmara não registra licenças e afastamentos junto da presença. Parlamentares em licença aparecem com presença menor, mesmo sem ter faltado. Para ver quem estava em um dia específico, <a href="#votacoes">abra a sessão no calendário</a>.</p>`)}`;
   ligarToggle();
   document.getElementById('pord').value = FP.ordem;
   document.getElementById('pord').addEventListener('change', e => { FP.ordem = e.target.value; renderPres(); });
@@ -1800,10 +1941,10 @@ function viewComissoes(){
   const L = Object.entries(membrosCom).map(([cid, ms]) => ({cid:+cid, nome:D.COM[cid][0], sig:D.COM[cid][1], tipo:D.COM[cid][2], ms})).sort((a,b) => a.tipo - b.tipo || a.nome.localeCompare(b.nome,'pt-BR'));
   app.innerHTML = `<h1>Comissões</h1>
   <p class="lede">Escolha uma comissão para ver quem participa${REU.length ? ' e o que analisou' : ''}.</p>
-  <div class="filters"><div class="frow"><label style="flex:1 1 18rem"><span class="sr">Buscar comissão ou vereador</span><input id="cq" type="search" placeholder="Buscar comissão ou vereador"></label>
+  <div class="filters"><div class="frow"><label style="flex:1 1 18rem"><span class="sr">Buscar comissão ou parlamentar</span><input id="cq" type="search" placeholder="Buscar comissão ou parlamentar"></label>
   <label class="f">Ordenar <select id="cord">${REU.length ? '<option value="reu">Mais reuniões</option>' : ''}<option value="tipo">Tipo e nome</option><option value="nome">Nome</option></select></label></div></div>
   <div id="clist"></div>
-  ${comoFunciona('<p>Comissões são grupos de vereadores que analisam os projetos e dão parecer antes da votação em plenário. Cada comissão tem presidente, membros e suplentes.</p>')}`;
+  ${comoFunciona('<p>Comissões são grupos de parlamentares que analisam os projetos e dão parecer antes da votação em plenário. Cada comissão tem presidência, integrantes e suplentes.</p>')}`;
   const st = {q:'', o: REU.length ? 'reu' : 'tipo'};
   document.getElementById('cord').value = st.o;
   const render = () => { const q = norm(st.q);
@@ -1829,7 +1970,7 @@ function viewComissao(cid){
     <div class="frow" id="cso"><span class="flabel">Mostrar</span>${chips('Mostrar', [['todas','Todas'],['ok','Realizadas'],['canc','Canceladas ou não realizadas'],['ata','Com ata']], FC.so)}</div></div>
     <div class="facts" id="cfacts" style="margin-top:.5rem"></div><div id="creu" style="margin-top:1rem"></div></section>
   <section class="section" aria-labelledby="h-rel"><h2 id="h-rel">Relatorias</h2>${campoBusca('crq', FC.q)}<div id="crel"></div></section>
-  ${comoFunciona('<p>Integrantes mostra a composição atual da comissão. Reuniões lista os encontros marcados, com pauta e ata em PDF quando existem.</p><p>Relatorias são os projetos que receberam um relator nesta comissão no período escolhido. O relator estuda o projeto e propõe o parecer. A pauta de cada reunião está no PDF, porque o sistema não registra quais projetos foram discutidos em cada uma.</p>')}`;
+  ${comoFunciona('<p>Integrantes mostra a composição atual da comissão. Reuniões lista os encontros marcados, com pauta e ata em PDF quando existem.</p><p>Relatorias são os projetos que receberam relatoria nesta comissão no período escolhido. A pessoa relatora estuda o projeto e propõe o parecer. A pauta de cada reunião está no PDF, porque o sistema não registra quais projetos foram discutidos em cada uma.</p>')}`;
   app.innerHTML = h;
   const render = () => {
     const R = (REUc[cid] || []).filter(r => r.d >= FC.de && r.d <= FC.ate).sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id);
@@ -1844,7 +1985,7 @@ function viewComissao(cid){
       <div class="inner">${r.tema && r.tema.length > 110 ? `<p>${esc(r.tema)}</p>` : ''}<p class="note">${fmtData(r.d)}${r.hi ? `, das ${r.hi.slice(0,5)}${r.hf ? ' às ' + r.hf.slice(0,5) : ''}` : ''}${r.local ? `. ${esc(r.local)}` : ''}</p>${r.obs ? `<p>${esc(r.obs)}</p>` : ''}
       <div class="links">${r.pauta ? `<a href="${esc(r.pauta)}" target="_blank" rel="noopener">Pauta (PDF)</a>` : ''}${r.ata ? `<a href="${esc(r.ata)}" target="_blank" rel="noopener">Ata (PDF)</a>` : ''}${r.anexo ? `<a href="${esc(r.anexo)}" target="_blank" rel="noopener">Anexo</a>` : ''}${r.video ? `<a href="${esc(r.video)}" target="_blank" rel="noopener">Vídeo</a>` : ''}${r.audio ? `<a href="${esc(r.audio)}" target="_blank" rel="noopener">Áudio</a>` : ''}${!(r.pauta||r.ata||r.video||r.audio) ? '<span class="note">Sem documentos publicados.</span>' : ''}</div>
       ${pm.length ? `<ul class="mlist">${pm.map(mid => `<li><strong><a href="${SAPL}/materia/${mid}" target="_blank" rel="noopener">${esc(matRot(mid))}</a></strong><span class="clamp">${esc((D.MAT[mid]||[])[3] || '')}</span></li>`).join('')}</ul>` : ''}</div></details>`; }).join('') : `<div class="empty">Nenhuma reunião registrada nesse período com esse filtro.</div>`;
-    document.getElementById('crel').innerHTML = rel.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Projeto</th><th scope="col">Relator</th><th scope="col">Designado em</th><th scope="col">Situação</th></tr></thead><tbody>${rel.slice(0,100).map(x => `<tr><td><a href="${SAPL}/materia/${x.m}" target="_blank" rel="noopener">${esc(matRot(x.m))}</a><br><span class="note clamp">${esc(((D.MAT[x.m]||[])[3]||''))}</span></td><td>${V[x.p] ? `<a href="#v-${x.p}">${esc(nomeV(x.p))}</a>` : 'Parlamentar ' + x.p}</td><td>${fmtCurta(x.ini)} ${x.ini.slice(0,4)}</td><td>${x.fim || x.tfim ? esc(TFIM[x.tfim] ? 'Parecer ' + TFIM[x.tfim].toLowerCase() : 'Encerrada') : 'Em andamento'}</td></tr>`).join('')}</tbody></table></div>${rel.length > 100 ? `<p class="note">Mostrando as 100 mais recentes de ${rel.length}.</p>` : ''}` : `<div class="empty">Nenhuma relatoria encontrada nesse período e com essa busca.</div>`;
+    document.getElementById('crel').innerHTML = rel.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Projeto</th><th scope="col">Relatoria</th><th scope="col">Designado em</th><th scope="col">Situação</th></tr></thead><tbody>${rel.slice(0,100).map(x => `<tr><td><a href="${SAPL}/materia/${x.m}" target="_blank" rel="noopener">${esc(matRot(x.m))}</a><br><span class="note clamp">${esc(((D.MAT[x.m]||[])[3]||''))}</span></td><td>${V[x.p] ? `<a href="#v-${x.p}">${esc(nomeV(x.p))}</a>` : 'Parlamentar ' + x.p}</td><td>${fmtCurta(x.ini)} ${x.ini.slice(0,4)}</td><td>${x.fim || x.tfim ? esc(TFIM[x.tfim] ? 'Parecer ' + TFIM[x.tfim].toLowerCase() : 'Encerrada') : 'Em andamento'}</td></tr>`).join('')}</tbody></table></div>${rel.length > 100 ? `<p class="note">Mostrando as 100 mais recentes de ${rel.length}.</p>` : ''}` : `<div class="empty">Nenhuma relatoria encontrada nesse período e com essa busca.</div>`;
   };
   ligarPeriodo('cper', FC, render);
   document.getElementById('crq').addEventListener('input', e => { FC.q = e.target.value; render(); });
@@ -1856,17 +1997,17 @@ function viewComissao(cid){
 /* ---------- Vereadores ---------- */
 const FV = {q:'', todos:false, ordem:'nome'};
 function viewVereadores(){
-  app.innerHTML = `<h1>Vereadores</h1>
-  <p class="lede">Toque num vereador para ver como ele atua.</p>
-  <div class="filters"><div class="frow"><label style="flex:1 1 18rem"><span class="sr">Buscar vereador ou partido</span><input id="vq" type="search" placeholder="Buscar por nome ou partido" value="${esc(FV.q)}"></label>
+  app.innerHTML = `<h1>Parlamentares</h1>
+  <p class="lede">Toque numa foto para ver a atuação de cada parlamentar.</p>
+  <div class="filters"><div class="frow"><label style="flex:1 1 18rem"><span class="sr">Buscar parlamentar ou partido</span><input id="vq" type="search" placeholder="Buscar por nome ou partido" value="${esc(FV.q)}"></label>
   <label class="f">Ordenar <select id="vord"><option value="nome">Nome</option><option value="partido">Partido</option></select></label>
   <label class="check"><input type="checkbox" id="vtodos" ${FV.todos?'checked':''}>Incluir quem saiu ou foi suplente</label></div></div>
   <div class="faces" id="vgrid"></div>
-  ${comoFunciona(`<p>A lista mostra os ${ATIVOS.length} vereadores em exercício${noFim}. Marque “Incluir quem saiu ou foi suplente” para ver todos que passaram pela Câmara nesta legislatura. Na página de cada um há presença, votos, projetos, emendas e comissões.</p>`)}`;
+  ${comoFunciona(`<p>A lista mostra ${ATIVOS.length} parlamentares em exercício${noFim}. Marque “Incluir quem saiu ou foi suplente” para ver todas as pessoas que passaram pela Câmara nesta legislatura. Na página de cada parlamentar há presença, votos, projetos, emendas e comissões.</p>`)}`;
   const render = () => { const q = norm(FV.q);
     const L = (FV.todos ? D.V : ATIVOS).filter(v => !q || norm(v.nome + ' ' + (v.partido||'') + ' ' + (v.completo||'')).includes(q)).slice()
       .sort((a,b) => FV.ordem === 'partido' ? (a.partido||'').localeCompare(b.partido||'') || a.nome.localeCompare(b.nome,'pt-BR') : a.nome.localeCompare(b.nome,'pt-BR'));
-    document.getElementById('vgrid').innerHTML = L.length ? L.map(v => `<a class="face" href="#v-${v.id}">${av(v.id,'lg')}<span class="nm">${esc(v.nome)}</span><span class="pt">${esc(v.partido||'')}${v.ativo?'':', fora do exercício'}</span></a>`).join('') : `<div class="empty">Nenhum vereador com esse nome ou partido.</div>`;
+    document.getElementById('vgrid').innerHTML = L.length ? L.map(v => `<a class="face" href="#v-${v.id}">${av(v.id,'lg')}<span class="nm">${esc(v.nome)}</span><span class="pt">${esc(v.partido||'')}${v.ativo?'':', fora do exercício'}</span></a>`).join('') : `<div class="empty">Nenhum resultado com esse nome ou partido.</div>`;
   };
   document.getElementById('vord').value = FV.ordem;
   document.getElementById('vq').addEventListener('input', e => { FV.q = e.target.value; render(); });
@@ -1878,7 +2019,7 @@ const FPV = {p:'tudo', de:DATA_MIN, ate:HOJE, voto:'todos', res:'todos', tv:'tod
 function viewPerfil(id){
   const v = V[id];
   FPV.n = '10'; FPV.aut = 'todas'; FPV.area = ''; FPV.res = 'todos'; FPV.tv = 'todas'; Object.assign(FEV, {anos:[], forn:'', org:'', n:'10', ord:'valor'});
-  if (!v) { app.innerHTML = `<a class="back" href="#vereadores">‹ Vereadores</a><div class="empty">Não há dados deste parlamentar ${PERIODO_TXT}.</div>`; return; }
+  if (!v) { app.innerHTML = `<a class="back" href="#vereadores">‹ Parlamentares</a><div class="empty">Não há dados deste mandato ${PERIODO_TXT}.</div>`; return; }
   const minhas = VT.filter(x => NOM[x.id] && NOM[x.id][id]);
   const ehDiv = x => { const c = contagem(NOM[x.id]); const meu = NOM[x.id][id]; return (meu==='S'||meu==='N') && c.S !== c.N && ((meu==='S') !== (c.S > c.N)); };
   const tot = Object.values(v.votos).reduce((a,b)=>a+b,0);
@@ -1893,7 +2034,7 @@ function viewPerfil(id){
   const nAut = new Set(minhasAut.map(x => x.m)).size;
   const recentes = [...minhas].sort((a,b) => b.d.localeCompare(a.d) || b.id - a.id).slice(0, 4);
   const vmeta = x => { const k = NOM[x.id] ? NOM[x.id][id] : null; return {d:true, txt:k ? `Votou: <span class="voto-tag" style="--c:var(--${VCOR[k]})">${VOTO[k]}</span>` : 'Votação simbólica'}; };
-  app.innerHTML = `<a class="back" href="#vereadores">‹ Vereadores</a>
+  app.innerHTML = `<a class="back" href="#vereadores">‹ Parlamentares</a>
   <div class="phead">${av(id,'xxl')}<div class="pdados"><h1>${esc(v.nome)}</h1>
     <p class="lede" style="margin:.3rem 0 0"><strong>${esc(v.partido || 'Partido não informado')}</strong></p>
     <details class="pmais" id="pmais"${celular.matches ? '' : ' open'}><summary>Mais informações</summary><dl class="pdl">
@@ -1913,19 +2054,19 @@ function viewPerfil(id){
   </div>
   <div class="cols2">
   <section class="card" aria-labelledby="h-vot"><h2 id="h-vot">Como votou</h2>
-    <p class="note" style="margin-top:0">${num(minhas.length)} ${minhas.length===1?'votação nominal':'votações nominais'} ${PERIODO_TXT}${nAut ? `. Autor de ${num(nAut)} ${nAut===1?'matéria votada':'matérias votadas'}` : ''}. As mais recentes:</p>
+    <p class="note" style="margin-top:0">${num(minhas.length)} ${minhas.length===1?'votação nominal':'votações nominais'} ${PERIODO_TXT}${nAut ? `. Autoria de ${num(nAut)} ${nAut===1?'matéria votada':'matérias votadas'}` : ''}. As mais recentes:</p>
     ${recentes.length ? recentes.map(x => voteItem(x, vmeta(x))).join('') : `<div class="empty">Nenhuma votação nominal registrada.</div>`}
-    <div class="cfoot"><button type="button" class="btn" id="vabrir">Ver todas e filtrar</button>${nAut ? ` <button type="button" class="btn ghost" id="vabrirAut">Ver o que ele propôs (${num(nAut)})</button>` : ''}</div></section>
+    <div class="cfoot"><button type="button" class="btn" id="vabrir">Ver todas e filtrar</button>${nAut ? ` <button type="button" class="btn ghost" id="vabrirAut">Ver as propostas de autoria (${num(nAut)})</button>` : ''}</div></section>
   ${secEmendas(v)}
   </div>
   ${secProjetos(v)}
   <section class="section" aria-labelledby="h-com"><h2 id="h-com">Comissões</h2>
   ${coms.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Comissão</th><th scope="col">Função</th></tr></thead><tbody>${coms.map(c => `<tr><td><a href="#c-${c.cid}">${esc(c.nome)}</a> <span class="note">${esc(c.sig)}</span></td><td>${cargoTxt(c.cargo, c.tit)}</td></tr>`).join('')}</tbody></table></div>` : `<p class="note">Nenhuma participação ativa em comissão registrada.</p>`}
-  ${relv.length ? `<p class="note" style="margin-top:.8rem">Foi designado relator de ${relv.length} ${relv.length===1?'projeto':'projetos'} em comissões ${PERIODO_TXT}.</p>` : ''}
+  ${relv.length ? `<p class="note" style="margin-top:.8rem">Recebeu a relatoria de ${relv.length} ${relv.length===1?'projeto':'projetos'} em comissões ${PERIODO_TXT}.</p>` : ''}
   </section>
-  ${comoFunciona('<p>A presença conta só sessões com lista registrada, dentro do período de mandato. Licenças e afastamentos ainda não são descontados.</p><p>“Votações nominais” são as que registram o voto de cada vereador. A maioria das votações da Câmara é simbólica e não entra aqui.</p>')}`;
+  ${comoFunciona('<p>A presença conta só sessões com lista registrada, dentro do período de mandato. Licenças e afastamentos ainda não são descontados.</p><p>“Votações nominais” são as que registram o voto de cada parlamentar. A maioria das votações da Câmara é simbólica e não entra aqui.</p>')}`;
   const filtrosVotos = () => `${btnFiltros('vfil')}<div class="filters${fechadoCel()}" id="vfil">${campoBusca('vqs', FPV.q)}${blocoPeriodo('vper', FPV)}
-      <div class="frow" id="vaut"><span class="flabel">Autoria</span>${chips('Autoria', [['todas','Todas'],['minha','Só de autoria dele']], FPV.aut)}</div>
+      <div class="frow" id="vaut"><span class="flabel">Autoria</span>${chips('Autoria', [['todas','Todas'],['minha','Só de sua autoria']], FPV.aut)}</div>
       <div class="frow" id="vvoto"><span class="flabel">Voto</span>${chips('Voto', [['todos','Todos'],['S','Sim'],['N','Não'],['A','Abstenção'],['F','Ausente']], FPV.voto)}</div>
       ${linhaTV('vtv', FPV.tv)}
       <div class="frow" id="vres"><span class="flabel">Resultado</span>${chips('Resultado', [['todos','Todos'],['aprov','Aprovados'],['nao','Não aprovados'],['nv','Não votados']], FPV.res)}</div>
@@ -1998,9 +2139,9 @@ const nomeVer = n => { const id = IDV[chaveEme(n)]; return id ? V[id].nome : tc(
 const fotoVer = (n, cls) => { const id = IDV[chaveEme(n)]; return id ? av(id, cls) : `<span class="av ${cls}" aria-hidden="true">${esc(iniciais(tc(n)))}</span>`; };
 const linkVer = n => { const id = IDV[chaveEme(n)]; return id ? `<a href="#v-${id}">${esc(V[id].nome)}</a>` : `${esc(tc(n))} <span class="note">sem página nesta legislatura</span>`; };
 const obsCell = t => { if (!t) return '<td class="obs">—</td>'; if (t.length <= 140) return `<td class="obs">${esc(t)}</td>`; const curto = t.slice(0, 140).replace(/\s+\S*$/, '') + '…'; return `<td class="obs"><details><summary>${esc(curto)}</summary><p>${esc(t)}</p></details></td>`; };
-const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Vereador</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(comVer ? r[5] : r[4])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
+const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Parlamentar</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(comVer ? r[5] : r[4])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
 const barraForn = (nome, val, total, max, outros) => `<div class="efor"><div class="eh"><span>${esc(limpaForn(nome))}</span><span>${brl(val)} · ${(100 * val / total).toLocaleString('pt-BR', {maximumFractionDigits:1})}%</span></div><div class="ebar${outros ? ' outros' : ''}" aria-hidden="true"><i style="width:${Math.min(100, 100 * val / max)}%"></i></div></div>`;
-const aviso = () => EME && EME.parcial ? `<p class="note"><strong>Prévia:</strong> a lista de pagamentos está carregada só para alguns vereadores.</p>` : '';
+const aviso = () => EME && EME.parcial ? `<p class="note"><strong>Prévia:</strong> a lista de pagamentos está carregada só para parte das pessoas.</p>` : '';
 
 /* --- destaque na página inicial --- */
 function emendasDestaque(){
@@ -2010,25 +2151,25 @@ function emendasDestaque(){
   const nf = new Set(rs.map(([r]) => limpaForn(r[1]))).size, nv = new Set(rs.map(([, n]) => chaveEme(n))).size;
   return `<section class="eme-hero" aria-labelledby="h-emh"><p class="note" id="h-emh">Emendas parlamentares em ${ANO}</p>
     <p class="eme-big"><strong>${brlMi(total)}</strong> em emendas pagas em ${ANO}</p>
-    <p class="lede" style="margin:0 0 1rem">${num(rs.length)} ${rs.length === 1 ? 'pagamento' : 'pagamentos'} a ${num(nf)} ${nf === 1 ? 'fornecedor' : 'fornecedores'}, indicados por ${num(nv)} ${nv === 1 ? 'vereador' : 'vereadores'}.${EME.parcial ? ' <strong>(Prévia: soma só dos pagamentos carregados.)</strong>' : ''}</p>
+    <p class="lede" style="margin:0 0 1rem">${num(rs.length)} ${rs.length === 1 ? 'pagamento' : 'pagamentos'} a ${num(nf)} ${nf === 1 ? 'fornecedor' : 'fornecedores'}, indicados por ${num(nv)} ${nv === 1 ? 'parlamentar' : 'parlamentares'}.${EME.parcial ? ' <strong>(Prévia: soma só dos pagamentos carregados.)</strong>' : ''}</p>
     <a class="btn" id="homeEme" href="#emendas">Ver todas as emendas</a></section>`;
 }
 app.addEventListener('click', e => { if (e.target.closest('#homeEme')) { FE.anos = [ANO]; FE.ver = 'todos'; FE.forn = ''; FE.min = ''; FE.max = ''; } });
 
 /* --- aba Emendas (abas: por vereador, por fornecedor, pagamentos) --- */
 const FE = {anos:[], ver:'todos', org:'', forn:'', min:'', max:'', ord:'valor', lord:'valor', ford:'valor', sord:'valor', abertas:new Set(), aba:'ver', n:'25'};
-const ABAS_EME = [['ver','Por vereador'],['for','Por fornecedor'],['org','Por área e órgão'],['pag','Pagamentos']];
+const ABAS_EME = [['ver','Por parlamentar'],['for','Por fornecedor'],['org','Por área e órgão'],['pag','Pagamentos']];
 function viewEmendas(){
   if (!EME) { app.innerHTML = `<h1>Emendas parlamentares</h1><div class="empty">Os dados de emendas ainda não foram carregados.</div>`; return; }
   const L0 = []; EME.v.forEach(x => (x.r || []).forEach(r => L0.push([r[0], r[1], r[2], r[3], x.n, r[4] || ''])));
   const anos = [...new Set(L0.map(r => anoDe(r[0])))].sort().reverse();
   const vers = [...EME.v].sort((a, b) => nomeVer(a.n).localeCompare(nomeVer(b.n), 'pt-BR'));
   app.innerHTML = `<h1>Emendas parlamentares</h1>
-  <p class="lede">Para onde vai o dinheiro das emendas. Escolha um vereador ou uma área.</p>
+  <p class="lede">Para onde vai o dinheiro das emendas. Escolha parlamentar ou área.</p>
   <section class="section sec-filtros" aria-labelledby="h-ef"><h2 id="h-ef">Filtros</h2>${btnFiltros('efil')}
     <div class="filters${fechadoCel()}" id="efil">
       <div class="frow">${caixasAno('eano', anos, FE.anos)}</div>
-      <div class="frow"><label class="f">Vereador <select id="eve"><option value="todos">Todos</option>${vers.map(x => `<option value="${esc(chaveEme(x.n))}">${esc(nomeVer(x.n))}</option>`).join('')}</select></label>
+      <div class="frow"><label class="f">Parlamentar <select id="eve"><option value="todos">Todas as pessoas</option>${vers.map(x => `<option value="${esc(chaveEme(x.n))}">${esc(nomeVer(x.n))}</option>`).join('')}</select></label>
         ${selAreaOrgao('eorg', L0.map(r => r[3]), FE.org)}</div>
       <div class="frow">${campoTexto('efor', 'Buscar fornecedor', FE.forn)}</div>
       <div class="frow"><label class="f">Valor mínimo (R$) <input id="emin" type="search" inputmode="decimal" placeholder="0" style="width:8rem" value="${esc(FE.min)}"></label>
@@ -2040,7 +2181,7 @@ function viewEmendas(){
   <div id="estats" aria-live="polite"></div>
   <div class="pasta" role="tablist" aria-label="Como ver as emendas">${ABAS_EME.map(([k, n]) => `<button type="button" role="tab" id="aba-${k}" data-aba="${k}" aria-controls="epanel" aria-selected="${FE.aba === k}" tabindex="${FE.aba === k ? 0 : -1}">${n}</button>`).join('')}</div>
   <div class="painel-pasta" role="tabpanel" id="epanel" tabindex="0"></div>
-  ${comoFunciona(`<p>Quanto cada vereador destinou por emendas e para quem o dinheiro foi pago, segundo a planilha de execução do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>${EME.atualizado ? ', consultada em ' + fmtData(EME.atualizado) : ''}. Só entram pagamentos já efetivados. Veja de onde vêm os dados em <a href="#sobre">Sobre os dados</a>.</p>`)}`;
+  ${comoFunciona(`<p>Quanto cada parlamentar destinou por emendas e para quem o dinheiro foi pago, segundo a planilha de execução do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>${EME.atualizado ? ', consultada em ' + fmtData(EME.atualizado) : ''}. Só entram pagamentos já efetivados. Veja de onde vêm os dados em <a href="#sobre">Sobre os dados</a>.</p>`)}`;
   ligarToggle();
   const render = () => {
     const min = numBR(FE.min), max = numBR(FE.max);
@@ -2058,7 +2199,7 @@ function viewEmendas(){
     const total = resumo ? EME.total : somaR(R);
     const nForn = new Set(R.map(r => limpaForn(r[1]))).size;
     document.getElementById('estats').innerHTML = `<div class="stats"><div class="stat stat-total"><h3>Total pago</h3><div class="big">${brlMi(total)}</div></div>
-        <div class="stat"><h3>Vereadores</h3><div class="big">${GL.length}</div></div>
+        <div class="stat"><h3>Parlamentares</h3><div class="big">${GL.length}</div></div>
         ${resumo ? '' : `<div class="stat"><h3>Pagamentos</h3><div class="big">${num(R.length)}</div><div class="note">${num(nForn)} fornecedores</div></div>`}</div>
       ${!semFiltro && EME.parcial ? `<p class="note"><strong>Prévia:</strong> com filtros, só entram os pagamentos carregados (${num(L0.length)}).</p>` : aviso()}`;
     document.querySelectorAll('.pasta [role="tab"]').forEach(b => { const on = b.dataset.aba === FE.aba; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
@@ -2067,7 +2208,7 @@ function viewEmendas(){
     if (FE.aba === 'ver') {
       const mx = GL.length ? Math.max(...GL.map(x => x.pago)) : 1;
       pn.innerHTML = `<div class="frow" id="eord"><span class="flabel">Ordenar por</span>${chips('Ordenar por', [['valor','Maior valor'],['nome','Nome']], FE.ord)}</div>
-        ${GL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Vereador</th><th scope="col" class="ev">Pago</th><th scope="col" class="ev">Fornecedores</th><th scope="col"><span class="sr">Comparação</span></th></tr></thead><tbody>${GL.map(x => `<tr><td><span class="vcell">${fotoVer(x.n, '')}<span>${linkVer(x.n)}</span></span></td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.forn)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
+        ${GL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Parlamentar</th><th scope="col" class="ev">Pago</th><th scope="col" class="ev">Fornecedores</th><th scope="col"><span class="sr">Comparação</span></th></tr></thead><tbody>${GL.map(x => `<tr><td><span class="vcell">${fotoVer(x.n, '')}<span>${linkVer(x.n)}</span></span></td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.forn)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
       ligarChips('#eord', k => { FE.ord = k; render(); });
     } else if (FE.aba === 'for') {
       const GF = {};
@@ -2078,7 +2219,7 @@ function viewEmendas(){
       pn.innerHTML = `<div class="frow" id="eford"><span class="flabel">Ordenar por</span>${chips('Ordenar fornecedores por', [['valor','Maior valor recebido'],['nome','Nome']], FE.ford)}</div>
         <p class="count">${num(FL.length)} ${FL.length === 1 ? 'fornecedor' : 'fornecedores'}${FL.length > q ? ', mostrando ' + (FE.ford === 'nome' ? 'os primeiros em ordem alfabética' : 'os que mais receberam') + ' (' + num(q) + ')' : ''}</p>
         ${aviso()}
-        ${FL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Fornecedor</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Vereadores</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${FLs.map((x, i) => `<tr><td>${esc(x.nome)}</td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.n)}</td><td class="ev">${num(x.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td><td><button type="button" class="btn ghost sm" data-verpag="${i}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum fornecedor com esses filtros.</div>`}`;
+        ${FL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Fornecedor</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Parlamentares</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${FLs.map((x, i) => `<tr><td>${esc(x.nome)}</td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.n)}</td><td class="ev">${num(x.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td><td><button type="button" class="btn ghost sm" data-verpag="${i}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum fornecedor com esses filtros.</div>`}`;
       ligarChips('#eford', k => { FE.ford = k; render(); });
       pn.querySelectorAll('[data-verpag]').forEach(b => b.addEventListener('click', () => { FE.forn = FLs[+b.dataset.verpag].nome; document.getElementById('efor').value = FE.forn; FE.aba = 'pag'; render(); document.getElementById('aba-pag').focus(); }));
     } else if (FE.aba === 'org') {
@@ -2097,7 +2238,7 @@ function viewEmendas(){
         ${aviso()}
         ${AL.length ? AL.map(a => { const OL = Object.values(a.os).sort((x, y) => y.pago - x.pago), mxO = OL[0].pago;
           return `<details class="area" data-a="${esc(a.nome)}"${FE.abertas.has(a.nome) ? ' open' : ''}><summary><span class="aname">${esc(a.nome)}</span><span class="aval">${brl(a.pago)}</span><span class="apct">${pct(a.pago)}</span><span class="ebar" aria-hidden="true"><i style="width:${100 * a.pago / mxA}%"></i></span></summary>
-          <div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Vereadores</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td><td class="ev">${num(o.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
+          <div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Parlamentares</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td><td class="ev">${num(o.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
           <p style="margin:.6rem 0 0"><button type="button" class="btn ghost sm" data-org="a:${esc(a.nome)}">Ver todos os pagamentos de ${esc(a.nome)}</button></p></div></details>`; }).join('') : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
       ligarChips('#esord', k => { FE.sord = k; render(); });
       pn.querySelectorAll('details.area').forEach(d => d.addEventListener('toggle', () => { if (d.open) FE.abertas.add(d.dataset.a); else FE.abertas.delete(d.dataset.a); }));
@@ -2197,28 +2338,28 @@ function ligaEmendasV(v){
 function viewSobre(){
   const nNom = Object.keys(NOM).length;
   app.innerHTML = `<div class="prose"><h1>Sobre os dados</h1>
-  <p class="lede">Os dados vêm da API pública do SAPL, o sistema legislativo da Câmara Municipal de Campinas. Foram coletados em ${fmtData(D.gerado.slice(0,10))} e cobrem a ${LEG.n ? LEG.n + 'ª legislatura' : 'legislatura atual'}${LEG.atual === false ? ' (encerrada)' : ''}, ${PERIODO_TXT}: ${num(VT.length)} votações, ${num(nNom)} delas com o voto de cada vereador, ${comDados.length} sessões com votações ou presença${REU.length ? ` e ${num(REU.length)} reuniões de comissão` : ''}.</p>
+  <p class="lede">Os dados vêm da API pública do SAPL, o sistema legislativo da Câmara Municipal de Campinas. Foram coletados em ${fmtData(D.gerado.slice(0,10))} e cobrem a ${LEG.n ? LEG.n + 'ª legislatura' : 'legislatura atual'}${LEG.atual === false ? ' (encerrada)' : ''}, ${PERIODO_TXT}: ${num(VT.length)} votações, ${num(nNom)} delas com o voto de cada parlamentar, ${comDados.length} sessões com votações ou presença${REU.length ? ` e ${num(REU.length)} reuniões de comissão` : ''}.</p>
   <h2>Quem faz o Xereta</h2>
   <p>O Xereta é uma iniciativa da <strong>Minha Campinas</strong>, organização que trabalha para promover a participação política popular em Campinas e para que a política funcione para quem mais precisa. Entre os princípios da Minha Campinas estão a transparência, o diálogo e o apartidarismo.</p>
-  <p>O app foi idealizado por <strong>Marcelo Nisida</strong>, com uma ideia simples: facilitar para qualquer pessoa acompanhar o que os vereadores votam, quem comparece às sessões e como cada um atua nas comissões, usando apenas dados públicos. O Xereta é independente. Não é um canal oficial da Câmara Municipal e não tem ligação com partidos.</p>
+  <p>O app foi idealizado por <strong>Marcelo Nisida</strong>, com uma ideia simples: facilitar para qualquer pessoa acompanhar o que parlamentares votam, quem comparece às sessões e como cada parlamentar atua nas comissões, usando apenas dados públicos. O Xereta é independente. Não é um canal oficial da Câmara Municipal e não tem ligação com partidos.</p>
   ${EME ? `<h2>De onde vêm os dados das emendas</h2>
-  <p>As emendas não vêm do SAPL. Os dados vêm do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, de onde se baixa a planilha de execução das emendas parlamentares. Cada linha é um empenho, com o vereador autor, o fornecedor, a secretaria responsável e os valores empenhados, liquidados e pagos. A planilha foi consultada pela última vez em ${fmtData(EME.atualizado)}.${EME.fonte ? ' Fonte: ' + esc(EME.fonte) + '.' : ''}</p>
+  <p>As emendas não vêm do SAPL. Os dados vêm do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, de onde se baixa a planilha de execução das emendas parlamentares. Cada linha é um empenho, com a autoria parlamentar, o fornecedor, a secretaria responsável e os valores empenhados, liquidados e pagos. A planilha foi consultada pela última vez em ${fmtData(EME.atualizado)}.${EME.fonte ? ' Fonte: ' + esc(EME.fonte) + '.' : ''}</p>
   <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL. As áreas, como Saúde e Cultura e Turismo, são um agrupamento feito pelo Xereta a partir do órgão que executa cada emenda. Os órgãos aparecem como na planilha, com os nomes padronizados.</p>` : ''}
   ${PROJ.length ? `<h2>Como os projetos são separados por área</h2>
-  <p>A aba Projetos lista os projetos de lei (ordinária e complementar), de decreto legislativo, de resolução e de emenda à Lei Orgânica apresentados na legislatura, com data de apresentação e autores, tirados do SAPL. Requerimentos, moções e indicações não entram.</p>
+  <p>A aba Projetos lista os projetos de lei (ordinária e complementar), de decreto legislativo, de resolução e de emenda à Lei Orgânica apresentados na legislatura, com data de apresentação e autoria, tirados do SAPL. Requerimentos, moções e indicações não entram.</p>
   <p>A área de cada projeto é escolhida automaticamente pelas palavras da ementa: “concede título” ou “diploma” vira Homenagens e títulos, “denomina rua” vira Nomes de ruas e locais, “escola” vira Educação, e assim por diante. Cada projeto fica em uma única área, a primeira regra que combinar. Por isso a classificação pode errar em ementas que tratam de mais de um tema ou usam palavras pouco comuns; o que não combina com nenhuma regra fica em “Outros”.</p>
-  <p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara, comissões e outros autores que não são vereadores aparecem nos filtros, mas ficam fora do ranking.</p>
+  <p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de uma autoria conta para cada pessoa autora. Prefeitura, Mesa da Câmara, comissões e outras autorias que não são de parlamentares aparecem nos filtros, mas ficam fora do ranking.</p>
   <p>As mesmas áreas aparecem nas votações. Requerimentos, emendas e substitutivos que citam um projeto (por exemplo, “requer urgência do Projeto de Lei nº 49/2026”) recebem a área do projeto citado. Atas de reunião ficam em Funcionamento da Câmara.</p>` : ''}
   <h2>O que é confiável</h2>
   <p>O resultado de cada votação e a data da sessão. A data vem da sessão plenária, porque a data gravada em cada votação reflete quando o registro foi lançado no sistema.</p>
-  <p>O voto de cada vereador nas votações nominais. Nos casos verificados, a soma dos votos individuais bate com o placar oficial em praticamente todas as votações.</p>
+  <p>O voto de cada parlamentar nas votações nominais. Nos casos verificados, a soma dos votos individuais bate com o placar oficial em praticamente todas as votações.</p>
   <h2>O que tem limites</h2>
-  <p>A maioria das votações é simbólica e registra só o resultado. Por isso o histórico de cada vereador mostra apenas as votações nominais, uma fração do total.</p>
+  <p>A maioria das votações é simbólica e registra só o resultado. Por isso o histórico de cada parlamentar mostra apenas as votações nominais, uma fração do total.</p>
   <p>A presença considera sessões ordinárias e extraordinárias com lista registrada, dentro do período em que cada parlamentar esteve em exercício: da primeira presença registrada até o fim do mandato, ou até a última presença, se já saiu. Isso evita cobrar de suplentes as sessões anteriores à posse. Sessões solenes não têm lista de presença. Licenças e afastamentos ainda não são descontados.</p>
-  <p>Nas comissões, o sistema registra cada reunião marcada com data e documentos (pauta e ata em PDF), mas não tem um campo próprio para cancelamento. Aqui, uma reunião é considerada cancelada quando o nome ou a observação diz isso, e “não realizada” quando a observação diz que ela não aconteceu. O sistema também não registra quais projetos foram discutidos em cada reunião nem a presença dos vereadores nas comissões.</p>
+  <p>Nas comissões, o sistema registra cada reunião marcada com data e documentos (pauta e ata em PDF), mas não tem um campo próprio para cancelamento. Aqui, uma reunião é considerada cancelada quando o nome ou a observação diz isso, e “não realizada” quando a observação diz que ela não aconteceu. O sistema também não registra quais projetos foram discutidos em cada reunião nem a presença de parlamentares nas comissões.</p>
   <p>“Aprovados” reúne aprovado, acatado e procedente. “Não aprovados” reúne rejeitado, improcedente e mantido (usado quando um veto é mantido).</p>
   <p>Os valores de voto vêm sem padrão no sistema (“Não” e “Nao”, “Ausente”, “-1”, campos vazios). Aqui, “Ausente”, “Ausente na Votação”, “-1”, “Não Votou” e vazio aparecem como ausente. A barra de votos não mostra quem estava na presidência, que não vota.</p>
-  <p>“Votou diferente da maioria” compara o voto sim ou não do vereador com o lado que teve mais votos. Como quase todas as votações nominais são aprovadas por ampla maioria, esse número tende a ser baixo para todos.</p>
+  <p>“Votou diferente da maioria” compara o voto sim ou não de cada parlamentar com o lado que teve mais votos. Como quase todas as votações nominais são aprovadas por ampla maioria, esse número tende a ser baixo para todo mundo.</p>
   <h2>Acessibilidade</h2>
   <p>Use o botão A+ no topo para aumentar o texto e o botão de lua para trocar entre tema claro e escuro. Todo o site funciona pelo teclado, e a primeira tecla Tab oferece um atalho para pular direto ao conteúdo.</p>
   <h2>Fonte</h2>
@@ -2240,7 +2381,7 @@ const PROJ = (D.PROJ || []).map(r => { const m = D.MAT[r[0]] || [];
 const SIT_P = {aprov:['Aprovado','b1'], nao:['Rejeitado','b2'], pend:['Ainda não votado','bpend']};
 if (PROJ.length) { const t = document.getElementById('tabProj'); if (t) t.hidden = false; }
 const FPJ = {anos:[], area:'', tipo:'todos', st:'todos', tv:'todas', autor:'', q:'', aba:'area', n:'25', tema:false};
-const ABAS_P = [['area','Por área'],['rank','Ranking de vereadores'],['lista','Lista de projetos']];
+const ABAS_P = [['area','Por área'],['rank','Ranking de parlamentares'],['lista','Lista de projetos']];
 const autorChave = a => a.p && V[a.p] ? 'v:' + a.p : 'n:' + norm(a.nome);
 const passaP = (p, f, sem = '') => (!f.anos.length || f.anos.includes(p.d.slice(0, 4)))
   && (sem === 'area' || !f.area || p.a === f.area)
@@ -2263,23 +2404,23 @@ function viewProjetos(){
   const autores = {}; PROJ.forEach(p => p.aut.forEach(a => { const k = autorChave(a); if (!autores[k]) autores[k] = {k, nome:a.p && V[a.p] ? V[a.p].nome : a.nome, ver:!!(a.p && V[a.p]), n:0}; autores[k].n++; }));
   const listaAut = Object.values(autores).sort((a, b) => (b.ver - a.ver) || a.nome.localeCompare(b.nome, 'pt-BR'));
   app.innerHTML = `<h1>Projetos apresentados</h1>
-  <p class="lede">O que cada vereador propõe, por área.</p>
+  <p class="lede">O que cada parlamentar propõe, por área.</p>
   <section class="section sec-filtros" aria-labelledby="h-pf"><h2 id="h-pf">Filtros</h2>${btnFiltros('pfil')}
     <div class="filters${fechadoCel()}" id="pfil">
       <div class="frow">${caixasAno('pano', anos, FPJ.anos)}</div>
       <div class="frow"><label class="f">Área <select id="parea"><option value="">Todas</option>${areas.map(a => `<option value="${esc(a)}"${FPJ.area === a ? ' selected' : ''}>${esc(a)} (${contA[a]})</option>`).join('')}</select></label>
-        <label class="f">Autor <select id="paut"><option value="">Todos</option><optgroup label="Vereadores">${listaAut.filter(x => x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup><optgroup label="Outros autores">${listaAut.filter(x => !x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup></select></label></div>
+        <label class="f">Autoria <select id="paut"><option value="">Todos</option><optgroup label="Parlamentares">${listaAut.filter(x => x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup><optgroup label="Outras autorias">${listaAut.filter(x => !x.ver).map(x => `<option value="${esc(x.k)}"${FPJ.autor === x.k ? ' selected' : ''}>${esc(x.nome)}</option>`).join('')}</optgroup></select></label></div>
       <div class="frow" id="pst"><span class="flabel">Situação</span>${chips('Situação do projeto', [['todos','Todos'],['aprov','Aprovados'],['nao','Rejeitados'],['pend','Ainda não votados']], FPJ.st)}</div>
       ${linhaTV('ptv', FPJ.tv)}
       <div class="frow" id="ptipo"><span class="flabel">Tipo</span>${chips('Tipo de projeto', [['todos','Todos'],['lei','Projetos de lei'],['pdl','Decretos legislativos'],['res','Resoluções']], FPJ.tipo)}</div>
-      <div class="frow">${campoTexto('pq', 'Buscar na ementa, número ou autor', FPJ.q)}</div>
+      <div class="frow">${campoTexto('pq', 'Buscar na ementa, número ou autoria', FPJ.q)}</div>
       <div class="frow">${seletorQtd('pqtd', FPJ.n, 'Mostrar até')}<button type="button" class="btn ghost" id="plimpa">Limpar filtros</button></div>
     </div>
   </section>
   <div id="pstats" aria-live="polite"></div>
   <div class="pasta" role="tablist" aria-label="Como ver os projetos">${ABAS_P.map(([k, n]) => `<button type="button" role="tab" id="paba-${k}" data-aba="${k}" aria-controls="ppanel" aria-selected="${FPJ.aba === k}" tabindex="${FPJ.aba === k ? 0 : -1}">${n}</button>`).join('')}</div>
   <div class="painel-pasta" role="tabpanel" id="ppanel" tabindex="0"></div>
-  ${comoFunciona(`<p>Projetos de lei, de decreto legislativo e de resolução apresentados ${PERIODO_TXT}, separados por área a partir do texto da ementa. A classificação é automática e pode errar: veja como ela é feita em <a href="#sobre">Sobre os dados</a>.</p><p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de um autor conta para cada um deles. Prefeito, Mesa da Câmara e comissões ficam fora do ranking.</p>`)}`;
+  ${comoFunciona(`<p>Projetos de lei, de decreto legislativo e de resolução apresentados ${PERIODO_TXT}, separados por área a partir do texto da ementa. A classificação é automática e pode errar: veja como ela é feita em <a href="#sobre">Sobre os dados</a>.</p><p>A situação vem das votações em plenário: “Aprovado” ou “Rejeitado” é o resultado da última votação do projeto, e “Ainda não votado” é o projeto que ainda não teve votação com resultado. O site não sabe se um projeto foi arquivado, retirado ou virou lei.</p><p>No ranking, um projeto com mais de uma autoria conta para cada pessoa autora. Prefeitura, Mesa da Câmara e comissões ficam fora do ranking.</p>`)}`;
   ligarToggle();
   const render = () => {
     const L = PROJ.filter(p => passaP(p, FPJ));
@@ -2310,13 +2451,13 @@ function viewProjetos(){
       const titulo = FPJ.area ? `em ${esc(FPJ.area)}` : FPJ.tema ? 'em áreas temáticas' : 'em todas as áreas';
       pn.innerHTML = `<h2 class="prank-t">Quem mais apresentou projetos ${titulo}</h2>
         ${FPJ.area ? '' : `<label class="check"><input type="checkbox" id="ptema" ${FPJ.tema ? 'checked' : ''}>Só áreas temáticas (sem homenagens, nomes de ruas, datas comemorativas e utilidade pública)</label>`}
-        <p class="count">${R.length} ${R.length === 1 ? 'vereador' : 'vereadores'} com projetos${FPJ.autor ? ' · o filtro de autor não vale aqui' : ''}</p>
+        <p class="count">${R.length} parlamentares com projetos${FPJ.autor ? ' · o filtro de autoria não vale aqui' : ''}</p>
         ${R.length ? `<ol class="prank">${R.slice(0, q).map(([id, n], i) => `<li><span class="pos">${i + 1}º</span><a class="vcell" href="#v-${id}">${av(id, 'sm')}<span><strong>${esc(nomeV(id))}</strong><small>${esc(V[id].partido || '')}${V[id].ativo ? '' : ' · fora do exercício'}</small></span></a>
-          <span class="pnum"><b>${num(n)}</b> ${n === 1 ? 'projeto' : 'projetos'}${totV[id] && (FPJ.area || FPJ.tema) ? `<small>${pct(n, totV[id])}% dos projetos dele</small>` : ''}</span>
+          <span class="pnum"><b>${num(n)}</b> ${n === 1 ? 'projeto' : 'projetos'}${totV[id] && (FPJ.area || FPJ.tema) ? `<small>${pct(n, totV[id])}% dos seus projetos</small>` : ''}</span>
           <div class="ebar" aria-hidden="true"><i style="width:${100 * n / max}%"></i></div>
-          <button type="button" class="btn ghost sm" data-ver="${id}">Ver projetos</button></li>`).join('')}</ol>` : `<div class="empty">Nenhum vereador apresentou projetos com esses filtros.</div>`}
+          <button type="button" class="btn ghost sm" data-ver="${id}">Ver projetos</button></li>`).join('')}</ol>` : `<div class="empty">Nenhum projeto de parlamentar com esses filtros.</div>`}
         ${R.length > q ? `<p class="note">Mostrando ${num(q)} de ${R.length}. Use “Mostrar até” para ver mais.</p>` : ''}
-        ${Object.keys(outros).length ? `<details class="pfora"><summary>Fora do ranking: Prefeito, Mesa e outros (${num(Object.values(outros).reduce((a, b) => a + b, 0))} projetos)</summary><p class="note">${Object.entries(outros).sort((a, b) => b[1] - a[1]).map(([nm, n]) => `${esc(nm)} (${num(n)})`).join(', ')}.</p></details>` : ''}`;
+        ${Object.keys(outros).length ? `<details class="pfora"><summary>Fora do ranking: Prefeitura, Mesa da Câmara e outras autorias (${num(Object.values(outros).reduce((a, b) => a + b, 0))} projetos)</summary><p class="note">${Object.entries(outros).sort((a, b) => b[1] - a[1]).map(([nm, n]) => `${esc(nm)} (${num(n)})`).join(', ')}.</p></details>` : ''}`;
       const t = pn.querySelector('#ptema'); if (t) t.addEventListener('change', e => { FPJ.tema = e.target.checked; render(); });
       pn.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => { FPJ.autor = 'v:' + b.dataset.ver; FPJ.aba = 'lista'; document.getElementById('paut').value = FPJ.autor; render(); document.getElementById('paba-lista').focus(); }));
     } else {
@@ -2357,11 +2498,11 @@ function secProjetos(v){
 }
 
 /* ---------- Rotas ---------- */
-const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Mapa de afinidade','votacoes'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
+const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Afinidade de votação','afinidade'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
 function rota(){
   const h = location.hash.replace('#','');
   let tab, titulo;
-  if (/^v-\d+$/.test(h)) { tab = 'vereadores'; viewPerfil(+h.slice(2)); titulo = V[+h.slice(2)]?.nome || 'Vereador'; }
+  if (/^v-\d+$/.test(h)) { tab = 'vereadores'; viewPerfil(+h.slice(2)); titulo = V[+h.slice(2)]?.nome || 'Parlamentar'; }
   else if (/^s-\d+$/.test(h)) { tab = 'votacoes'; viewSessao(+h.slice(2)); const s = Sid[+h.slice(2)]; titulo = s ? 'Sessão de ' + fmtData(s.d) : 'Sessão'; }
   else if (/^c-\d+$/.test(h)) { tab = 'comissoes'; viewComissao(+h.slice(2)); titulo = (D.COM[+h.slice(2)]||[])[1] || 'Comissão'; }
   else { const k = VIEWS[h] ? h : 'inicio'; VIEWS[k][0](); titulo = VIEWS[k][1]; tab = VIEWS[k][2]; }
