@@ -1149,7 +1149,7 @@ function passeioXereta(canvas){
   const Q = {}; for (const [nome, lista] of Object.entries(SPRITE.q)) Q[nome] = lista.map(txt => { const linhas = txt.split('|').map(l => l.replace(/(\d+)(\D)/g, (m, n, ch) => ch.repeat(+n))); const c = document.createElement('canvas'); c.width = SPRITE.W; c.height = SPRITE.H; const x = c.getContext('2d');
     linhas.forEach((l, y) => [...l].forEach((ch, xx) => { if (ch !== '.') { x.fillStyle = SPRITE.pal[ch]; x.fillRect(xx, y, 1, 1); } })); return c; });
   const px = (x, y, w = 1, h = 1) => ctx.fillRect(Math.round(x), Math.round(y), w, h);
-  const reduz = matchMedia('(prefers-reduced-motion: reduce)');
+  // anima sempre, mesmo com "menos movimento" pedido no sistema (escolha do Marcelo, 9/11/2026); para quando sai da tela
   const topo = CHAO - SPRITE.chao, SW = SPRITE.W;
   const suave = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   // linha do tempo de uma rodada (ms) e posições
@@ -1202,15 +1202,14 @@ function passeioXereta(canvas){
   }
   let inicio = performance.now(), visivel = true, ultimo = -1, rodando = false;
   function laco(agora){
-    if (!visivel || reduz.matches || !canvas.isConnected) { rodando = false; return; }
+    if (!visivel || !canvas.isConnected) { rodando = false; return; }
     const t = (agora - inicio) % CICLO, q = Math.floor((agora - inicio) / 60);
     if (q !== ultimo) { ultimo = q; cena(t); }
     requestAnimationFrame(laco);
   }
-  const comeca = () => { if (!rodando && !reduz.matches) { rodando = true; requestAnimationFrame(laco); } };
+  const comeca = () => { if (!rodando) { rodando = true; requestAnimationFrame(laco); } };
   const parado = () => { ctx.clearRect(0, 0, W, H); sombra(XF); ctx.drawImage(Q.alta[0], XF, topo); };
-  if (reduz.matches) parado(); else comeca();
-  reduz.addEventListener('change', () => { if (reduz.matches) parado(); else comeca(); });
+  comeca();
   new IntersectionObserver(es => es.forEach(e => { visivel = e.isIntersecting; if (visivel) comeca(); })).observe(canvas);
   return {tocar(){ inicio = performance.now(); ultimo = -1; comeca(); }};
 }
