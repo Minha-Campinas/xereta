@@ -20,10 +20,13 @@ jobs:
           python-version: '3.12'
       - run: pip install requests pillow
       - run: python coletar.py
+      - name: Refazer as legislaturas anteriores com o modelo atual
+        run: python coletar.py --refazer-legs
       - name: Salvar a página atualizada
         run: |
           git config user.name "robo-xereta"
           git config user.email "robo-xereta@users.noreply.github.com"
           git add index.html cache_materias.json
+          git add leg-*.html 2>/dev/null || true
           git diff --staged --quiet || git commit -m "Atualiza dados $(date +%F)"
           git push

@@ -32,7 +32,7 @@ jobs:
         run: |
           git config user.name "xereta-bot"
           git config user.email "xereta-bot@users.noreply.github.com"
-          git add "leg-${LEG}.html" cache_materias.json
+          git add "leg-${LEG}.html" "leg-${LEG}.json.gz" cache_materias.json
           git commit -m "Adiciona legislatura ${LEG}" || exit 0
           git pull --rebase
           git push
