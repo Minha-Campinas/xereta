@@ -6,8 +6,10 @@ Uso:
   python coletar.py                 coleta tudo na API e gera index.html
   python coletar.py --leg 18        coleta uma legislatura anterior e gera leg-18.html
   python coletar.py --bruto x.json  gera index.html a partir de uma coleta salva
+  python coletar.py --refazer-legs  refaz as páginas leg-N.html a partir das coletas salvas (leg-N.json.gz),
+                                    para as legislaturas anteriores seguirem o modelo.html atual sem coletar de novo
 """
-import base64, collections, csv, io, json, os, re, sys, time, unicodedata
+import base64, collections, csv, glob, gzip, io, json, os, re, sys, time, unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone, timedelta
 
@@ -596,15 +598,42 @@ def montar(R, saida='index.html'):
     return dados
 
 
+def ler_bruto(arq):
+    abre = gzip.open if arq.endswith('.gz') else open
+    with abre(arq, 'rt', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def refazer_legislaturas():
+    """Remonta cada leg-N.html com o modelo.html atual, usando a coleta guardada em leg-N.json.gz."""
+    for arq in sorted(glob.glob('leg-*.json.gz')):
+        R = ler_bruto(arq)
+        saida = arq[:-len('.json.gz')] + '.html'
+        d = montar(R, saida)
+        log(f'{saida} refeita com o modelo atual ({len(d["VT"])} votações)')
+
+
 if __name__ == '__main__':
+    if '--refazer-legs' in sys.argv:
+        refazer_legislaturas()
+        sys.exit(0)
     leg_num = int(sys.argv[sys.argv.index('--leg') + 1]) if '--leg' in sys.argv else None
     if '--bruto' in sys.argv:
-        R = json.load(open(sys.argv[sys.argv.index('--bruto') + 1], encoding='utf-8'))
+        R = ler_bruto(sys.argv[sys.argv.index('--bruto') + 1])
     else:
         R = coletar(leg_num)
         if not leg_num:
             R['emendas'] = coletar_emendas()
         json.dump(R, open('coleta.json', 'w', encoding='utf-8'), ensure_ascii=False)
+        if leg_num:
+            # guarda a coleta da legislatura anterior (compactada) para refazer a página quando o modelo mudar
+            # (o repositório é público: contatos só de quem teve mandato nessa legislatura, como já aparece no site)
+            com_mandato = {m['p'] for m in R['mandatos']}
+            for x in R['parlamentares']:
+                if x['id'] not in com_mandato:
+                    x['email'] = x['tel'] = None
+            with gzip.open(f"leg-{R['legislatura']['numero']}.json.gz", 'wt', encoding='utf-8') as f:
+                json.dump(R, f, ensure_ascii=False, separators=(',', ':'))
     saida = f"leg-{R['legislatura']['numero']}.html" if leg_num else 'index.html'
     d = montar(R, saida)
     if len(d['VT']) < 100 or len(d['V']) < 20:
