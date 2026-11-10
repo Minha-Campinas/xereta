@@ -876,7 +876,7 @@ tr.psel td{background:var(--accent-soft)}
 .botnav{display:none}
 @media (max-width:640px){
   .menubtn{display:none!important}
-  .botnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:3px solid var(--bd);padding:.25rem .15rem calc(.3rem + env(safe-area-inset-bottom,0px))}
+  .botnav{display:flex;position:fixed;left:0;right:0;bottom:var(--vb,0px);z-index:50;background:var(--surface);border-top:3px solid var(--bd);padding:.25rem .15rem calc(.3rem + env(safe-area-inset-bottom,0px))}
   .botnav a,.botnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;min-height:3.4rem;padding:.2rem 0;border:0;background:none;color:var(--muted);text-decoration:none;font:inherit;font-size:.7rem;font-weight:700;line-height:1.1;cursor:pointer;min-width:0;flex:1 1 0}
   .botnav a[data-view="vereadores"]{flex-grow:1.4}
   .botnav #botMais{flex-grow:.75}
@@ -888,8 +888,8 @@ tr.psel td{background:var(--accent-soft)}
   body{padding-bottom:calc(4.2rem + env(safe-area-inset-bottom,0px))}
   /* "Mais": as outras páginas sobem num painel acima da barra */
   nav.tabs a.nb{display:none!important}
-  header.top.aberto nav.tabs{position:fixed;left:0;right:0;bottom:calc(4.1rem + env(safe-area-inset-bottom,0px));top:auto;z-index:49;max-height:min(70vh,calc(100% - 6rem));overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-top:3px solid var(--bd);padding:.6rem 1.25rem .8rem;box-shadow:0 -6px 0 rgba(0,0,0,.08)}
-  @supports (height:100dvh){header.top.aberto nav.tabs{max-height:min(70dvh,calc(100dvh - 6rem))}}
+  header.top.aberto nav.tabs{position:fixed;left:0;right:0;bottom:calc(var(--vb,0px) + 4.1rem + env(safe-area-inset-bottom,0px));top:auto;z-index:49;max-height:min(70vh,calc(var(--vh,100vh) - 6rem));overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-top:3px solid var(--bd);padding:.6rem 1.25rem .8rem;box-shadow:0 -6px 0 rgba(0,0,0,.08)}
+  @supports (height:100dvh){header.top.aberto nav.tabs{max-height:min(70dvh,calc(var(--vh,100dvh) - 6rem))}}
 }
 </style>
 </head>
@@ -3206,6 +3206,24 @@ function rota(){
   document.querySelectorAll('nav.tabs a, #botnav a').forEach(a => { if (a.dataset.view === tab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   const bm = document.getElementById('botMais'); if (bm) bm.classList.toggle('ativo', !document.querySelector(`#botnav a[data-view="${tab}"]:not([hidden])`));
 }
+/* dentro do Wix (iframe mais alto que a tela): a barra de baixo acompanha o fim da parte visível.
+   Faixas invisíveis cobrem a página; o navegador avisa quais estão na tela, e daí sai onde a tela termina. */
+(() => {
+  if (window.top === window.self || !('IntersectionObserver' in window)) return;
+  const N = 24, faixas = [], vis = new Array(N).fill(null), raiz = document.documentElement;
+  const caixa = document.createElement('div'); caixa.setAttribute('aria-hidden', 'true');
+  caixa.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0;z-index:-1';
+  for (let i = 0; i < N; i++) { const f = document.createElement('div'); f.style.cssText = `position:absolute;left:0;width:1px;top:${100 * i / N}%;height:${100 / N}%`; caixa.appendChild(f); faixas.push(f); }
+  document.body.appendChild(caixa);
+  const aplica = () => {
+    let fim = null, ini = null;
+    vis.forEach(r => { if (r) { fim = fim === null ? r.bottom : Math.max(fim, r.bottom); ini = ini === null ? r.top : Math.min(ini, r.top); } });
+    const h = innerHeight, vb = fim === null ? 0 : Math.max(0, Math.round(h - fim)), vh = fim === null ? h : Math.round(fim - ini);
+    raiz.style.setProperty('--vb', vb + 'px'); raiz.style.setProperty('--vh', vh + 'px');
+  };
+  const io = new IntersectionObserver(es => { es.forEach(e => { vis[faixas.indexOf(e.target)] = e.isIntersecting && e.intersectionRect.height > 0 ? e.intersectionRect : null; }); aplica(); }, {threshold: Array.from({length: 21}, (_, i) => i / 20)});
+  faixas.forEach(f => io.observe(f));
+})();
 window.addEventListener('hashchange', () => { const ac = document.querySelector('.abox.cheio'); if (ac) telaCheia(ac, false); if (document.body.classList.contains('mapa-cheio')) { document.body.classList.remove('mapa-cheio'); soltaPagina(); } fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
 rota();
 })();
