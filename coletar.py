@@ -88,6 +88,14 @@ def coletar(leg_num=None):
                       for x in todos('/parlamentares/filiacao/')]
     R['mandatos'] = [dict(p=x['parlamentar'], leg=x['legislatura'], ini=x['data_inicio_mandato'], fim=x['data_fim_mandato'],
                           titular=x['titular']) for x in todos('/parlamentares/mandato/', f'legislatura={leg["id"]}')]
+    # histórico: todos os mandatos de todas as legislaturas, para contar quantos mandatos cada pessoa já teve na Câmara
+    num_leg = {l['id']: l['numero'] for l in legs}
+    R['legislaturas'] = [[l['numero'], l['data_inicio'][:4], l['data_fim'][:4]] for l in legs]
+    try:
+        R['historico'] = [[x['parlamentar'], num_leg.get(x['legislatura']), bool(x['titular'])] for x in todos('/parlamentares/mandato/')]
+    except Exception as e:
+        log(f'histórico de mandatos: não consegui buscar ({e})')
+        R['historico'] = []
 
     log('sessões')
     lista = get('/sessao/sessaoplenaria/')
@@ -719,7 +727,8 @@ def ler_orcamento():
     return dict(anos={str(a): v for a, v in sorted(anos.items())}, ipca={str(a): v for a, v in ipca.items()}, pop={str(a): v for a, v in pop.items()})
 
 # ---------------------------------------------------------------- eleição: votos por local de votação
-# Pasta "eleicao": votos-AAAA.csv (colunas Endereco, Local e uma coluna por pessoa eleita, com o nome civil)
+# Pasta "eleicao": votos-AAAA.csv (colunas Endereco, Local e uma coluna por candidato, com o nome do TSE; tirado do arquivo
+# votacao_secao do TSE, somando as seções de cada local; sem votos de legenda, brancos e nulos)
 # e locais-AAAA.csv (coordenadas de cada local: local_tse, endereco_tse, nome, endereco, lat, lon, aproximada).
 PASTA_ELE = 'eleicao'
 
@@ -754,23 +763,37 @@ def ler_eleicao(V):
             sem.append(r[iL])
         for i in cols:
             votos[i].append(int(float(r[i] or 0)))
-    # liga o nome civil do arquivo à página do parlamentar (nome completo no SAPL)
+    # liga o nome do candidato no arquivo do TSE à página de quem esteve na Câmara nesta legislatura (nome completo no SAPL):
+    # nome igual (sem acento); senão, todas as palavras do nome do SAPL dentro do nome do TSE; senão, nome parecido
     import difflib
-    por_nome = {_chave_ele(v.get('completo') or v['nome']): v['id'] for v in V}
-    C = []
-    for i in cols:
-        k = _chave_ele(cab[i])
-        pid = por_nome.get(k)
-        if not pid:
-            prox = difflib.get_close_matches(k, list(por_nome), n=1, cutoff=0.88)
-            pid = por_nome[prox[0]] if prox else 0
-            log(f'Eleição {ano}: "{cab[i]}" ' + (f'ligado a "{prox[0]}" por semelhança' if prox else 'sem página no Xereta'))
-        C.append([cab[i], pid, votos[i]])
+    tot = {i: sum(votos[i]) for i in cols}
+    ordem = sorted(cols, key=lambda i: -tot[i])
+    pos = {i: ordem.index(i) + 1 for i in cols}             # posição em votos entre todos os candidatos da cidade
+    nomes_tse = {_chave_ele(cab[i]): i for i in cols}
+    C, sem_voto = [], []
+    for v in V:   # todas as pessoas desta legislatura: com mandato ou com voto registrado, mesmo que por um dia
+        k = _chave_ele(v.get('completo') or v['nome'])
+        i = nomes_tse.get(k)
+        if i is None:
+            pal = set(k.split())
+            cand = [j for kk, j in nomes_tse.items() if pal <= set(kk.split())]
+            if len(cand) == 1:
+                i = cand[0]
+            else:
+                prox = difflib.get_close_matches(k, list(nomes_tse), n=1, cutoff=0.88)
+                i = nomes_tse[prox[0]] if prox else None
+            if i is not None:
+                log(f'Eleição {ano}: "{v["nome"]}" ({v.get("completo")}) ligado a "{cab[i]}" no arquivo do TSE')
+        if i is None:
+            sem_voto.append(v['nome']); continue
+        C.append([cab[i], v['id'], votos[i], pos[i]])
     C.sort(key=lambda c: -sum(c[2]))
+    if sem_voto:
+        log(f'Eleição {ano}: não foram candidatos (sem votos no arquivo do TSE): ' + ', '.join(sem_voto))
     if sem:
         log(f'Eleição {ano}: {len(sem)} locais sem coordenada (entram nos rankings, fora do mapa): ' + ', '.join(sem))
-    log(f'Eleição {ano}: {len(C)} pessoas eleitas, {len(L)} locais, {sum(sum(c[2]) for c in C)} votos')
-    return dict(ano=ano, L=L, C=C)
+    log(f'Eleição {ano}: {len(C)} pessoas desta legislatura com votos em {ano}, {len(L)} locais, {len(cols)} candidatos no arquivo')
+    return dict(ano=ano, L=L, C=C, n=len(cols))
 
 
 def montar(R, saida='index.html'):
@@ -804,6 +827,12 @@ def montar(R, saida='index.html'):
     cargos = {int(k): v for k, v in R['cargos'].items()}
 
     pessoas = set(mand) | {p for d in votos_por.values() for p in d}
+    # mandatos em todas as legislaturas até esta: {pessoa: {número da legislatura: titular em algum momento}}
+    hist = collections.defaultdict(dict)
+    num_atual = leg.get('numero') or 999
+    for p_, n_, tit in R.get('historico') or []:
+        if n_ and n_ <= num_atual:
+            hist[p_][n_] = hist[p_].get(n_, False) or tit
     V = []
     for pid in pessoas:
         p = parl.get(pid)
@@ -827,7 +856,8 @@ def montar(R, saida='index.html'):
         V.append(dict(id=pid, nome=p['nome'], completo=p['completo'], ativo=ativo, partido=partido(pid),
                       email=p['email'], tel=p['tel'], prof=p['prof'],
                       mand=[m['ini'], m['fim'], bool(m['titular'])] if m else None,
-                      votos=dict(cnt), alin=alin, com=com))
+                      votos=dict(cnt), alin=alin, com=com,
+                      legs=[[n_, t_] for n_, t_ in sorted(hist.get(pid, {}).items())] or None))
     V.sort(key=lambda x: x['nome'])
 
     VT = []
@@ -877,6 +907,8 @@ def montar(R, saida='index.html'):
         TFIM={str(k): v for k, v in R['tipos_fim'].items()},
     )
     dados['AREAS_P'] = nomes_areas
+    if R.get('legislaturas'):
+        dados['LEGS'] = {str(n): [int(i), int(f)] for n, i, f in R['legislaturas']}
     if PROJ:
         dados['PROJ'] = PROJ
     if atual:
