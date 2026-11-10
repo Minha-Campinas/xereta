@@ -469,7 +469,7 @@ footer{border-top:3px solid var(--bd)}
 .opilha i{display:block;min-height:0;border-top:1px solid rgba(0,0,0,.35)}
 .opilha i:first-child{border-top:0}
 .ocol .oano{text-align:center;font-weight:700;font-size:.85rem;padding:.3rem 0;color:var(--muted)}
-.ocol.sel .oano{color:var(--accent-ink);background:var(--accent)}
+.ocol.sel .oano{color:var(--ink)}
 .ocol.sel .opilha{box-shadow:3px 0 0 var(--sh)}
 .ocol:not(.sel) .opilhas{opacity:.78}
 .ocol:hover .opilhas{opacity:1}
@@ -872,24 +872,31 @@ tr.psel td{background:var(--accent-soft)}
   header.top.aberto nav.tabs{max-height:calc(100vh - 4.6rem);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:1.2rem}
   @supports (height:100dvh){header.top.aberto nav.tabs{max-height:calc(100dvh - 4.6rem)}}
 }
+/* ano escolhido no gráfico Arrecadado e gasto: triângulo branco com borda, balançando de leve */
+.ocols{padding-top:1.9rem}
+.opilhas{position:relative}
+.oseta{position:absolute;left:50%;width:20px;height:15px;margin-left:-10px;pointer-events:none;animation:oseta 1.1s ease-in-out infinite alternate!important}
+.oseta svg{display:block;width:100%;height:100%;overflow:visible}
+.oseta path{fill:#fff;stroke:#1d1815;stroke-width:2.6;stroke-linejoin:round}
+@keyframes oseta{from{transform:translateY(0)}to{transform:translateY(-5px)}}
 /* celular: barra de navegação embaixo (Início, Votações, Parlamentares, Emendas e Mais) */
 .botnav{display:none}
 @media (max-width:640px){
   .menubtn{display:none!important}
-  .botnav{display:flex;position:fixed;left:0;right:0;bottom:var(--vb,0px);z-index:50;background:var(--surface);border-top:3px solid var(--bd);padding:.25rem .15rem calc(.3rem + env(safe-area-inset-bottom,0px))}
-  .botnav a,.botnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;min-height:3.4rem;padding:.2rem 0;border:0;background:none;color:var(--muted);text-decoration:none;font:inherit;font-size:.7rem;font-weight:700;line-height:1.1;cursor:pointer;min-width:0;flex:1 1 0}
+  .botnav{display:flex;position:fixed;left:0;right:0;bottom:var(--vb,0px);z-index:50;background:var(--surface);border-top:3px solid var(--bd);padding:4px 2px calc(5px + env(safe-area-inset-bottom,0px))}
+  .botnav a,.botnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:54px;padding:3px 0;border:0;background:none;color:var(--muted);text-decoration:none;font:inherit;font-size:11px;font-weight:700;line-height:1.1;cursor:pointer;min-width:0;flex:1 1 0}
   .botnav a[data-view="vereadores"]{flex-grow:1.4}
   .botnav #botMais{flex-grow:.75}
   .botnav a[hidden]{display:none}
   .botnav span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .botnav svg{width:1.55rem;height:1.55rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .botnav svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .botnav #botMais svg{fill:currentColor;stroke:none}
   .botnav a[aria-current="page"],.botnav button.ativo,.botnav button[aria-expanded="true"]{color:var(--accent)}
-  body{padding-bottom:calc(4.2rem + env(safe-area-inset-bottom,0px))}
+  body{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
   /* "Mais": as outras páginas sobem num painel acima da barra */
   nav.tabs a.nb{display:none!important}
-  header.top.aberto nav.tabs{position:fixed;left:0;right:0;bottom:calc(var(--vb,0px) + 4.1rem + env(safe-area-inset-bottom,0px));top:auto;z-index:49;max-height:min(70vh,calc(var(--vh,100vh) - 6rem));overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-top:3px solid var(--bd);padding:.6rem 1.25rem .8rem;box-shadow:0 -6px 0 rgba(0,0,0,.08)}
-  @supports (height:100dvh){header.top.aberto nav.tabs{max-height:min(70dvh,calc(var(--vh,100dvh) - 6rem))}}
+  header.top.aberto nav.tabs{position:fixed;left:0;right:0;bottom:calc(var(--vb,0px) + 66px + env(safe-area-inset-bottom,0px));top:auto;z-index:49;max-height:min(70vh,calc(var(--vh,100vh) - 100px));overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-top:3px solid var(--bd);padding:.6rem 1.25rem .8rem;box-shadow:0 -6px 0 rgba(0,0,0,.08)}
+  @supports (height:100dvh){header.top.aberto nav.tabs{max-height:min(70dvh,calc(var(--vh,100dvh) - 100px))}}
 }
 </style>
 </head>
@@ -2853,7 +2860,7 @@ function viewOrcamento(){
       const leg = s => `<strong>${s.a}</strong> · Arrecadado ${orcFmt(s.r)} · Gasto ${orcFmt(s.g)} · Diferença ${orcFmt(s.r - s.g)}`;
       el.innerHTML = `<p class="oleitura" id="oleit" aria-live="polite">${leg(S.find(s => s.a === FO.ano) || S[S.length - 1])}</p>
         <div class="ocols" role="group" aria-label="Arrecadado e gasto por ano">${S.map(s => `<button type="button" class="ocol${s.a === FO.ano ? ' sel' : ''}" data-a="${s.a}" aria-pressed="${s.a === FO.ano}" aria-label="${s.a}: arrecadado ${orcFmt(s.r)}, gasto ${orcFmt(s.g)}">
-          <span class="opilhas"><span class="opilha" style="height:${100 * s.r / max}%;background:#7a4eb6"></span><span class="opilha" style="height:${100 * s.g / max}%;background:#f4a50c"></span></span>
+          <span class="opilhas">${s.a === FO.ano ? `<span class="oseta" style="bottom:calc(${100 * Math.max(s.r, s.g) / max}% + 5px)" aria-hidden="true"><svg viewBox="0 0 22 16"><path d="M2.5 2.5h17L11 13.5z"/></svg></span>` : ''}<span class="opilha" style="height:${100 * s.r / max}%;background:#7a4eb6"></span><span class="opilha" style="height:${100 * s.g / max}%;background:#f4a50c"></span></span>
           <span class="oano">${String(s.a).slice(2)}<span class="sr">${s.a}</span></span></button>`).join('')}</div>
         ${legendaCores([['Arrecadado', '#7a4eb6'], ['Gasto', '#f4a50c']])}`;
       const leit = el.querySelector('#oleit');
