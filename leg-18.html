@@ -2941,7 +2941,7 @@ const ECAND = ELE ? ELE.C.map((c, j) => ({j, civil:c[0], id:c[1], v:c[2], tot:c[
 const ECid = {}; ECAND.forEach(c => { if (c.id) ECid[c.id] = c; });
 const enome = c => c.id && V[c.id] ? V[c.id].nome : c.civil;
 const epart = c => c.id && V[c.id] ? (V[c.id].partido || '') : '';
-const FEL = {modo:'um', vis:'calor', a:ECAND[0] ? ECAND[0].j : 0, b:ECAND[1] ? ECAND[1].j : 0, lim:30};
+const FEL = {modo:'um', vis:'calor', a:ECAND[0] ? ECAND[0].j : 0, b:ECAND[1] ? ECAND[1].j : 0, lim:30, limV:0};
 const ECOR = ['#7a4eb6', '#f4a50c'];
 const EHEAT = {0.2:'#2b83ba', 0.4:'#abdda4', 0.6:'#ffffbf', 0.8:'#fdae61', 1.0:'#d7191c'};
 const EHEATCSS = 'linear-gradient(90deg,#2b83ba,#abdda4,#ffffbf,#fdae61,#d7191c)';
@@ -2971,7 +2971,7 @@ function escalaVotos(listas){
   if (!v.length) return () => 0;
   const q = p => v[Math.min(v.length - 1, Math.max(0, Math.round(p * (v.length - 1))))];
   const lo = q(0.02); let hi = q(0.98); if (hi <= lo) hi = v[v.length - 1]; hi = Math.max(hi, 10);
-  return x => hi <= lo ? (x > 0 ? 1 : 0) : Math.max(0, Math.min(1, (x - lo) / (hi - lo)));
+  const f = x => hi <= lo ? (x > 0 ? 1 : 0) : Math.max(0, Math.min(1, (x - lo) / (hi - lo))); f.hi = hi; return f;
 }
 function escalaDif(a, b){
   const v = ELOCm.map(r => Math.abs(a.v[r.i] - b.v[r.i])).sort((x, y) => x - y);
@@ -2994,9 +2994,9 @@ function circulo(r, cor, n, rmax, pop, dica){
   m.bindTooltip(dica); m.bindPopup(pop, {maxWidth:280}); return m;
 }
 /* desenha os votos de uma pessoa num mapa (calor ou pontos) */
-function camadaVotos(c, norm, cor, vis){
+function camadaVotos(c, norm, cor, vis, lim){
   const LF = window.L;
-  const com = ELOCm.filter(r => c.v[r.i] > 0);   // local sem voto não entra (senão o calor deixa uma mancha fraca)
+  const com = ELOCm.filter(r => c.v[r.i] > 0 && c.v[r.i] >= (lim || 0));   // local sem voto não entra (senão o calor deixa uma mancha fraca)
   if (vis === 'calor') return camadaCalor(com.map(r => [r.la, r.lo, 0.15 + 0.85 * norm(c.v[r.i])]));
   const g = LF.layerGroup();
   com.sort((a, b) => c.v[b.i] - c.v[a.i]).forEach(r => g.addLayer(circulo(r, cor, norm(c.v[r.i]), 21, popLocal(r, `${esc(enome(c))}: <b>${num(c.v[r.i])}</b> ${c.v[r.i] === 1 ? 'voto' : 'votos'}`), `${r.n}: ${num(c.v[r.i])}`)));
@@ -3025,13 +3025,13 @@ function viewEleicao(){
   <div class="eleg" id="eleg"></div>
   <div id="erank"></div>
   ${comoFunciona(`<p>Os números são os votos de cada pessoa eleita em ${ELE.ano}, somados por local de votação, como no arquivo de resultados do TSE (Tribunal Superior Eleitoral). Só entram as ${ECAND.length} pessoas eleitas. Votos de legenda, brancos, nulos e de quem não se elegeu não fazem parte destes dados. Por isso, quem assumiu depois como suplente não aparece.</p>
-  <p>O <strong>mapa de calor</strong> mostra onde os votos se concentram. Em <strong>pontos</strong>, cada círculo é um local de votação: quanto maior, mais votos. Locais sem nenhum voto ficam de fora. Para um local muito fora da curva não esconder o resto, a escala ignora os 2% de valores mais altos e mais baixos e nunca considera concentrado quem teve menos de 10 votos num local.</p>
+  <p>O <strong>mapa de calor</strong> mostra onde os votos se concentram. Em <strong>pontos</strong>, cada círculo é um local de votação: quanto maior, mais votos. Locais sem nenhum voto ficam de fora. Em Filtros, a barra <strong>Esconder</strong> tira do mapa os locais com poucos votos (ou, na Diferença, com diferença pequena). O limite em votos acompanha a escala de quem está selecionado, e os rankings continuam com todos os locais. Para um local muito fora da curva não esconder o resto, a escala ignora os 2% de valores mais altos e mais baixos e nunca considera concentrado quem teve menos de 10 votos num local.</p>
   <p>Em <strong>Comparar dois</strong>, os dois mapas usam a mesma escala e se movem juntos: um círculo do mesmo tamanho é a mesma quantidade de votos nos dois lados. Em <strong>Diferença</strong>, cada local mostra quem teve mais votos ali e por quanto. Em <strong>Mais votado</strong>, cada local tem a cor de quem teve mais votos ali, entre as pessoas eleitas.</p>
   <p>A posição de cada local vem do endereço informado pelo TSE. Círculos tracejados têm localização aproximada. ${nSem ? `${nSem} ${nSem === 1 ? 'local não tem' : 'locais não têm'} coordenada: ficam fora do mapa, mas entram nos totais e nos rankings, com a marca "fora do mapa".` : ''} Os nomes dos locais vêm do TSE, com os pontos das abreviações restaurados (o arquivo troca ponto por vírgula, como em "E,E," para "EE").</p>`)}`;
   ligarToggle();
   ligarChips('.emodos', k => { FEL.modo = k; montaSelE(); desenhaE(true); });
   ligarChips('#evis', k => { FEL.vis = k; desenhaE(); });
-  document.getElementById('elim').addEventListener('input', e => { FEL.lim = +e.target.value; desenhaE(); });
+  document.getElementById('elim').addEventListener('input', e => { if (FEL.modo === 'dif') FEL.lim = +e.target.value; else FEL.limV = +e.target.value; desenhaE(); });
   const area = document.getElementById('earea'); EM.area = area;
   area.querySelector('.acheio-b').addEventListener('click', () => telaCheia(area, !area.classList.contains('cheio')));
   area.addEventListener('redesenha', () => {
@@ -3062,7 +3062,8 @@ function montaSelE(){
   if (b) b.addEventListener('change', () => { FEL.b = +b.value; desenhaE(); });
   document.getElementById('evis').hidden = FEL.modo === 'mais';
   const ft = app.querySelector('[data-ft="efil"]'), fl = document.getElementById('efil'); ft.style.display = FEL.modo === 'mais' ? 'none' : ''; if (FEL.modo === 'mais') fl.classList.add('closed'), ft.setAttribute('aria-expanded', 'false');
-  document.getElementById('elimw').hidden = FEL.modo !== 'dif';
+  document.getElementById('elimw').hidden = FEL.modo === 'mais';
+  document.getElementById('elim').value = FEL.modo === 'dif' ? FEL.lim : FEL.limV;
 }
 function desenhaE(reenquadra){
   const A = ECAND[FEL.a], B = ECAND[FEL.b], dois = FEL.modo === 'dois';
@@ -3088,8 +3089,12 @@ function desenhaE(reenquadra){
   if (FEL.modo === 'um' || dois) {
     const lista = dois ? [A, B] : [A];
     const norm = escalaVotos(lista);
-    if (pode) lista.forEach((c, k) => { EM.camadas[k] = camadaVotos(c, norm, ECOR[k], FEL.vis).addTo(EM.mapas[k]); });
-    res.innerHTML = lista.map(c => resumoDe(c) + linkP(c)).join('<br>');
+    // "Esconder": locais com poucos votos (limite proporcional à escala, como na Diferença)
+    const lim = FEL.limV ? Math.max(1, Math.round(norm.hi * FEL.limV / 100)) : 0;
+    document.getElementById('elimt').textContent = lim ? `locais com menos de ${num(lim)} ${lim === 1 ? 'voto' : 'votos'}` : 'nada (mostrar todos os locais com voto)';
+    if (pode) lista.forEach((c, k) => { EM.camadas[k] = camadaVotos(c, norm, ECOR[k], FEL.vis, lim).addTo(EM.mapas[k]); });
+    const escondidos = c => ELOCm.filter(r => c.v[r.i] > 0 && c.v[r.i] < lim).length;
+    res.innerHTML = lista.map(c => resumoDe(c) + (lim ? `. No mapa: ${num(ELOCm.filter(r => c.v[r.i] >= lim).length)} locais (${num(escondidos(c))} escondidos)` : '') + linkP(c)).join('<br>');
     leg.innerHTML = (FEL.vis === 'calor' ? legCalor : legPontos(dois ? ECOR : [ECOR[0]])) + (dois ? '<span class="note">Os dois mapas usam a mesma escala e se movem juntos.</span>' : '');
     rk.innerHTML = `<div class="${dois ? 'cols2' : ''}">${lista.map(c => ranking(c, `Os 10 locais com mais votos de ${esc(enome(c))}`)).join('')}</div>`;
   } else if (FEL.modo === 'dif') {
