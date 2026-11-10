@@ -718,6 +718,61 @@ def ler_orcamento():
     log(f'Orçamento: {len(anos)} anos ({min(anos)} a {max(anos)})')
     return dict(anos={str(a): v for a, v in sorted(anos.items())}, ipca={str(a): v for a, v in ipca.items()}, pop={str(a): v for a, v in pop.items()})
 
+# ---------------------------------------------------------------- eleição: votos por local de votação
+# Pasta "eleicao": votos-AAAA.csv (colunas Endereco, Local e uma coluna por pessoa eleita, com o nome civil)
+# e locais-AAAA.csv (coordenadas de cada local: local_tse, endereco_tse, nome, endereco, lat, lon, aproximada).
+PASTA_ELE = 'eleicao'
+
+def _chave_ele(s):
+    s = unicodedata.normalize('NFD', s or '').encode('ascii', 'ignore').decode().upper()
+    return re.sub(r'\s+', ' ', s).strip()
+
+def ler_eleicao(V):
+    arqs = sorted(glob.glob(os.path.join(PASTA_ELE, 'votos-*.csv')))
+    if not arqs:
+        return None
+    arq = arqs[-1]
+    ano = int(re.search(r'(\d{4})', os.path.basename(arq)).group(1))
+    loc = {}
+    arq_loc = os.path.join(PASTA_ELE, f'locais-{ano}.csv')
+    if os.path.exists(arq_loc):
+        with open(arq_loc, encoding='utf-8-sig', newline='') as f:
+            for r in csv.DictReader(f):
+                loc[(_chave_ele(r['local_tse']), _chave_ele(r['endereco_tse']))] = r
+    with open(arq, encoding='utf-8-sig', newline='') as f:
+        linhas_csv = [r for r in csv.reader(f) if any(c.strip() for c in r)]
+    cab = linhas_csv[0]
+    iL, iE = cab.index('Local'), cab.index('Endereco')
+    cols = [i for i in range(len(cab)) if i not in (iL, iE)]
+    L, votos, sem = [], {i: [] for i in cols}, []
+    for r in linhas_csv[1:]:
+        c = loc.get((_chave_ele(r[iL]), _chave_ele(r[iE])))
+        if c and c.get('lat'):
+            L.append([c['nome'], c['endereco'], round(float(c['lat']), 6), round(float(c['lon']), 6), 1 if c.get('aproximada') == 'sim' else 0])
+        else:
+            L.append([(c or {}).get('nome') or r[iL], (c or {}).get('endereco') or r[iE], None, None, 0])
+            sem.append(r[iL])
+        for i in cols:
+            votos[i].append(int(float(r[i] or 0)))
+    # liga o nome civil do arquivo à página do parlamentar (nome completo no SAPL)
+    import difflib
+    por_nome = {_chave_ele(v.get('completo') or v['nome']): v['id'] for v in V}
+    C = []
+    for i in cols:
+        k = _chave_ele(cab[i])
+        pid = por_nome.get(k)
+        if not pid:
+            prox = difflib.get_close_matches(k, list(por_nome), n=1, cutoff=0.88)
+            pid = por_nome[prox[0]] if prox else 0
+            log(f'Eleição {ano}: "{cab[i]}" ' + (f'ligado a "{prox[0]}" por semelhança' if prox else 'sem página no Xereta'))
+        C.append([cab[i], pid, votos[i]])
+    C.sort(key=lambda c: -sum(c[2]))
+    if sem:
+        log(f'Eleição {ano}: {len(sem)} locais sem coordenada (entram nos rankings, fora do mapa): ' + ', '.join(sem))
+    log(f'Eleição {ano}: {len(C)} pessoas eleitas, {len(L)} locais, {sum(sum(c[2]) for c in C)} votos')
+    return dict(ano=ano, L=L, C=C)
+
+
 def montar(R, saida='index.html'):
     hoje = R.get('hoje') or HOJE
     leg = R.get('legislatura') or {}
@@ -828,6 +883,13 @@ def montar(R, saida='index.html'):
         orc = ler_orcamento()
         if orc:
             dados['ORC'] = orc
+    if atual:
+        try:
+            ele = ler_eleicao(V)
+            if ele:
+                dados['ELE'] = ele
+        except Exception as e:
+            log(f'Eleição: não consegui ler a pasta {PASTA_ELE} ({e})')
     if atual and R.get('emendas'):
         dados['EME'] = R['emendas']
         nomes = {chave_nome(v['nome']) for v in V}

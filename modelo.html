@@ -820,6 +820,53 @@ tr.psel td{background:var(--accent-soft)}
   .vermais{display:inline-block;justify-self:start;background:none;border:0;padding:.2rem 0;margin:0;font:inherit;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:underline;text-underline-offset:.18em;cursor:pointer;min-height:2rem}
 }
 @media (max-width:640px) and (prefers-reduced-motion: reduce){header.top{transition:none}}
+/* mapa de votos (Leaflet) */
+.emodos{margin:1rem 0 .6rem}
+.esel{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;margin:.2rem 0 .6rem}
+.eselc{display:flex;align-items:center;gap:.45rem;min-width:0;max-width:100%}
+.eselc .flabel{margin:0;white-space:nowrap}
+.eselc select{min-width:0;max-width:100%;flex:1 1 auto}
+.eselc .edot{margin-right:0}
+.edot{display:inline-block;width:.9rem;height:.9rem;border-radius:50%;flex:none;border:1px solid var(--ink);vertical-align:-.1rem;margin-right:.35rem}
+#elimw input[type=range]{flex:1 1 10rem;max-width:18rem;accent-color:var(--accent)}
+.emapas{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;background:var(--line)}
+.emapas.lado{grid-template-columns:repeat(2,minmax(0,1fr))}
+.emap{height:66vh;min-height:380px;background:#e8e4dc;position:relative;z-index:0}
+.emap[hidden]{display:none}
+.emap.emini{height:340px;min-height:0}
+.abox.cheio .emap{height:calc(100vh - 3.4rem);min-height:0}
+.ecarr{position:absolute;left:1rem;top:1rem;margin:0;z-index:1}
+.emapas .ecarr{position:static;padding:1rem;background:var(--surface)}
+.eleg{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;align-items:center;margin:.6rem 0 0;font-size:.9rem}
+.elegc{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.45rem}
+.elegc>i{display:inline-block;width:9rem;max-width:40vw;height:.8rem;border:1px solid var(--line)}
+.ecores span{display:inline-flex;align-items:center;gap:.3rem;margin-right:.6rem}
+.ecores i{display:inline-block;width:.8rem;height:.8rem;border-radius:50%}
+#erank{margin-top:1rem}
+#erank>.cols2,#erank>div{display:grid;gap:1rem}
+.erk h2{font-size:1.15rem;margin-top:0}
+.elist{margin:.3rem 0 0;padding:0;list-style:none;counter-reset:el}
+.elist li{display:grid;grid-template-columns:1.7rem minmax(0,1fr) auto;gap:.5rem;align-items:baseline;padding:.35rem 0;border-bottom:1px solid var(--line)}
+.elist li::before{counter-increment:el;content:counter(el) ".";color:var(--muted);text-align:right}
+.elist li>span{overflow-wrap:anywhere}
+.elist li>b{font-variant-numeric:tabular-nums}
+.eh3{margin:0 0 .3rem;font-size:1rem}
+.eperf{align-items:start}
+.epop strong{display:block;font-size:.95rem;line-height:1.25}
+.epop .note{display:block;font-size:.8rem}
+.epop p{margin:.35rem 0 0}
+.epop ol{margin:.1rem 0 0;padding-left:1.2rem}
+.leaflet-container{font-family:var(--body)}
+.leaflet-popup-content{max-height:320px;overflow:auto;color:#2a231f}
+@media (max-width:640px){
+  .emapas.lado{grid-template-columns:minmax(0,1fr)}
+  .emapas.lado .emap{height:44vh;min-height:260px}
+  .emap{height:60vh;min-height:340px}
+  .emap.emini{height:300px}
+  .abox.cheio .emapas.lado .emap{height:calc(50vh - 1.8rem)}
+  .eselc{flex-wrap:wrap}
+  .eselc select{flex-basis:100%}
+}
 </style>
 </head>
 <body>
@@ -845,6 +892,7 @@ tr.psel td{background:var(--accent-soft)}
       <a href="#presenca" data-view="presenca">Presença</a>
       <a href="#comissoes" data-view="comissoes">Comissões</a>
       <a href="#vereadores" data-view="vereadores">Parlamentares</a>
+      <a href="#eleicao" data-view="eleicao" id="tabEle" hidden>Votos de 2024</a>
       <a href="#sobre" data-view="sobre">Sobre os dados</a>
     </nav>
   </div>
@@ -2175,11 +2223,13 @@ function viewPerfil(id){
   ${secEmendas(v)}
   </div>
   ${secProjetos(v)}
+  ${secEleicao(v)}
   <section class="section" aria-labelledby="h-com"><h2 id="h-com">Comissões</h2>
   ${coms.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Comissão</th><th scope="col">Função</th></tr></thead><tbody>${coms.map(c => `<tr><td><a href="#c-${c.cid}">${esc(c.nome)}</a> <span class="note">${esc(c.sig)}</span></td><td>${cargoTxt(c.cargo, c.tit)}</td></tr>`).join('')}</tbody></table></div>` : `<p class="note">Nenhuma participação ativa em comissão registrada.</p>`}
   ${relv.length ? `<p class="note" style="margin-top:.8rem">Recebeu a relatoria de ${relv.length} ${relv.length===1?'projeto':'projetos'} em comissões ${PERIODO_TXT}.</p>` : ''}
   </section>
   ${comoFunciona('<p>A presença conta só sessões com lista registrada, dentro do período de mandato. Licenças e afastamentos ainda não são descontados.</p><p>“Votações nominais” são as que registram o voto de cada parlamentar. A maioria das votações da Câmara é simbólica e não entra aqui.</p>')}`;
+  ligarSecEleicao(v);
   const filtrosVotos = () => `${btnFiltros('vfil')}<div class="filters${fechadoCel()}" id="vfil">${campoBusca('vqs', FPV.q)}${blocoPeriodo('vper', FPV)}
       <div class="frow" id="vaut"><span class="flabel">Autoria</span>${chips('Autoria', [['todas','Todas'],['minha','Só de sua autoria']], FPV.aut)}</div>
       <div class="frow" id="vvoto"><span class="flabel">Voto</span>${chips('Voto', [['todos','Todos'],['S','Sim'],['N','Não'],['A','Abstenção'],['F','Ausente']], FPV.voto)}</div>
@@ -2465,6 +2515,9 @@ function viewSobre(){
   <p>A página Orçamento usa o Relatório Resumido da Execução Orçamentária (RREO), que toda prefeitura é obrigada a publicar a cada dois meses pela Lei de Responsabilidade Fiscal. O Xereta usa o relatório do 6º bimestre de cada ano, de ${ORC_ANOS[0]} a ${ORC_ANOS[ORC_ANOS.length - 1]}, que fecha o ano. Os arquivos são os que a Prefeitura de Campinas entregou ao <a href="https://siconfi.tesouro.gov.br" target="_blank" rel="noopener">Siconfi</a>, o Sistema de Informações Contábeis e Fiscais do Setor Público Brasileiro, mantido pelo Tesouro Nacional.</p>
   <p>Do relatório saem três tabelas: o balanço orçamentário (receitas por origem e despesas por tipo, com o previsto e o executado), as despesas por função e subfunção (as áreas, como Saúde e Educação) e o demonstrativo da receita corrente líquida, que separa os impostos, como IPTU, ISS e ICMS. Os valores e os nomes das linhas são os do relatório. Ficam de fora as receitas e despesas intra-orçamentárias, que são dinheiro passando de um órgão da Prefeitura para outro.</p>
   <p>A correção pela inflação usa o IPCA do IBGE, e o valor por habitante usa a população estimada pelo IBGE para cada ano. O relatório não separa as despesas por secretaria nem mostra, dentro de cada área, quanto foi salário e quanto foi o resto. Veja os detalhes em “Como funciona”, no fim da página Orçamento.</p>` : ''}
+  ${ELE && LEG.atual !== false ? `<h2>De onde vêm os votos da eleição</h2>
+  <p>A página Votos de ${ELE.ano} mostra os votos das ${ECAND.length} pessoas eleitas para a Câmara em ${ELE.ano}, somados por local de votação, a partir dos resultados do <a href="https://dadosabertos.tse.jus.br" target="_blank" rel="noopener">TSE</a> (Tribunal Superior Eleitoral). Os números são os do arquivo. Votos de legenda, brancos, nulos e de quem não se elegeu não fazem parte destes dados. Cada pessoa eleita é ligada à sua página no Xereta pelo nome completo.</p>
+  <p>A posição de cada local no mapa vem do endereço informado pelo TSE, buscado no <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a>. Quando só foi possível achar a rua, o local aparece com localização aproximada.</p>` : ''}
     <h2>Como funciona a afinidade de votação</h2>
   <p>A página Afinidade compara como cada parlamentar votou nas votações nominais, as únicas que registram o voto de cada pessoa. Entram só as votações com divisão de verdade: pelo menos ${AF_MIN_SN} votos Sim ou Não e pelo menos ${AF_MIN_MINOR} votos do lado que perdeu. Votações unânimes não ajudam a diferenciar ninguém.</p>
   <p>Para cada dupla, a afinidade é a porcentagem dessas votações em que as duas pessoas votaram igual, as duas Sim ou as duas Não. Duplas com menos de ${AF_MIN_PAR} votações em comum não são comparadas. O mapa posiciona perto quem tem afinidade alta e longe quem tem afinidade baixa. Os lados e as direções do mapa não têm significado próprio; só importam as distâncias.</p>
@@ -2478,6 +2531,7 @@ ${PROJ.length ? `  <h2>Como os projetos são separados por área</h2>
   <ul>
     <li><strong>Ementas dos projetos:</strong> no sistema da Câmara elas estão gravadas em letras MAIÚSCULAS. Aqui aparecem com letras normais, mantendo em maiúsculas as siglas, os números romanos e os nomes próprios.</li>
     ${EME ? '<li><strong>Órgãos das emendas:</strong> na planilha da Prefeitura, o mesmo órgão às vezes aparece escrito de jeitos diferentes ou todo em maiúsculas. O Xereta junta essas grafias num nome só, escrito com letras normais.</li><li><strong>Fornecedores das emendas:</strong> quando o fornecedor é pessoa física, o número de CPF que aparece junto do nome é retirado.</li>' : ''}
+    ${ELE && LEG.atual !== false ? '<li><strong>Locais de votação:</strong> o arquivo do TSE troca o ponto das abreviações por vírgula, como em “E,E, PROF,”. O Xereta devolve o ponto: “EE PROF.”.</li>' : ''}
     ${D.ORC ? '<li><strong>Orçamento:</strong> os nomes das áreas e das receitas aparecem como no relatório. Onde o Xereta usa um nome mais simples, o nome do relatório aparece embaixo.</li>' : ''}
   </ul>
   <h2>Votações e presença: como ler</h2>
@@ -2497,6 +2551,7 @@ ${PROJ.length ? `  <h2>Como os projetos são separados por área</h2>
   <ul>
     <li>Votações, presença, comissões e projetos: <a href="${SAPL}/api/schema/swagger-ui/" target="_blank" rel="noopener">API do SAPL da Câmara Municipal de Campinas</a>.</li>
     ${EME ? '<li>Emendas parlamentares: <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>.</li>' : ''}
+    ${ELE && LEG.atual !== false ? '<li>Votos da eleição de ' + ELE.ano + ': resultados por local de votação do <a href="https://dadosabertos.tse.jus.br" target="_blank" rel="noopener">TSE</a>; mapa: <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a>.</li>' : ''}
     ${D.ORC ? '<li>Orçamento: RREO publicado pela Prefeitura de Campinas no <a href="https://siconfi.tesouro.gov.br" target="_blank" rel="noopener">Siconfi</a> (Tesouro Nacional); inflação e população: <a href="https://www.ibge.gov.br" target="_blank" rel="noopener">IBGE</a>.</li>' : ''}
   </ul>
   <p>Este é um projeto independente e não substitui as informações oficiais da Câmara e da Prefeitura.</p></div>`;
@@ -2637,6 +2692,7 @@ function secProjetos(v){
 /* ---------- Orçamento da Prefeitura (RREO do 6º bimestre, Siconfi) ---------- */
 const ORC = D.ORC || null;
 if (ORC) { const t = document.getElementById('tabOrc'); if (t) t.hidden = false; }
+if (D.ELE && LEG.atual !== false) { const t = document.getElementById('tabEle'); if (t) t.hidden = false; }
 const ORC_ANOS = ORC ? Object.keys(ORC.anos).map(Number).sort((a, b) => a - b) : [];
 const FO = {ano: ORC_ANOS[ORC_ANOS.length - 1], infl: true, pc: false, modo: 'total', rec: 'imp', gasto: 'area', abertas: new Set()};
 // fator para levar valores de cada ano a reais de dezembro do último ano (IPCA acumulado nos anos seguintes)
@@ -2877,8 +2933,230 @@ function viewOrcamento(){
 }
 function orcFmtBruto(v){ return v >= 1e9 ? 'R$ ' + (v / 1e9).toLocaleString('pt-BR', {maximumFractionDigits: 2}) + ' bi' : 'R$ ' + Math.round(v / 1e6).toLocaleString('pt-BR') + ' mi'; }
 
-const VIEWS = {inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Afinidade de votação','afinidade'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], orcamento:[viewOrcamento,'Orçamento','orcamento'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
+/* ---------- Eleição: onde cada parlamentar teve votos (mapa com Leaflet) ---------- */
+const ELE = D.ELE || null;
+const ELOC = ELE ? ELE.L.map((r, i) => ({i, n:r[0], e:r[1], la:r[2], lo:r[3], ap:!!r[4]})) : [];
+const ELOCm = ELOC.filter(r => r.la != null);
+const ECAND = ELE ? ELE.C.map((c, j) => ({j, civil:c[0], id:c[1], v:c[2], tot:c[2].reduce((a, b) => a + b, 0)})) : [];
+const ECid = {}; ECAND.forEach(c => { if (c.id) ECid[c.id] = c; });
+const enome = c => c.id && V[c.id] ? V[c.id].nome : c.civil;
+const epart = c => c.id && V[c.id] ? (V[c.id].partido || '') : '';
+const FEL = {modo:'um', vis:'calor', a:ECAND[0] ? ECAND[0].j : 0, b:ECAND[1] ? ECAND[1].j : 0, lim:30};
+const ECOR = ['#7a4eb6', '#f4a50c'];
+const EHEAT = {0.2:'#2b83ba', 0.4:'#abdda4', 0.6:'#ffffbf', 0.8:'#fdae61', 1.0:'#d7191c'};
+const EHEATCSS = 'linear-gradient(90deg,#2b83ba,#abdda4,#ffffbf,#fdae61,#d7191c)';
+const EVENC = ['#7a4eb6','#f4a50c','#1d4ed8','#15803d','#e11d48','#0f766e','#c2410c','#65a30d','#0ea5e9','#a16207','#db2777','#4338ca','#16a34a','#9a3412','#0891b2','#ca8a04','#7c2d12','#c026d3','#334155','#84cc16'];
+const sinalE = n => (n > 0 ? '+' : n < 0 ? '−' : '') + num(Math.abs(n));
+let leafletP = null;
+function carregaLeaflet(){
+  if (window.L && window.L.heatLayer) return Promise.resolve();
+  if (leafletP) return leafletP;
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(css);
+  const js = src => new Promise((ok, erro) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = erro; document.head.appendChild(s); });
+  leafletP = js('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js').then(() => js('https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js'));
+  leafletP.catch(() => { leafletP = null; });
+  return leafletP;
+}
+const toqueE = matchMedia('(pointer:coarse)').matches;
+function novoMapa(el, fixo){
+  const LF = window.L;
+  const m = LF.map(el, {zoomControl:true, scrollWheelZoom:!fixo, dragging:!(toqueE || fixo), tap:false, attributionControl:true}).setView([-22.91, -47.07], 11);
+  LF.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(m);
+  return m;
+}
+/* escala: ignora 2% de cada ponta (um local atípico não achata o resto) e tem piso de 10 votos
+   (quem teve poucos votos por local não pode parecer concentrado) */
+function escalaVotos(listas){
+  const v = []; listas.forEach(c => ELOCm.forEach(r => v.push(c.v[r.i]))); v.sort((a, b) => a - b);
+  if (!v.length) return () => 0;
+  const q = p => v[Math.min(v.length - 1, Math.max(0, Math.round(p * (v.length - 1))))];
+  const lo = q(0.02); let hi = q(0.98); if (hi <= lo) hi = v[v.length - 1]; hi = Math.max(hi, 10);
+  return x => hi <= lo ? (x > 0 ? 1 : 0) : Math.max(0, Math.min(1, (x - lo) / (hi - lo)));
+}
+function escalaDif(a, b){
+  const v = ELOCm.map(r => Math.abs(a.v[r.i] - b.v[r.i])).sort((x, y) => x - y);
+  let hi = v.length ? v[Math.min(v.length - 1, Math.round(0.98 * (v.length - 1)))] : 10; hi = Math.max(hi, 10);
+  const f = x => Math.min(1, Math.abs(x) / hi); f.hi = hi; return f;
+}
+const hexE = h => [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16));
+const mixE = (a, b, t) => { const A = hexE(a), B = hexE(b); return '#' + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, '0')).join(''); };
+const gradE = c => ({0.2:mixE(c, '#ffffff', 0.8), 0.5:mixE(c, '#ffffff', 0.45), 0.8:c, 1.0:mixE(c, '#000000', 0.35)});
+const top5Local = i => ECAND.map(c => [c, c.v[i]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+function popLocal(r, linhas){
+  const t5 = top5Local(r.i);
+  return `<div class="epop"><strong>${esc(r.n)}</strong><span class="note">${esc(r.e)}${r.ap ? '. Localização aproximada' : ''}</span>
+    ${linhas ? `<p>${linhas}</p>` : ''}
+    <p class="note" style="margin:.3rem 0 .1rem">Mais votados neste local:</p><ol>${t5.map(([c, x]) => `<li>${esc(enome(c))} <b>${num(x)}</b></li>`).join('')}</ol></div>`;
+}
+function camadaCalor(pts, grad){ return window.L.heatLayer(pts, {radius:32, blur:26, maxZoom:14, minOpacity:0.25, max:1.0, gradient:grad || EHEAT}); }
+function circulo(r, cor, n, rmax, pop, dica){
+  const m = window.L.circleMarker([r.la, r.lo], {radius:3 + rmax * n, color:cor, opacity:0.8, weight:r.ap ? 2 : 1, dashArray:r.ap ? '3 3' : null, fillColor:cor, fillOpacity:0.12 + 0.28 * n});
+  m.bindTooltip(dica); m.bindPopup(pop, {maxWidth:280}); return m;
+}
+/* desenha os votos de uma pessoa num mapa (calor ou pontos) */
+function camadaVotos(c, norm, cor, vis){
+  const LF = window.L;
+  const com = ELOCm.filter(r => c.v[r.i] > 0);   // local sem voto não entra (senão o calor deixa uma mancha fraca)
+  if (vis === 'calor') return camadaCalor(com.map(r => [r.la, r.lo, 0.15 + 0.85 * norm(c.v[r.i])]));
+  const g = LF.layerGroup();
+  com.sort((a, b) => c.v[b.i] - c.v[a.i]).forEach(r => g.addLayer(circulo(r, cor, norm(c.v[r.i]), 21, popLocal(r, `${esc(enome(c))}: <b>${num(c.v[r.i])}</b> ${c.v[r.i] === 1 ? 'voto' : 'votos'}`), `${r.n}: ${num(c.v[r.i])}`)));
+  return g;
+}
+const EM = {mapas:[], camadas:[], area:null};
+function limpaMapasE(){ EM.mapas.forEach(m => { try { m.remove(); } catch(e){} }); EM.mapas = []; EM.camadas = []; }
+const opcoesE = sel => ECAND.map(c => `<option value="${c.j}"${c.j === sel ? ' selected' : ''}>${esc(enome(c))}${epart(c) ? ' (' + esc(epart(c)) + ')' : ''}, ${num(c.tot)} votos</option>`).join('');
+const MODOS_E = [['um', 'Um parlamentar'], ['dois', 'Comparar dois'], ['dif', 'Diferença'], ['mais', 'Mais votado']];
+function viewEleicao(){
+  limpaMapasE();
+  if (!ELE) { app.innerHTML = `<h1>Votos de 2024</h1><div class="empty">Os dados de votação não estão disponíveis nesta página.</div>`; return; }
+  if (FEL.a === FEL.b) FEL.b = ECAND.find(c => c.j !== FEL.a).j;
+  const nSem = ELOC.length - ELOCm.length;
+  app.innerHTML = `<h1>Onde cada parlamentar teve votos</h1>
+  <p class="lede">Votos ${'das ' + ECAND.length + ' pessoas eleitas'} para a Câmara em ${ELE.ano}, em cada um dos ${num(ELOC.length)} locais de votação de Campinas.</p>
+  <div class="emodos">${chips('Modo de ver', MODOS_E, FEL.modo)}</div>
+  <div class="esel" id="esel"></div>
+  ${btnFiltros('efil')}<div class="filters${fechadoCel()}" id="efil">
+    <div class="frow" id="evis"><span class="flabel">Mostrar</span>${chips('Forma do mapa', [['calor', 'Mapa de calor'], ['pontos', 'Pontos']], FEL.vis)}</div>
+    <div class="frow" id="elimw"><label class="flabel" for="elim">Esconder</label><input type="range" id="elim" min="0" max="80" step="5" value="${FEL.lim}"><span class="note" id="elimt"></span></div>
+  </div>
+  <p class="count" id="eresumo" aria-live="polite"></p>
+  <div class="abox" id="earea"><div class="azoom"><span class="note azdica">${toqueE ? 'Dois dedos aproximam o mapa. Em tela cheia dá para arrastar' : 'Arraste e use a rodinha do mouse para aproximar'}</span><button type="button" class="tool acheio-b" aria-pressed="false" aria-label="Tela cheia" title="Tela cheia">${ICO_CHEIO}</button></div>
+    <div class="emapas" id="emapas"><div class="emap" id="emap0"></div><div class="emap" id="emap1" hidden></div></div></div>
+  <div class="eleg" id="eleg"></div>
+  <div id="erank"></div>
+  ${comoFunciona(`<p>Os números são os votos de cada pessoa eleita em ${ELE.ano}, somados por local de votação, como no arquivo de resultados do TSE (Tribunal Superior Eleitoral). Só entram as ${ECAND.length} pessoas eleitas. Votos de legenda, brancos, nulos e de quem não se elegeu não fazem parte destes dados. Por isso, quem assumiu depois como suplente não aparece.</p>
+  <p>O <strong>mapa de calor</strong> mostra onde os votos se concentram. Em <strong>pontos</strong>, cada círculo é um local de votação: quanto maior, mais votos. Locais sem nenhum voto ficam de fora. Para um local muito fora da curva não esconder o resto, a escala ignora os 2% de valores mais altos e mais baixos e nunca considera concentrado quem teve menos de 10 votos num local.</p>
+  <p>Em <strong>Comparar dois</strong>, os dois mapas usam a mesma escala e se movem juntos: um círculo do mesmo tamanho é a mesma quantidade de votos nos dois lados. Em <strong>Diferença</strong>, cada local mostra quem teve mais votos ali e por quanto. Em <strong>Mais votado</strong>, cada local tem a cor de quem teve mais votos ali, entre as pessoas eleitas.</p>
+  <p>A posição de cada local vem do endereço informado pelo TSE. Círculos tracejados têm localização aproximada. ${nSem ? `${nSem} ${nSem === 1 ? 'local não tem' : 'locais não têm'} coordenada: ficam fora do mapa, mas entram nos totais e nos rankings, com a marca "fora do mapa".` : ''} Os nomes dos locais vêm do TSE, com os pontos das abreviações restaurados (o arquivo troca ponto por vírgula, como em "E,E," para "EE").</p>`)}`;
+  ligarToggle();
+  ligarChips('.emodos', k => { FEL.modo = k; montaSelE(); desenhaE(true); });
+  ligarChips('#evis', k => { FEL.vis = k; desenhaE(); });
+  document.getElementById('elim').addEventListener('input', e => { FEL.lim = +e.target.value; desenhaE(); });
+  const area = document.getElementById('earea'); EM.area = area;
+  area.querySelector('.acheio-b').addEventListener('click', () => telaCheia(area, !area.classList.contains('cheio')));
+  area.addEventListener('redesenha', () => {
+    const ch = area.classList.contains('cheio'), b = area.querySelector('.acheio-b');
+    b.setAttribute('aria-pressed', ch); b.setAttribute('aria-label', ch ? 'Sair da tela cheia' : 'Tela cheia'); b.title = b.getAttribute('aria-label'); b.innerHTML = ch ? ICO_SAI_CHEIO : ICO_CHEIO;
+    EM.mapas.forEach(m => { if (toqueE) { ch ? m.dragging.enable() : m.dragging.disable(); } setTimeout(() => m.invalidateSize(), 80); });
+  });
+  montaSelE();
+  document.getElementById('emapas').insertAdjacentHTML('beforeend', `<p class="note ecarr" id="ecarr">Carregando o mapa…</p>`);
+  carregaLeaflet().then(() => {
+    if (app.dataset.view !== 'eleicao' || !document.getElementById('emap0')) return;
+    document.getElementById('ecarr')?.remove();
+    EM.mapas = [novoMapa('emap0'), novoMapa('emap1')];
+    let sinc = false;
+    const liga = (de, para) => de.on('move', () => { if (sinc || FEL.modo !== 'dois') return; sinc = true; para.setView(de.getCenter(), de.getZoom(), {animate:false}); sinc = false; });
+    liga(EM.mapas[0], EM.mapas[1]); liga(EM.mapas[1], EM.mapas[0]);
+    desenhaE(true);
+  }).catch(() => { const c = document.getElementById('ecarr'); if (c) c.textContent = 'Não foi possível carregar o mapa. Verifique a conexão e recarregue a página.'; desenhaE(true); });
+}
+function montaSelE(){
+  const s = document.getElementById('esel'); if (!s) return;
+  const dois = FEL.modo === 'dois' || FEL.modo === 'dif';
+  if (FEL.modo === 'mais') { s.innerHTML = ''; }
+  else s.innerHTML = `<label class="eselc">${dois ? `<span class="edot" style="background:${ECOR[0]}"></span>` : ''}<span class="flabel">${dois ? (FEL.modo === 'dif' ? 'Parlamentar A' : 'Mapa 1') : 'Parlamentar'}</span><select id="esa">${opcoesE(FEL.a)}</select></label>
+    ${dois ? `<label class="eselc"><span class="edot" style="background:${ECOR[1]}"></span><span class="flabel">${FEL.modo === 'dif' ? 'Parlamentar B' : 'Mapa 2'}</span><select id="esb">${opcoesE(FEL.b)}</select></label>` : ''}`;
+  const a = document.getElementById('esa'), b = document.getElementById('esb');
+  if (a) a.addEventListener('change', () => { FEL.a = +a.value; desenhaE(); });
+  if (b) b.addEventListener('change', () => { FEL.b = +b.value; desenhaE(); });
+  document.getElementById('evis').hidden = FEL.modo === 'mais';
+  const ft = app.querySelector('[data-ft="efil"]'), fl = document.getElementById('efil'); ft.style.display = FEL.modo === 'mais' ? 'none' : ''; if (FEL.modo === 'mais') fl.classList.add('closed'), ft.setAttribute('aria-expanded', 'false');
+  document.getElementById('elimw').hidden = FEL.modo !== 'dif';
+}
+function desenhaE(reenquadra){
+  const A = ECAND[FEL.a], B = ECAND[FEL.b], dois = FEL.modo === 'dois';
+  const m1 = document.getElementById('emap1'); if (!m1) return;
+  const mudou = m1.hidden === dois; m1.hidden = !dois;
+  document.getElementById('emapas').classList.toggle('lado', dois);
+  const ok = window.L && EM.mapas.length;
+  if (ok) {
+    EM.camadas.forEach((c, k) => { if (c) EM.mapas[k].removeLayer(c); }); EM.camadas = [null, null];
+    // um mapa que estava escondido só tem tamanho depois de aparecer: ajusta o tamanho e desenha de novo
+    if (mudou) setTimeout(() => { EM.mapas.forEach(m => m.invalidateSize()); if (dois) EM.mapas[1].setView(EM.mapas[0].getCenter(), EM.mapas[0].getZoom(), {animate:false}); desenhaE(); }, 60);
+    else if (reenquadra) setTimeout(() => EM.mapas.forEach(m => m.invalidateSize()), 60);
+  }
+  const pode = ok && !mudou;
+  const res = document.getElementById('eresumo'), leg = document.getElementById('eleg'), rk = document.getElementById('erank');
+  const fora = r => r.la == null ? ' <span class="note">fora do mapa</span>' : '';
+  const ranking = (c, tit) => { const t = ELOC.map(r => [r, c.v[r.i]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    return `<section class="card erk"><h2>${tit}</h2><ol class="elist">${t.map(([r, x]) => `<li><span>${esc(r.n)}${fora(r)}</span><b>${num(x)}</b></li>`).join('')}</ol></section>`; };
+  const resumoDe = c => { const com = ELOC.filter(r => c.v[r.i] > 0).length; return `<strong>${esc(enome(c))}</strong>: ${num(c.tot)} votos, em ${num(com)} dos ${num(ELOC.length)} locais`; };
+  const legCalor = `<span class="elegc"><span>Menos votos</span><i style="background:${EHEATCSS}"></i><span>Mais votos</span></span>`;
+  const legPontos = cores => `<span class="elegc">${cores.map(c => `<svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><circle cx="6" cy="11" r="3" fill="${c}" fill-opacity=".3" stroke="${c}"/><circle cx="22" cy="11" r="9" fill="${c}" fill-opacity=".3" stroke="${c}"/></svg>`).join('')}<span>Círculo maior, mais votos. Tracejado: localização aproximada</span></span>`;
+  const linkP = c => c.id && V[c.id] ? ` <a href="#v-${c.id}">Ver a página</a>` : '';
+  if (FEL.modo === 'um' || dois) {
+    const lista = dois ? [A, B] : [A];
+    const norm = escalaVotos(lista);
+    if (pode) lista.forEach((c, k) => { EM.camadas[k] = camadaVotos(c, norm, ECOR[k], FEL.vis).addTo(EM.mapas[k]); });
+    res.innerHTML = lista.map(c => resumoDe(c) + linkP(c)).join('<br>');
+    leg.innerHTML = (FEL.vis === 'calor' ? legCalor : legPontos(dois ? ECOR : [ECOR[0]])) + (dois ? '<span class="note">Os dois mapas usam a mesma escala e se movem juntos.</span>' : '');
+    rk.innerHTML = `<div class="${dois ? 'cols2' : ''}">${lista.map(c => ranking(c, `Os 10 locais com mais votos de ${esc(enome(c))}`)).join('')}</div>`;
+  } else if (FEL.modo === 'dif') {
+    const norm = escalaDif(A, B), lim = norm.hi * FEL.lim / 100;
+    document.getElementById('elimt').textContent = FEL.lim ? `diferenças menores que ${num(Math.round(lim))} votos` : 'nada (mostrar todas as diferenças)';
+    const dif = ELOC.map(r => [r, A.v[r.i] - B.v[r.i]]);
+    const vis = dif.filter(([r, d]) => r.la != null && d !== 0 && Math.abs(d) >= lim);
+    if (pode) {
+      const LF = window.L, g = LF.layerGroup();
+      if (FEL.vis === 'calor') {
+        g.addLayer(camadaCalor(vis.filter(x => x[1] > 0).map(([r, d]) => [r.la, r.lo, 0.15 + 0.85 * norm(d)]), gradE(ECOR[0])));
+        g.addLayer(camadaCalor(vis.filter(x => x[1] < 0).map(([r, d]) => [r.la, r.lo, 0.15 + 0.85 * norm(d)]), gradE(ECOR[1])));
+      } else vis.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).forEach(([r, d]) => {
+        const quem = d > 0 ? A : B, cor = d > 0 ? ECOR[0] : ECOR[1];
+        g.addLayer(circulo(r, cor, norm(d), 17, popLocal(r, `${esc(enome(A))}: <b>${num(A.v[r.i])}</b><br>${esc(enome(B))}: <b>${num(B.v[r.i])}</b><br>${esc(enome(quem))} à frente por <b>${num(Math.abs(d))}</b>`), `${r.n}: ${enome(quem)} +${num(Math.abs(d))}`));
+      });
+      EM.camadas[0] = g.addTo(EM.mapas[0]);
+    }
+    const nA = dif.filter(x => x[1] > 0).length, nB = dif.filter(x => x[1] < 0).length, nE = dif.length - nA - nB;
+    res.innerHTML = `<strong>${esc(enome(A))}</strong> teve mais votos em ${num(nA)} locais. <strong>${esc(enome(B))}</strong>, em ${num(nB)}${nE ? `. Empate em ${num(nE)}` : ''}. Na cidade toda: ${num(A.tot)} contra ${num(B.tot)}.`;
+    leg.innerHTML = FEL.vis === 'calor' ? `<span class="elegc"><span>${esc(enome(B))} à frente</span><i style="background:linear-gradient(90deg,${[ECOR[1], mixE(ECOR[1], '#ffffff', .6), '#ffffff', mixE(ECOR[0], '#ffffff', .6), ECOR[0]].join(',')})"></i><span>${esc(enome(A))} à frente</span></span>` : legPontos(ECOR);
+    const lado = (s, tit) => { const t = dif.filter(x => s * x[1] > 0).sort((a, b) => s * (b[1] - a[1])).slice(0, 10);
+      return `<section class="card erk"><h2>${tit}</h2>${t.length ? `<ol class="elist">${t.map(([r, d]) => `<li><span>${esc(r.n)}${fora(r)} <span class="note">(${num(A.v[r.i])} a ${num(B.v[r.i])})</span></span><b>${num(Math.abs(d))}</b></li>`).join('')}</ol>` : '<p class="note">Nenhum local.</p>'}</section>`; };
+    rk.innerHTML = `<div class="cols2">${lado(1, `Onde ${esc(enome(A))} ficou mais à frente`)}${lado(-1, `Onde ${esc(enome(B))} ficou mais à frente`)}</div>`;
+  } else {
+    // mais votado em cada local
+    const venc = ELOC.map(r => { const t = top5Local(r.i); return [r, t[0], t[1]]; }).filter(x => x[1]);
+    const cont = {}; venc.forEach(x => cont[x[1][0].j] = (cont[x[1][0].j] || 0) + 1);
+    const ordem = Object.keys(cont).map(Number).sort((a, b) => cont[b] - cont[a] || ECAND[b].tot - ECAND[a].tot);
+    const cor = {}; ordem.forEach((j, k) => cor[j] = EVENC[k] || '#8c7b6e');
+    if (pode) {
+      const g = window.L.layerGroup();
+      venc.filter(x => x[0].la != null).forEach(([r, [c, x], seg]) => g.addLayer(circulo(r, cor[c.j], 0.45, 12, popLocal(r, ''), `${r.n}: ${enome(c)} (${num(x)})`)));
+      EM.camadas[0] = g.addTo(EM.mapas[0]);
+    }
+    res.innerHTML = `${num(ordem.length)} das ${ECAND.length} pessoas eleitas foram as mais votadas em pelo menos um local.`;
+    leg.innerHTML = `<span class="elegc ecores">${ordem.slice(0, EVENC.length).map(j => `<span><i style="background:${cor[j]}"></i>${esc(enome(ECAND[j]))}</span>`).join('')}${ordem.length > EVENC.length ? `<span><i style="background:#8c7b6e"></i>Demais</span>` : ''}</span>`;
+    rk.innerHTML = `<section class="card erk"><h2>Em quantos locais cada pessoa foi a mais votada</h2><ol class="elist">${ordem.map(j => `<li><span><i class="edot" style="background:${cor[j]}"></i>${esc(enome(ECAND[j]))}</span><b>${num(cont[j])} ${cont[j] === 1 ? 'local' : 'locais'}</b></li>`).join('')}</ol></section>`;
+  }
+}
+/* bloco na página do parlamentar: mapa pequeno + 5 locais com mais votos */
+function secEleicao(v){
+  if (!ELE || LEG.atual === false) return '';
+  const c = ECid[v.id];
+  if (!c) return `<section class="section" aria-labelledby="h-ele"><h2 id="h-ele">Votos em ${ELE.ano}</h2><p class="note">Sem dados de votação: o arquivo de ${ELE.ano} traz só as ${ECAND.length} pessoas eleitas${v.mand && !v.mand[2] ? ', e o mandato atual é de suplência' : ''}.</p></section>`;
+  const t = ELOC.map(r => [r, c.v[r.i]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const com = ELOC.filter(r => c.v[r.i] > 0).length, pos = ECAND.indexOf(c) + 1;
+  return `<section class="section" aria-labelledby="h-ele"><h2 id="h-ele">Votos em ${ELE.ano}</h2>
+    <p class="note" style="margin-top:0">${num(c.tot)} votos, em ${num(com)} dos ${num(ELOC.length)} locais de votação. ${pos}º lugar em votos entre as ${ECAND.length} pessoas eleitas.</p>
+    <div class="cols2 eperf"><div class="abox"><div class="emap emini" id="emapP"><p class="note ecarr">Carregando o mapa…</p></div></div>
+    <div><h3 class="eh3">Locais com mais votos</h3><ol class="elist">${t.map(([r, x]) => `<li><span>${esc(r.n)}${r.la == null ? ' <span class="note">fora do mapa</span>' : ''}</span><b>${num(x)}</b></li>`).join('')}</ol>
+    <div class="cfoot"><a class="btn" href="#eleicao" data-ele="${c.j}">Abrir no mapa de votos</a></div></div></div></section>`;
+}
+function ligarSecEleicao(v){
+  const c = ECid[v.id], el = document.getElementById('emapP');
+  app.querySelectorAll('[data-ele]').forEach(a => a.addEventListener('click', () => { FEL.modo = 'um'; FEL.a = +a.dataset.ele; if (FEL.b === FEL.a) FEL.b = ECAND.find(x => x.j !== FEL.a).j; }));
+  if (!c || !el) return;
+  carregaLeaflet().then(() => {
+    if (!document.body.contains(el)) return;
+    el.innerHTML = '';
+    const m = novoMapa(el, true); EM.mapas.push(m);
+    camadaVotos(c, escalaVotos([c]), ECOR[0], 'calor').addTo(m);
+  }).catch(() => { el.innerHTML = '<p class="note ecarr">Não foi possível carregar o mapa.</p>'; });
+}
+const VIEWS = {eleicao:[viewEleicao,'Votos de 2024','eleicao'], inicio:[viewInicio,'Início','inicio'], votacoes:[viewVotacoes,'Votações','votacoes'], busca:[viewBusca,'Todas as votações','votacoes'], afinidade:[viewAfinidade,'Afinidade de votação','afinidade'], projetos:[viewProjetos,'Projetos','projetos'], presenca:[viewPresenca,'Presença','presenca'], comissoes:[viewComissoes,'Comissões','comissoes'], vereadores:[viewVereadores,'Vereadores','vereadores'], orcamento:[viewOrcamento,'Orçamento','orcamento'], emendas:[viewEmendas,'Emendas','emendas'], sobre:[viewSobre,'Sobre os dados','sobre']};
 function rota(){
+  if (typeof limpaMapasE === 'function') limpaMapasE();
   const h = location.hash.replace('#','');
   let tab, titulo;
   if (/^v-\d+$/.test(h)) { tab = 'vereadores'; viewPerfil(+h.slice(2)); titulo = V[+h.slice(2)]?.nome || 'Parlamentar'; }
