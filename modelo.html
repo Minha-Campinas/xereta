@@ -872,6 +872,25 @@ tr.psel td{background:var(--accent-soft)}
   header.top.aberto nav.tabs{max-height:calc(100vh - 4.6rem);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:1.2rem}
   @supports (height:100dvh){header.top.aberto nav.tabs{max-height:calc(100dvh - 4.6rem)}}
 }
+/* celular: barra de navegação embaixo (Início, Votações, Parlamentares, Emendas e Mais) */
+.botnav{display:none}
+@media (max-width:640px){
+  .menubtn{display:none!important}
+  .botnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:3px solid var(--bd);padding:.25rem .15rem calc(.3rem + env(safe-area-inset-bottom,0px))}
+  .botnav a,.botnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;min-height:3.4rem;padding:.2rem 0;border:0;background:none;color:var(--muted);text-decoration:none;font:inherit;font-size:.7rem;font-weight:700;line-height:1.1;cursor:pointer;min-width:0;flex:1 1 0}
+  .botnav a[data-view="vereadores"]{flex-grow:1.4}
+  .botnav #botMais{flex-grow:.75}
+  .botnav a[hidden]{display:none}
+  .botnav span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .botnav svg{width:1.55rem;height:1.55rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .botnav #botMais svg{fill:currentColor;stroke:none}
+  .botnav a[aria-current="page"],.botnav button.ativo,.botnav button[aria-expanded="true"]{color:var(--accent)}
+  body{padding-bottom:calc(4.2rem + env(safe-area-inset-bottom,0px))}
+  /* "Mais": as outras páginas sobem num painel acima da barra */
+  nav.tabs a.nb{display:none!important}
+  header.top.aberto nav.tabs{position:fixed;left:0;right:0;bottom:calc(4.1rem + env(safe-area-inset-bottom,0px));top:auto;z-index:49;max-height:min(70vh,calc(100% - 6rem));overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-top:3px solid var(--bd);padding:.6rem 1.25rem .8rem;box-shadow:0 -6px 0 rgba(0,0,0,.08)}
+  @supports (height:100dvh){header.top.aberto nav.tabs{max-height:min(70dvh,calc(100dvh - 6rem))}}
+}
 </style>
 </head>
 <body>
@@ -888,20 +907,27 @@ tr.psel td{background:var(--accent-soft)}
       </div>
     </div>
     <nav class="tabs" id="menuSec" aria-label="Seções">
-      <a href="#inicio" data-view="inicio">Início</a>
-      <a href="#votacoes" data-view="votacoes">Votações</a>
+      <a href="#inicio" data-view="inicio" class="nb">Início</a>
+      <a href="#votacoes" data-view="votacoes" class="nb">Votações</a>
       <a href="#afinidade" data-view="afinidade">Afinidade</a>
       <a href="#projetos" data-view="projetos" id="tabProj" hidden>Projetos</a>
-      <a href="#emendas" data-view="emendas" id="tabEme" hidden>Emendas</a>
+      <a href="#emendas" data-view="emendas" id="tabEme" class="nb" hidden>Emendas</a>
       <a href="#orcamento" data-view="orcamento" id="tabOrc" hidden>Orçamento</a>
       <a href="#presenca" data-view="presenca">Presença</a>
       <a href="#comissoes" data-view="comissoes">Comissões</a>
-      <a href="#vereadores" data-view="vereadores">Parlamentares</a>
+      <a href="#vereadores" data-view="vereadores" class="nb">Parlamentares</a>
       <a href="#eleicao" data-view="eleicao" id="tabEle" hidden>Votos de 2024</a>
       <a href="#sobre" data-view="sobre">Sobre os dados</a>
     </nav>
   </div>
 </header>
+<nav class="botnav" id="botnav" aria-label="Navegação principal">
+  <a href="#inicio" data-view="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg><span>Início</span></a>
+  <a href="#votacoes" data-view="votacoes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18"/><path d="m8 12 3 3 5-6"/></svg><span>Votações</span></a>
+  <a href="#vereadores" data-view="vereadores"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9 0 5 2.2 5 5.3"/></svg><span>Parlamentares</span></a>
+  <a href="#emendas" data-view="emendas" id="botEme" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.5-1-1.5-1.5-2.8-1.5-1.6 0-2.8.8-2.8 2.1 0 3 5.8 1.6 5.8 4.4 0 1.4-1.3 2.2-3 2.2-1.4 0-2.5-.6-3-1.6M12 6v1.7M12 16.4V18"/></svg><span>Emendas</span></a>
+  <button type="button" id="botMais" aria-expanded="false" aria-controls="menuSec"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>Mais</span></button>
+</nav>
 <main class="wrap" id="app" tabindex="-1"></main>
 <footer><div class="wrap rodape"><a class="mc-logo" href="https://minhacampinas.org" target="_blank" rel="noopener"><img src="data:image/png;base64,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" alt="Minha Campinas" width="180" height="56"></a><p>Iniciativa da <a href="https://minhacampinas.org" target="_blank" rel="noopener">Minha Campinas</a>. Feito com dados públicos da Câmara Municipal de Campinas, da Prefeitura de Campinas e do Tesouro Nacional. Os dados da Câmara são atualizados automaticamente todos os dias.<span id="fonteEme"></span> Última atualização: <span id="gerado"></span>. Não é um canal oficial da Câmara.</p></div></footer>
 <script type="application/json" id="data">__DATA__</script>
@@ -995,11 +1021,13 @@ const ladoAberto = ab => { document.body.classList.toggle('menu-lado', ab); btnL
 btnLado.addEventListener('click', () => ladoAberto(!document.body.classList.contains('menu-lado')));
 const alturaTopo = () => document.documentElement.style.setProperty('--topo-h', topo.getBoundingClientRect().height + 'px');
 alturaTopo(); new ResizeObserver(alturaTopo).observe(topo);
-const fechaMenu = () => { topo.classList.remove('aberto'); btnMenu.setAttribute('aria-expanded', 'false'); };
+const botMais = document.getElementById('botMais');
+const fechaMenu = () => { topo.classList.remove('aberto'); btnMenu.setAttribute('aria-expanded', 'false'); if (botMais) botMais.setAttribute('aria-expanded', 'false'); };
+if (botMais) botMais.addEventListener('click', () => { const ab = topo.classList.toggle('aberto'); botMais.setAttribute('aria-expanded', ab); btnMenu.setAttribute('aria-expanded', ab); topo.classList.remove('oculto'); });
 btnMenu.addEventListener('click', () => { const ab = topo.classList.toggle('aberto'); btnMenu.setAttribute('aria-expanded', ab); topo.classList.remove('oculto'); });
 document.querySelectorAll('nav.tabs a').forEach(a => a.addEventListener('click', fechaMenu));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && topo.classList.contains('aberto')) { fechaMenu(); btnMenu.focus(); } });
-document.addEventListener('click', e => { if (topo.classList.contains('aberto') && !topo.contains(e.target)) fechaMenu(); });
+document.addEventListener('click', e => { if (topo.classList.contains('aberto') && !topo.contains(e.target) && !e.target.closest('#botMais')) fechaMenu(); });
 let ultimoY = window.scrollY;
 window.addEventListener('scroll', () => {
   const y = window.scrollY;
@@ -2304,7 +2332,7 @@ const selAreaOrgao = (id, orgaos, atual) => {
   return `<label class="f">Área ou órgão <select id="${id}"><option value="">Todos</option>${as.map(a => `<optgroup label="${esc(a)}"><option value="a:${esc(a)}"${atual === 'a:' + a ? ' selected' : ''}>${esc(a)} (toda a área)</option>${[...AO[a]].sort((x, y) => x.localeCompare(y, 'pt-BR')).map(o => `<option value="o:${esc(o)}"${atual === 'o:' + o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
 };
 const EMEV = {}, IDV = {};
-if (EME) { const fe = document.getElementById('fonteEme'); if (fe) fe.innerHTML = EME.atualizado && EME.atualizado.slice(0, 10) !== D.gerado.slice(0, 10) ? ' A planilha de emendas foi consultada em ' + fmtData(EME.atualizado) + '.' : ''; /* a data só aparece se for diferente da atualização geral */ EME.v.forEach(x => { EMEV[chaveEme(x.n)] = x; }); Object.values(V).forEach(v => { IDV[chaveEme(v.nome)] = v.id; }); const t = document.getElementById('tabEme'); if (t) t.hidden = false; }
+if (EME) { const fe = document.getElementById('fonteEme'); if (fe) fe.innerHTML = EME.atualizado && EME.atualizado.slice(0, 10) !== D.gerado.slice(0, 10) ? ' A planilha de emendas foi consultada em ' + fmtData(EME.atualizado) + '.' : ''; /* a data só aparece se for diferente da atualização geral */ EME.v.forEach(x => { EMEV[chaveEme(x.n)] = x; }); Object.values(V).forEach(v => { IDV[chaveEme(v.nome)] = v.id; }); const t = document.getElementById('tabEme'); if (t) t.hidden = false; const tb = document.getElementById('botEme'); if (tb) tb.hidden = false; }
 const nomeVer = n => { const id = IDV[chaveEme(n)]; return id ? V[id].nome : tc(n); };
 const fotoVer = (n, cls) => { const id = IDV[chaveEme(n)]; return id ? av(id, cls) : `<span class="av ${cls}" aria-hidden="true">${esc(iniciais(tc(n)))}</span>`; };
 const linkVer = n => { const id = IDV[chaveEme(n)]; return id ? `<a href="#v-${id}">${esc(V[id].nome)}</a>` : `${esc(tc(n))} <span class="note">sem página nesta legislatura</span>`; };
@@ -3175,7 +3203,8 @@ function rota(){
   else { const k = VIEWS[h] ? h : 'inicio'; VIEWS[k][0](); titulo = VIEWS[k][1]; tab = VIEWS[k][2]; }
   app.dataset.view = /^v-/.test(h) ? 'perfil' : /^s-/.test(h) ? 'sessao' : /^c-/.test(h) ? 'comissao' : (VIEWS[h] ? h : 'inicio');
   document.title = titulo + ' – Xereta';
-  document.querySelectorAll('nav.tabs a').forEach(a => { if (a.dataset.view === tab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  document.querySelectorAll('nav.tabs a, #botnav a').forEach(a => { if (a.dataset.view === tab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  const bm = document.getElementById('botMais'); if (bm) bm.classList.toggle('ativo', !document.querySelector(`#botnav a[data-view="${tab}"]:not([hidden])`));
 }
 window.addEventListener('hashchange', () => { const ac = document.querySelector('.abox.cheio'); if (ac) telaCheia(ac, false); if (document.body.classList.contains('mapa-cheio')) { document.body.classList.remove('mapa-cheio'); soltaPagina(); } fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
 rota();
