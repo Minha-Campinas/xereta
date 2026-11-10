@@ -867,6 +867,11 @@ tr.psel td{background:var(--accent-soft)}
   .eselc{flex-wrap:wrap}
   .eselc select{flex-basis:100%}
 }
+/* menu do celular: rola dentro dele quando não cabe na tela */
+@media (max-width:640px){
+  header.top.aberto nav.tabs{max-height:calc(100vh - 4.6rem);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:1.2rem}
+  @supports (height:100dvh){header.top.aberto nav.tabs{max-height:calc(100dvh - 4.6rem)}}
+}
 </style>
 </head>
 <body>
