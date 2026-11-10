@@ -14,9 +14,9 @@
 :root{
   color-scheme: light;
   --bg:#fdf9f3; --surface:#ffffff; --soft:#f3ece3; --ink:#4d3f36; --muted:#6f6055; --line:#e4d9cc;
-  --p1:#7a4eb6; --p2:#f9992a; --p3:#c5fc1d; --p4:#f32b0a; --p5:#4d3f36;
+  --p1:#7a4eb6; --p2:#f4a50c; --p3:#c5fc1d; --p4:#f32b0a; --p5:#4d3f36;
   --accent:#7a4eb6; --accent-soft:#efe8f8; --accent-ink:#ffffff; --focus:#7a4eb6;
-  --sim:#c5fc1d; --nao:#f32b0a; --abs:#f9992a; --aus:#d4c8bb; --pres:#8c7b6e;
+  --sim:#c5fc1d; --nao:#f32b0a; --abs:#f4a50c; --aus:#d4c8bb; --pres:#8c7b6e;
   --ok-bg:#eafcb5; --ok-ink:#3f5400; --bad-bg:#fde1db; --bad-ink:#9d1a05; --neu-bg:#efe7de; --neu-ink:#5d4f45; --warn-bg:#fde9c8; --warn-ink:#6b3d00;
   --display:"Jersey 15","Segoe UI",system-ui,sans-serif;
   --body:"Overpass","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -30,7 +30,7 @@
     color-scheme: dark;
     --bg:#1d1815; --surface:#2a231f; --soft:#342b26; --ink:#f4ece4; --muted:#c0b2a5; --line:#46392f;
     --accent:#b79bf0; --accent-soft:#3a2c55; --accent-ink:#1d1815; --focus:#d6c5ff;
-    --sim:#c5fc1d; --nao:#ff5236; --abs:#f9992a; --aus:#5b4d42; --pres:#b39bd8;
+    --sim:#c5fc1d; --nao:#ff5236; --abs:#f4a50c; --aus:#5b4d42; --pres:#b39bd8;
     --ok-bg:#2f3a0e; --ok-ink:#d9ff7a; --bad-bg:#4a1c14; --bad-ink:#ffb9aa; --neu-bg:#3a3029; --neu-ink:#d6c9bd; --warn-bg:#4a3414; --warn-ink:#ffd08a;
   }
 }
@@ -38,7 +38,7 @@
   color-scheme: dark;
   --bg:#1d1815; --surface:#2a231f; --soft:#342b26; --ink:#f4ece4; --muted:#c0b2a5; --line:#46392f;
   --accent:#b79bf0; --accent-soft:#3a2c55; --accent-ink:#1d1815; --focus:#d6c5ff;
-  --sim:#c5fc1d; --nao:#ff5236; --abs:#f9992a; --aus:#5b4d42; --pres:#b39bd8;
+  --sim:#c5fc1d; --nao:#ff5236; --abs:#f4a50c; --aus:#5b4d42; --pres:#b39bd8;
   --ok-bg:#2f3a0e; --ok-ink:#d9ff7a; --bad-bg:#4a1c14; --bad-ink:#ffb9aa; --neu-bg:#3a3029; --neu-ink:#d6c9bd; --warn-bg:#4a3414; --warn-ink:#ffd08a;
 }
 html{font-size:100%;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 5rem);-webkit-text-size-adjust:100%}
@@ -423,12 +423,12 @@ td.obs details p{margin:.4rem 0 0;color:var(--ink)}
 .card .cfoot{margin-top:auto;padding-top:1rem}
 .card .vote{box-shadow:none}
 .card .stat{box-shadow:none}
-.modal-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:max(1rem,env(safe-area-inset-top,0px)) 1rem 1rem;background:rgba(29,24,21,.62);overflow:auto}
+.modal-ov{position:fixed;inset:0;z-index:60;overscroll-behavior:contain;display:flex;align-items:flex-start;justify-content:center;padding:max(1rem,env(safe-area-inset-top,0px)) 1rem 1rem;background:rgba(29,24,21,.62);overflow:auto}
 .modal{display:flex;flex-direction:column;width:min(100%,54rem);max-height:calc(100vh - 2.5rem);background:var(--bg);color:var(--ink);border:3px solid var(--bd);box-shadow:6px 6px 0 var(--sh);outline:none}
 .mhead{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1.1rem;background:var(--surface);border-bottom:3px solid var(--bd)}
 .mhead h2{margin:0;font-size:1.2rem;overflow-wrap:anywhere}
-.mbody{overflow:auto;padding:1rem 1.25rem 1.5rem}
-@media (max-width:600px){.modal-ov{padding:0}.modal{max-height:100vh;height:100%}}
+.mbody{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:1rem 1.25rem 1.5rem}
+@media (max-width:600px){.modal-ov{padding:0}.modal{max-height:100vh;height:100%}@supports (height:100dvh){.modal{max-height:100dvh;height:100dvh}}}
 nav.tabs a[hidden]{display:none}
 .ebar{height:.9rem;border:2px solid var(--bd);background:var(--soft);min-width:5rem;overflow:hidden}
 .ebar i{display:block;height:100%;background:var(--accent)}
@@ -592,7 +592,8 @@ h1,h2,h3,.brand,.path strong,.av,.sitem .dt,.fact b,.big,.reu .rdate,.eme-big{fo
 .abox .empty{margin:1rem;box-shadow:none}
 .abox.cheio{position:fixed;inset:0;z-index:300;margin:0;border:0;overflow:auto;overscroll-behavior:contain}
 .abox.cheio .azoom{position:sticky;top:0;z-index:2}
-body.mapa-cheio{overflow:hidden}
+html.travado,html.travado body{overflow:hidden}
+html.travado body{position:fixed;left:0;right:0;width:100%}
 .azoom [hidden]{display:none!important}
 .azoom .acheio-b{font-size:1rem;display:inline-flex;align-items:center;justify-content:center}
 .asvg{display:block;width:100%;height:auto;touch-action:pan-y;-webkit-user-select:none;user-select:none;overflow:hidden}
@@ -1056,12 +1057,17 @@ app.addEventListener('click', e => {
 
 /* ---------- janela sobreposta ---------- */
 let janelaFecha = null;
+/* trava a rolagem da página embaixo de janelas e da tela cheia do mapa, sem perder a posição */
+let travas = 0, travaY = 0;
+function travaPagina(){ if (travas++) return; travaY = scrollY; document.body.style.top = -travaY + 'px'; document.documentElement.classList.add('travado'); }
+function soltaPagina(){ if (!travas || --travas) return; document.documentElement.classList.remove('travado'); document.body.style.top = ''; scrollTo(0, travaY); }
+let ROLOU = 0; addEventListener('scroll', () => { ROLOU = performance.now(); }, {passive:true});
 function abreJanela(titulo, corpo, aoMontar){
   if (janelaFecha) janelaFecha();
   const antes = document.activeElement;
   const ov = document.createElement('div'); ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtit" tabindex="-1"><div class="mhead"><h2 id="mtit">${esc(titulo)}</h2><button type="button" class="btn ghost mfecha">Fechar</button></div><div class="mbody">${corpo}</div></div>`;
-  app.appendChild(ov); document.body.style.overflow = 'hidden';
+  app.appendChild(ov); travaPagina();
   const m = ov.querySelector('.modal');
   const foco = () => [...m.querySelectorAll('a[href],button:not([disabled]),input,select,textarea,[tabindex="0"]')].filter(x => x.offsetParent !== null || x === document.activeElement);
   const tecla = e => {
@@ -1070,7 +1076,7 @@ function abreJanela(titulo, corpo, aoMontar){
       if (e.shiftKey && (document.activeElement === a || document.activeElement === m)) { e.preventDefault(); z.focus(); }
       else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
   };
-  const fecha = () => { document.removeEventListener('keydown', tecla); ov.remove(); document.body.style.overflow = ''; janelaFecha = null; if (antes && antes.focus && document.contains(antes)) antes.focus(); };
+  const fecha = () => { document.removeEventListener('keydown', tecla); ov.remove(); soltaPagina(); janelaFecha = null; if (antes && antes.focus && document.contains(antes)) antes.focus(); };
   janelaFecha = fecha;
   document.addEventListener('keydown', tecla);
   ov.addEventListener('mousedown', e => { if (e.target === ov) fecha(); });
@@ -1233,7 +1239,7 @@ function carrossel(box){
     if (!box.isConnected) return;
     const dt = Math.min(64, agora - ultimo); ultimo = agora;
     if (Math.abs(vp.scrollLeft - Math.round(pos)) > 2) pos = vp.scrollLeft;   // a pessoa rolou: segue de onde ela deixou
-    if (visivel && !pausado && !sobre && !foco && !arrasto && agora > mexendo) { pos += VEL * dt / 1000; vp.scrollLeft = pos; if (fora()) volta(); }
+    if (visivel && !pausado && !sobre && !foco && !arrasto && agora > mexendo && agora - ROLOU > 300) { pos += VEL * dt / 1000; vp.scrollLeft = pos; if (fora()) volta(); }
     requestAnimationFrame(laco);
   }
   vp.scrollLeft = 1; pos = 1; requestAnimationFrame(laco);
@@ -1267,7 +1273,7 @@ function carrossel(box){
    Pausa fora da tela; com "reduzir movimento" ligado, fica parado. Desenhos: caracteres por pixel, comprimidos por linha. */
 const SPRITE = {"W":60,"H":42,"chao":39,"pal":{"#":"#1b120c","o":"#de9e58","d":"#b8763e","l":"#f0be82","n":"#4a2f20","e":"#28180e","g":"#1f8a3c","y":"#f2c81c","t":"#e8e2c8","w":"#ffffff"},"q":{"salto":["60.|60.|60.|60.|60.|31.7#22.|30.#4d3l8#14.|30.#4d2oe5l3n#13.|30.#4d2o2e4o3n#13.|29.#5d10o#14.|29.#o4d8o2d#14.|29.#2o2d6o2d3#15.|7.#21.#8o2d3#17.|6.#l#19.#loy4o2d2#20.|5.#ld#18.2#ogy2g2o2#22.|5.#o#18.#2logy2g2o#23.|4.#lo#13.5#l3og2yg2o#23.|4.#do#10.3#5l4o2gyg2o#23.|5.#dl#3.6#3l11oy3ol#22.|6.#ol#.#6l19o#22.|6.#dol#l20o3tod#22.|7.#dol22ot2o#23.|8.#d15o2d8od#23.|9.#12o3d2#d7o#24.|9.#10o2d3#2.#3d4o#24.|9.#d9o2#6.3#4o#24.|10.#d8o#8.#4o#25.|11.#2d5od#8.#4o2#24.|12.2#5o#10.#5o#23.|13.#d3o#12.2#3o#23.|12.#d4o#14.#o#24.|11.#d4o#16.#25.|11.#d3o#43.|11.#d3o#43.|11.#d2o#44.|10.#2d2o#44.|10.#2d2o#44.|9.#2d3o#44.|10.#d3o#44.|11.4#45.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|34.4#22.|33.#4d2#20.|33.#4d2l#19.|32.#5d2ol3#16.|2#30.#4d2owe3l4#12.|2l2#28.#o3d3oe3ol3n#11.|#d2l#26.#lo3d8o3n#11.|.#dol#24.#l14od#12.|2.#dol#22.#lgoy6o2d2o2d#13.|3.#dol2#3.6#.10#lo2gyg3o2d6#14.|4.#2d2l#.#6l#10l2og2yg2od2#2.2#16.|5.2#dol#l6ol12og2yg2o#22.|7.#2dl20ogy2g2o#22.|8.2#22oyog2o#22.|8.#l27o#22.|9.#23o2t2o#22.|9.#d8o8d6o2tod#22.|10.#d7o8#d7od#23.|11.#7o#7.#d6o2#23.|11.#6od#8.#2d5od2#21.|10.2#d4od#10.3#6od#20.|9.#d5o2#14.#5od#20.|9.#d4o#17.2#4od2#18.|8.#d4o#20.2#2o3d#17.|7.#2d2o2#23.#3od#17.|6.#2d3o#24.#3o#18.|6.#d3o#26.3#19.|7.#2o#49.|8.2#50.|60.|60.","60.|60.|60.|8.#51.|7.#l#50.|7.#o#50.|7.#o#50.|7.#ol#49.|7.#2o#49.|7.#do#49.|8.#o#49.|8.#ol#48.|8.#dol#26.#20.|9.#do6#19.2#d#19.|10.#o6l#17.#4d#18.|10.#7ol2#14.#5dl2#16.|10.#8o2l4#9.#l5do2l#15.|9.#l10o4l3#4.2#lo4d4o#15.|9.#15o3l4#2l3o3d2o2e2#14.|9.#d17o4logy7oeo2l2#12.|10.#d20o2gyg10o2l2#10.|11.#20og2yg11o3n#9.|11.#6o3d10o2gy2g2o5d4o3n#9.|10.2#6o3#3d8o2yg2od7#o2d2#10.|9.#d6od#2.3#2d8og2o#5.5#12.|9.#5o3#6.2#6ot3od#7.#14.|9.#3o2#10.#6o2t2o#23.|10.#2o#11.#d5ot2od#23.|9.#d2od#11.#2d5od#24.|10.#3o#12.2#4od#25.|11.3#14.#3od#26.|28.#3o#27.|27.#3od#27.|27.#3od#27.|27.#3od#27.|27.#3od#27.|27.#2od#28.|26.#3od#28.|26.#3od#28.|26.#3o2d#27.|60.|60.","60.|60.|60.|60.|60.|60.|60.|11.#48.|9.2#l#47.|8.#2l#25.#22.|8.#o#25.#d2#20.|8.#o#24.#4d2#18.|8.#o#23.#5d2l#17.|8.#ol#22.#4d3ol#16.|8.#2o#2.2#17.#l4d2owe2#15.|8.#do3#2l3#13.#l2o3d2o2e2l4#11.|9.#o3l2o3l7#5.#l3od8o2l2n#10.|9.#9o7l5#lgoy11o4n#9.|9.#16o5logy2g11o2n#10.|9.#22ogy2g2o6d2o2d#11.|9.#21o2gy2g2o10#12.|9.#d20o2gyg2od#5.2#14.|10.#d21oyg2o#22.|11.#7o7d11o#22.|11.#6od7#6o2t2od#22.|11.#2d3od#6.#d5o2t2o#23.|12.2#3o#8.#d7od#23.|13.#3o#9.#2d4od#24.|13.#3od#9.2#3od#25.|13.#3od#10.#3od#25.|13.#4o#10.#3od#25.|14.#2o#11.#3od#25.|14.#2o#11.#3od#25.|14.#2o#11.#3o#26.|13.#3od#10.#2od#26.|13.#3od#10.#2od#26.|14.#o2#11.#2od#26.|15.#12.#3od#26.|28.#3od#26.|29.4#27.|60.|60."],"anda":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#4od#24.|12.#2d4o#9.#4od#24.|12.#3d3o#9.#3o3d#23.|11.#4d4o#8.#3o3d#23.|11.#3d2#3o#7.#4o3d#23.|11.#3d#.#3o#6.#3o#3d#23.|11.#2d#3.#3o2#4.#2o#.#2d#23.|11.#2d#4.#4o#3.#2o#.#3d#22.|11.#3d#3.#4o#2.#3o#2.#3d#21.|11.#3d#4.4#3.#3o#2.#3d#21.|12.3#13.3#4.3#22.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d4od#24.|13.#3od#9.2#d3o#25.|12.#4o2d#10.#4o#24.|12.#3o3d#9.#2d3o#24.|11.#4o4d#8.#2d3o#24.|11.#3o2#3d#8.#2d4o#23.|11.#3o#.#3d#7.#3d2o#24.|11.#2o#3.#3d2#4.#3d2#2o#23.|11.#2o#4.#4d#3.#2d#.#2o#23.|11.#3o#3.#4d#2.#3d#.#3o#22.|11.#3o#4.4#3.#3d#.#4o#21.|12.3#13.3#3.#o2#22.|35.#24.|60.|60."],"fareja":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|5.2#53.|4.#2l#52.|4.#2o#52.|4.#do#52.|5.#ol#51.|5.#do#51.|6.#ol#4.2#14.3#27.|6.#dol4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gyg#21.|9.#25ogygl#20.|9.#d8o8d8ogygol2#18.|10.#d7o8#8ogyg4d2#16.|11.#d5od#6.#d7ogy2g3d2l#15.|12.#d4o#8.#2d6ogyg3d2ol#14.|13.#4o#9.2#d3o2dgyg3d3ol#13.|13.#4o#11.#3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|14.#2o#12.#3o#3.#7d3o3n#7.|14.#3o#11.#2od#4.9#2d2#8.|15.#2o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gyg#21.|9.#25ogygl#20.|9.#d8o8d8ogygol2#18.|10.#d7o8#8ogyg4d2#16.|11.#d5od#6.#d7ogy2g3d2l#15.|12.#d4o#8.#2d6ogyg3d2ol#14.|13.#4o#9.2#d3o2dgyg3d3ol#13.|13.#4o#11.#3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|14.#2o#12.#3o#3.#7d3o3n#7.|14.#3o#11.#2od#4.9#2d2#8.|15.#2o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60."],"andar":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#4od#dy3d2oweo2#12.|12.#2d4o#9.#4od2#2t2d2o2eo2l3#9.|12.#3d3o#9.#3o3d#2td8ol2n#8.|11.#4d4o#8.#3o3d2#d10o3n#7.|11.#3d2#3o#7.#4o3d#.#7d3o3n#7.|11.#3d#.#3o#6.#3o#3d#2.9#2d2#8.|11.#2d#3.#3o2#4.#2o#.#2d#9.4#10.|11.#2d#4.#4o#3.#2o#.#3d#22.|11.#3d#3.#4o#2.#3o#2.#3d#21.|11.#3d#4.4#3.#3o#2.#3d#21.|12.3#13.3#4.3#22.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|9.#50.|7.2#l#49.|6.#2l#50.|6.#2o#50.|6.#do#50.|7.#ol#49.|7.#2o#3.2#14.3#27.|7.#do4#2l11#.2#3l2#25.|8.#d4l2o11l#2l3o2l#24.|9.#17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d5odgyg3d3ol#13.|13.#4o#9.2#d3od#dy3d2oweo2#12.|13.#4o#11.#3od2#2t2d2o2eo2l3#9.|13.#4o#11.#3od2#2td8ol2n#8.|13.#4o#11.#3od#.#d10o3n#7.|13.#4o#11.#3od#2.#7d3o3n#7.|14.#2o#12.#3o#4.9#2d2#8.|14.#3o#11.#2od#11.4#10.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|4.#55.|3.#l#54.|3.#ol#53.|3.#do#53.|4.#dl#52.|5.#ol#51.|5.#do2#4.2#14.3#27.|6.#d2l4#2l11#.2#3l2#25.|7.#do4l2o11l#2l3o2l#24.|8.#d17ol7ol#23.|9.#25oyl#22.|9.#24ogy2g#21.|9.#24o2gygl#20.|9.#25ogygol2#18.|9.#d8o8d8ogyg4d2#16.|10.#d7o8#8ogyg4d2l#15.|11.#d5od#6.#d7o2gyg3d2ol#14.|12.#d4o#8.#2d4o2dgyg3d3ol#13.|13.#3od#9.2#d3o2#dy3d2oweo2#12.|12.#4o2d#10.#4o2#2t2d2o2eo2l3#9.|12.#3o3d#9.#2d3o2#2td8ol2n#8.|11.#4o4d#8.#2d3o#.#d10o3n#7.|11.#3o2#3d#8.#2d4o#.#7d3o3n#7.|11.#3o#.#3d#7.#3d2o#3.9#2d2#8.|11.#2o#3.#3d2#4.#3d2#2o#9.4#10.|11.#2o#4.#4d#3.#2d#.#2o#23.|11.#3o#3.#4d#2.#3d#.#3o#22.|11.#3o#4.4#3.#3d#.#4o#21.|12.3#13.3#3.#o2#22.|35.#24.|60.|60."],"alta":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60."],"trote":["60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#5o#8.#2d5o#24.|12.#d5o#8.2#4od#24.|12.#3d3o#9.#4od#24.|11.#4d4o#8.#3o3d#23.|11.#3d2#3o#7.#4o3d#23.|11.#2d#2.#3o#6.#3o#4d#22.|10.#3d#3.#3o3#3.#3o2#3d#22.|10.#2d#5.#5o#.#3o#2.#2d#22.|10.#2d#6.#4o#.#2o#3.#2d2#21.|9.#4d#6.#o2#.#3o#4.#3d#20.|10.#d2#8.#3.#2o#5.#3d#20.|11.#15.2#7.3#21.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|9.#24.#3d3#19.|7.2#l#23.#3d3l#18.|6.#2l#23.#4d3ol#17.|6.#2o#23.#4d2owe6#12.|6.#do#22.#l4d2o2e4l2n#11.|7.#ol#20.#l2o2d9o3n#10.|7.#2o#3.2#14.#l14o3n#10.|7.#do4#2l11#.2#l2gy7o2d2o2d2#11.|8.#d4l2o11l#2lo2gyg3o3d6#13.|9.#17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d5o#24.|13.#4o#9.2#d3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|13.#4o#11.#3od#24.|14.#2o#12.#3o#25.|14.#3o#11.#2od#25.|15.#2o#11.#2od#25.|15.#2o#11.#2od#25.|15.#3o#10.#3od#24.|16.#o#11.#2od#25.|17.#13.3#26.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|4.#29.#3d3#19.|3.#l#28.#3d3l#18.|3.#ol#26.#4d3ol#17.|3.#do#26.#4d2owe6#12.|4.#dl#24.#l4d2o2e4l2n#11.|5.#ol#22.#l2o2d9o3n#10.|5.#do2#4.2#14.#l14o3n#10.|6.#d2l4#2l11#.2#l2gy7o2d2o2d2#11.|7.#do4l2o11l#2lo2gyg3o3d6#13.|8.#d17ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#5o#8.#2d4od#24.|12.#4o2d#8.2#d3o#25.|12.#3o3d#10.#4o#24.|11.#4o4d#8.#2d3o#24.|11.#3o2#3d#8.#2d4o#23.|11.#2o#2.#3d#6.#4d3o#23.|10.#3o#3.#3d3#3.#3d#3o#23.|10.#2o#5.#5d#2.#2d#.#3o#22.|10.#2o#6.#4d#.#2d#3.#2o2#21.|9.#4o#6.#d2#.#4d#2.#4o#20.|10.#o2#8.#4.#d2#4.#2o#21.|11.#16.#7.2#22.|60.|60."],"corre":["60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.2#23.|34.#2d3#20.|33.#4d2l#19.|#32.#4d2ol#18.|l2#29.#5doewl6#12.|d2l#28.#o4do2eo4l2n#11.|2#dl#26.#lo3d8o4n#10.|2.#dl#24.#l3od10o2n#11.|3.#dl#22.2#2oy7od3o2d#12.|4.#ol2#3.6#.10#2l2gyg3o3d6#13.|4.#2d2l3#6l#10l2o2gyg3o3#.3#15.|5.2#2d3l6ol12og2yg2od#21.|7.2#d21og2yg2o#22.|9.#22oy2g2o#22.|8.#l27o#22.|9.#23o2t2o#22.|9.#d8o8d6o2tod#22.|10.#d7o8#d7od#23.|11.#d6o#7.#d6o#24.|12.#5od#8.#2d4od2#22.|11.#d4od#10.3#5od#21.|10.#d4o2#14.#5od#20.|9.#d4o#17.#4od#20.|9.#d3o#19.#3o2d3#17.|8.#2d2o#21.2#2o4d#16.|8.#d3o#22.#4od#17.|7.#2d2o#24.#3o#18.|7.#d4o#24.3#19.|8.2#o2#47.|10.#49.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|35.3#22.|#33.#3d3#19.|l3#30.#3d3l#18.|#3l#28.#4d3ol#17.|.#dol#27.#4d2owe6#12.|2.#do#26.#l4d2o2e4l2n#11.|3.#dl#24.#l2o2d9o3n#10.|4.#dl2#5.2#14.#l14o3n#10.|5.#d2l#.3#2l11#.2#l2gy7o2d2o2d2#11.|6.#2dl#3l2o11l#2lo2gyg3o3d6#13.|7.2#dl16ol3o2gyg3o3#2.2#15.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#27o#22.|9.#22o3t2o#22.|9.#d8o8d5o3tod#22.|10.#d7o8#9o#23.|11.#d5od#6.#d7od#23.|12.#d3od#8.#2d5o#24.|13.#3o#10.2#d3od#24.|13.#3o#12.#4o#24.|12.#d3o#13.#3od#23.|12.#d3o#13.#3od#23.|12.#d2o#14.#3od#23.|12.#d2o#15.#2od#23.|12.#d2o#15.#2od#23.|12.#d3o#14.#3od#22.|12.#d4o#13.#3o2d#21.|13.#do2#15.#od2#22.|14.2#18.2#24.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|#59.|l2#57.|#2l2#31.3#21.|.#d2l#29.#3d2#19.|2.#do#28.#4d2l#18.|3.#dl#26.#5d2ol#17.|4.#dl#25.#o4d2owl2#15.|5.#ol#23.#lo4do2eo2l4#11.|5.#2dl2#.6#13.#l2o3d7ol3n#10.|6.2#d2l#6l9#2.2#l14o4n#9.|8.#dol6o9l2#2logyg12o2n#10.|9.#17o2l3ogy2g2o5d#4d#11.|9.#21o2gy2g2o10#12.|9.#21o2gyg2od#21.|9.#22ogyg2o#22.|9.#d26o#22.|10.#d7o7d6o3t2o#22.|11.#7o7#d5o2t2od#22.|11.#d6o#6.#d7od#23.|12.#2d3od#7.#d5od#24.|13.2#4od#7.#5o#25.|15.#4o#7.#4od#25.|16.#3o#7.#4o#26.|15.#3o#7.#4o#27.|15.#2o#8.#3o#28.|14.#3od#8.#2o2#27.|14.#3o#9.#3od#26.|15.3#10.#4o#26.|29.#o2#27.|30.#29.|60.|60.","60.|60.|60.|60.|60.|60.|60.|60.|60.|60.|36.2#22.|2#33.#2d2#20.|2l2#30.#4dl2#18.|#d2l#28.#4d2o2l#17.|.2#dl#27.#4d2owe4#14.|3.#ol#25.#l4d2o2e4l3#11.|3.#dol#23.#l2o3d8o3n#10.|4.#dol#4.4#13.#l3od10o3n#10.|5.#2dl4#4l10#.3#ogy12o2d#11.|6.2#d4l4o10l#3l2gy2g2o5d2#d2#12.|8.#d17ol3o2gyg3o8#14.|9.#21o2gyg2od#21.|9.#21o2gyg2o#22.|9.#24og2o#22.|9.#d26o#22.|10.#d7o8d5o3tod#22.|11.#7o8#5o3to#23.|11.#d5od#6.#d7od#23.|12.#d4o#8.#2d4od#24.|13.2#3o#9.2#4o#25.|14.#3o#10.#4o#25.|14.#4o#9.#3od#25.|14.#d3o#9.#3od#25.|14.#d3o#8.#4od#25.|15.#2o#10.#2od#26.|14.#d2o#10.#2od#26.|14.#d3o#9.#2od#26.|14.#d3o#9.#3od#25.|15.#do#10.#2o2d#25.|16.2#12.4#26.|60.|60."]}};
 /* Cenário da abertura (computador): rua de Campinas em pixel art, 320×180, com pixels do mesmo tamanho dos do cachorro.
-   Partes que se mexem: nuvens andando, fios do poste balançando, copa do ipê balançando e pétalas caindo. */
+   Partes que se mexem: nuvens andando, fios do poste balançando, copa do ipê amarelo balançando e flores caindo. */
 function cenaXereta(canvas, frente){
   // canvas: o fundo (atrás do cachorro); frente: poste, placa do ônibus e ipê, que ficam na frente dele
   const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d'), ctxF = frente.getContext('2d'); ctx.imageSmoothingEnabled = false; ctxF.imageSmoothingEnabled = false;
@@ -1325,8 +1331,9 @@ function cenaXereta(canvas, frente){
   const [fixo, gf] = novo(); g = gf;
   // canteiro do ipê
   cor('#7a5233'); r(266, 164, 26, 5); cor('#5f3f27'); r(266, 164, 26, 1);
-  // tronco do ipê
-  cor(OUT); r(274, 92, 9, 74); cor('#7a5233'); r(275, 92, 7, 74); cor('#5c3b24'); r(280, 92, 1, 74);
+  // tronco do ipê amarelo: casca cinza-amarronzada, com luz de um lado e sombra do outro
+  cor(OUT); r(273, 100, 10, 66); cor('#8a7b6e'); r(274, 100, 8, 66); cor('#a89a8c'); r(275, 100, 2, 66); cor('#5f544b'); r(280, 100, 2, 66);
+  cor('#6f6358'); for (let y = 106; y < 162; y += 9) r(276 + (y % 3), y, 3, 1);
   // lixeira laranja num pé de metal, à esquerda do poste (longe de onde o cachorro fareja)
   { const lx = 4; cor(OUT); r(lx + 8, 138, 3, 28); r(lx, 116, 19, 23); cor('#f08a24'); r(lx + 1, 117, 17, 21); cor('#f7ad5c'); r(lx + 1, 117, 3, 21); cor('#c96b12'); r(lx + 16, 117, 1, 21); cor(OUT); r(lx + 3, 119, 13, 2); }
   // poste de concreto com braço de luz
@@ -1343,13 +1350,32 @@ function cenaXereta(canvas, frente){
       if (i === 1) { r(x + 1, yT - 3); r(x, yT - 2); r(x + 2, yT - 2); }   // acento circunflexo do Â
       x += gl[0].length + 1; });
     x += 2; L['>'].forEach((lin, yy) => [...lin].forEach((p, xx) => { if (p === '#') r(x + xx, yT + yy); })); }
-  // 4) copa do ipê (balança em faixas: mais em cima, quase nada perto do tronco)
+  // 4) copa do ipê amarelo (como em Campinas no inverno: galhos finos e escuros quase sem folhas, cachos amarelos espalhados com céu
+  //    aparecendo entre eles). Balança em faixas: mais em cima, quase nada perto do tronco.
   const [copa, gk] = novo(); g = gk;
-  cor('#5c3b24'); [[279,98,300,74],[277,100,254,78],[279,94,282,64]].forEach(([x0,y0,x1,y1]) => { const n = Math.max(Math.abs(x1-x0), Math.abs(y1-y0)); for (let i = 0; i <= n; i++) r(Math.round(x0+(x1-x0)*i/n), Math.round(y0+(y1-y0)*i/n), 2, 2); });
-  [[256,72,12],[280,58,15],[302,70,12],[266,84,10],[292,85,10],[244,88,8],[312,88,8],[283,40,10],[264,52,9],[300,50,9]].forEach(([cx, cy, rr]) => {
-    for (let y = cy - rr; y <= cy + rr; y++) for (let x = cx - rr - 3; x <= cx + rr + 3; x++) { const d = ((x - cx) / (rr + 3)) ** 2 + ((y - cy) / rr) ** 2;
-      if (d <= 1 && sorte() < (d < .7 ? 1 : .6)) { cor(y - cy > rr * .45 ? '#c9427f' : (y - cy < -rr * .4 && sorte() < .5 ? '#ffb3d6' : (sorte() < .72 ? '#f06aa8' : (sorte() < .5 ? '#e2559a' : '#ff8cc0')))); r(x, y); } } });
-  const TOPO_COPA = 28, BASE_COPA = 100;
+  const linha = (x0, y0, x1, y1, esp, c) => { cor(c); const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1);
+    for (let i = 0; i <= n; i++) r(Math.round(x0 + (x1 - x0) * i / n - (esp - 1) / 2), Math.round(y0 + (y1 - y0) * i / n), esp, 1); };
+  const pontas = [], meios = [];
+  const galho = (x, y, ang, comp, nivel) => {
+    const x1 = x + Math.cos(ang) * comp, y1 = y + Math.sin(ang) * comp, esp = nivel >= 4 ? 3 : nivel >= 2 ? 2 : 1;
+    linha(x, y, x1, y1, esp + (esp > 1 ? 1 : 0), '#3e352f'); linha(x, y, x1, y1, esp, nivel >= 3 ? '#7d6f62' : '#5e5148');
+    if (nivel <= 2) meios.push([(x + x1) / 2, (y + y1) / 2]);
+    if (nivel === 0) { pontas.push([x1, y1]); return; }
+    const abre = 0.32 + sorte() * 0.3, n = nivel >= 3 && sorte() < .45 ? 3 : 2;
+    for (let k = 0; k < n; k++) { const lado = n === 3 ? (k - 1) : (k ? 1 : -1);
+      galho(x1, y1, ang + lado * abre + (sorte() - .5) * .3, comp * (0.7 + sorte() * 0.16), nivel - 1); }
+  };
+  galho(277, 101, -Math.PI / 2 - 0.3, 24, 5);           // o tronco se abre em braços longos que sobem e se espalham, como na foto
+  galho(279, 101, -Math.PI / 2 + 0.28, 22, 5);
+  galho(278, 106, -Math.PI / 2 - 0.8, 11, 3);
+  const cacho = (cx, cy, rr) => {
+    for (let y = Math.floor(cy - rr); y <= cy + rr; y++) for (let x = Math.floor(cx - rr - 1); x <= cx + rr + 1; x++) {
+      const d = ((x - cx) / (rr + 1)) ** 2 + ((y - cy) / rr) ** 2; if (d > 1 || sorte() > (d < .4 ? .9 : .45)) continue;
+      const alto = y - cy < -rr * .35, baixo = y - cy > rr * .4;
+      cor(baixo ? '#d99a00' : alto && sorte() < .55 ? '#ffe14a' : sorte() < .08 ? '#fff27a' : '#f7c600'); r(x, y); } };
+  pontas.forEach(([x, y]) => cacho(x, y - 1, 3 + sorte() * 2.5));
+  meios.forEach(([x, y]) => { if (sorte() < .55) cacho(x + (sorte() - .5) * 4, y, 2 + sorte() * 2); });
+  const TOPO_COPA = 14, BASE_COPA = 101;
   const petalas = Array.from({length: 10}, () => ({x: 230 + sorte() * 90, y: sorte() * 90, v: 4 + sorte() * 4, f: sorte() * 6}));
   // fios: das pontas da cruzeta até as bordas
   const FIOS = [[17, 13, 0, 20, 4], [48, 13, W, 10, 16], [48, 16, W, 18, 19], [17, 16, 0, 25, 5]];
@@ -1364,7 +1390,7 @@ function cenaXereta(canvas, frente){
     FIOS.forEach(([x0, y0, x1, y1, f], i) => fio(x0, y0, x1, y1, f + Math.sin(t * 1.4 + i * 1.7) * (f > 8 ? 2.2 : .9)));
     const vento = Math.sin(t * 0.9) + .35 * Math.sin(t * 2.3);
     for (let y = TOPO_COPA; y < BASE_COPA; y += 2) { const dx = Math.round(vento * 1.8 * (BASE_COPA - y) / (BASE_COPA - TOPO_COPA)); ctxF.drawImage(copa, 0, y, W, 2, dx, y, W, 2); }
-    petalas.forEach(p => { const y = (p.y + t * p.v) % 90 + 70, x = Math.round(p.x - (t * 3 + p.f * 5) % 50 + Math.sin(t * 2 + p.f) * 2); g.fillStyle = (p.f > 3) ? '#ff8cc0' : '#f06aa8'; r(x, Math.round(y)); });
+    petalas.forEach(p => { const y = (p.y + t * p.v) % 90 + 70, x = Math.round(p.x - (t * 3 + p.f * 5) % 50 + Math.sin(t * 2 + p.f) * 2); g.fillStyle = (p.f > 3) ? '#ffe14a' : '#f7c600'; r(x, Math.round(y)); });
   }
   let visivel = true, rodando = false, ultimo = -1; const inicio = performance.now();
   const laco = agora => { if (!visivel || !canvas.isConnected) { rodando = false; return; }
@@ -1703,10 +1729,10 @@ const ICO_CHEIO = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="
 const ICO_SAI_CHEIO = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M7 2v5H2M18 7h-5V2M13 18v-5h5M2 13h5v5"/></svg>';
 function telaCheia(area, liga){
   if (liga) {
-    area.classList.add('cheio'); document.body.classList.add('mapa-cheio');
+    area.classList.add('cheio'); if (!document.body.classList.contains('mapa-cheio')) { document.body.classList.add('mapa-cheio'); travaPagina(); }
     if (area.requestFullscreen && !document.fullscreenElement) area.requestFullscreen().catch(() => {});
   } else {
-    area.classList.remove('cheio'); document.body.classList.remove('mapa-cheio');
+    area.classList.remove('cheio'); if (document.body.classList.contains('mapa-cheio')) { document.body.classList.remove('mapa-cheio'); soltaPagina(); }
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }
   area.dispatchEvent(new CustomEvent('redesenha'));
@@ -2606,7 +2632,7 @@ const orcFmt = v => {
 };
 const orcPct = (a, b) => b ? (100 * a / b).toLocaleString('pt-BR', {maximumFractionDigits: 1}) + '%' : '—';
 // esferas (cores fixas, com borda escura: funcionam no tema claro e no escuro)
-const ESF = {cidade: ['A própria cidade', '#7a4eb6'], estado: ['Governo do Estado', '#f9992a'], uniao: ['Governo Federal', '#3d7fc4'],
+const ESF = {cidade: ['A própria cidade', '#7a4eb6'], estado: ['Governo do Estado', '#f4a50c'], uniao: ['Governo Federal', '#3d7fc4'],
   fundeb: ['FUNDEB e outras instituições', '#1f8a5b'], misto: ['Origem não separada no relatório', '#cfc8bd'], cred: ['Empréstimos', '#8a9097'], ded: ['Retenção', '#f32b0a']};
 // nomes simples (nossos) e o nome usado no relatório, para cada origem da receita
 const RECK = {
@@ -2644,8 +2670,8 @@ const TIPOK = {PESSOAL: ['Salários e encargos', 'Pagamento de servidores ativos
   AMORT: ['Pagamento da dívida', 'Parcelas dos empréstimos', 'Amortização da Dívida'],
   INVERS: ['Inversões financeiras', 'Compra de imóveis, participação em empresas e empréstimos concedidos', 'Inversões Financeiras'],
   RESERVA: ['Reserva de contingência', 'Valor guardado no orçamento para imprevistos; só aparece no planejado', 'Reserva de Contingência']};
-const TIPOC = {PESSOAL: '#7a4eb6', CUSTEIO: '#f9992a', INVEST: '#1f8a5b', JUROS: '#f32b0a', AMORT: '#3d7fc4', INVERS: '#f2c81c', RESERVA: '#cfc8bd'};
-const AREAC = ['#7a4eb6', '#f9992a', '#3d7fc4', '#1f8a5b', '#f06aa8', '#f2c81c', '#c5fc1d', '#f32b0a'];
+const TIPOC = {PESSOAL: '#7a4eb6', CUSTEIO: '#f4a50c', INVEST: '#1f8a5b', JUROS: '#f32b0a', AMORT: '#3d7fc4', INVERS: '#f2c81c', RESERVA: '#cfc8bd'};
+const AREAC = ['#7a4eb6', '#f4a50c', '#3d7fc4', '#1f8a5b', '#f06aa8', '#f2c81c', '#c5fc1d', '#f32b0a'];
 // explicações curtas de áreas com nome técnico (o nome continua como no relatório)
 const AREAX = {'Encargos Especiais': 'dívidas, precatórios e outros pagamentos que não pertencem a uma área específica',
   'Previdência Social': 'aposentadorias e pensões de servidores municipais', 'Administração': 'gestão da Prefeitura, planejamento, arrecadação e informática',
@@ -2717,9 +2743,9 @@ function viewOrcamento(){
       const leg = s => `<strong>${s.a}</strong> · Arrecadado ${orcFmt(s.r)} · Gasto ${orcFmt(s.g)} · Diferença ${orcFmt(s.r - s.g)}`;
       el.innerHTML = `<p class="oleitura" id="oleit" aria-live="polite">${leg(S.find(s => s.a === FO.ano) || S[S.length - 1])}</p>
         <div class="ocols" role="group" aria-label="Arrecadado e gasto por ano">${S.map(s => `<button type="button" class="ocol${s.a === FO.ano ? ' sel' : ''}" data-a="${s.a}" aria-pressed="${s.a === FO.ano}" aria-label="${s.a}: arrecadado ${orcFmt(s.r)}, gasto ${orcFmt(s.g)}">
-          <span class="opilhas"><span class="opilha" style="height:${100 * s.r / max}%;background:#7a4eb6"></span><span class="opilha" style="height:${100 * s.g / max}%;background:#f9992a"></span></span>
+          <span class="opilhas"><span class="opilha" style="height:${100 * s.r / max}%;background:#7a4eb6"></span><span class="opilha" style="height:${100 * s.g / max}%;background:#f4a50c"></span></span>
           <span class="oano">${String(s.a).slice(2)}<span class="sr">${s.a}</span></span></button>`).join('')}</div>
-        ${legendaCores([['Arrecadado', '#7a4eb6'], ['Gasto', '#f9992a']])}`;
+        ${legendaCores([['Arrecadado', '#7a4eb6'], ['Gasto', '#f4a50c']])}`;
       const leit = el.querySelector('#oleit');
       el.querySelectorAll('.ocol').forEach(b => { const s = S.find(x => x.a === +b.dataset.a);
         ['mouseenter', 'focus'].forEach(ev => b.addEventListener(ev, () => { leit.innerHTML = leg(s); }));
@@ -2797,7 +2823,7 @@ function viewOrcamento(){
     <section class="ocard oblk oplena" id="oplanb" aria-labelledby="h-oplanb"><h2 id="h-oplanb">Planejado e executado em ${a}</h2><div><p class="note" style="margin-top:0"><strong>Aprovado</strong> é o orçamento votado pela Câmara. <strong>Atualizado</strong> inclui as mudanças feitas ao longo do ano.</p>
       <h3 class="osubt">Receita</h3>${tr('Aprovado', orcV(d.rec.ini, a), orcV(mxP, a), '#d6c5ff')}${tr('Atualizado', orcV(d.rec.atu, a), orcV(mxP, a), '#b79bf0')}${tr('Arrecadado', R, orcV(mxP, a), '#7a4eb6')}
       <p class="note">Arrecadou ${orcPct(d.rec.real, d.rec.ini)} do previsto no orçamento aprovado.</p>
-      <h3 class="osubt">Despesa</h3>${tr('Aprovado', orcV(d.des.ini, a), orcV(mxP, a), '#fcd29e')}${tr('Atualizado', orcV(d.des.atu, a), orcV(mxP, a), '#fbb664')}${tr('Gasto', G, orcV(mxP, a), '#f9992a')}
+      <h3 class="osubt">Despesa</h3>${tr('Aprovado', orcV(d.des.ini, a), orcV(mxP, a), '#fbdb9e')}${tr('Atualizado', orcV(d.des.atu, a), orcV(mxP, a), '#f8c461')}${tr('Gasto', G, orcV(mxP, a), '#f4a50c')}
       <p class="note">Gastou ${orcPct(d.des.liq, d.des.ini)} do valor aprovado e ${orcPct(d.des.liq, d.des.atu)} do atualizado.</p>
       <h3 class="osubt">Por área</h3>
       <div class="tablewrap"><table class="t"><caption class="sr">Planejado e executado por área em ${a}</caption><thead><tr><th scope="col">Área</th><th scope="col" class="ev">Aprovado</th><th scope="col" class="ev">Atualizado</th><th scope="col" class="ev">Gasto</th><th scope="col" class="ev">Gasto / aprovado</th></tr></thead>
@@ -2842,7 +2868,7 @@ function rota(){
   document.title = titulo + ' – Xereta';
   document.querySelectorAll('nav.tabs a').forEach(a => { if (a.dataset.view === tab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
 }
-window.addEventListener('hashchange', () => { const ac = document.querySelector('.abox.cheio'); if (ac) telaCheia(ac, false); document.body.classList.remove('mapa-cheio'); fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
+window.addEventListener('hashchange', () => { const ac = document.querySelector('.abox.cheio'); if (ac) telaCheia(ac, false); if (document.body.classList.contains('mapa-cheio')) { document.body.classList.remove('mapa-cheio'); soltaPagina(); } fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
 rota();
 })();
 </script>
