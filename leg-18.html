@@ -896,6 +896,8 @@ tr.psel td{background:var(--accent-soft)}
 .leaflet-container .leaflet-marker-pane .efoto img{width:100%!important;height:100%!important;max-width:none;object-fit:cover;display:block}
 .efmark:hover .efoto{border-color:var(--accent)}
 .elist li .av{vertical-align:middle;margin-right:4px}
+.plist2 .vbar{margin:.1rem 0 .25rem;max-width:30rem}
+.plist2 .psess{font-size:.88rem}
 /* orçamento: pizza */
 .opizza .opz-sombra{fill:var(--sh)}
 .opizza .opz-borda{fill:none;stroke:var(--bd);stroke-width:2}
@@ -984,6 +986,7 @@ tr.psel td{background:var(--accent-soft)}
 (function(){
 const D = JSON.parse(document.getElementById('data').textContent);
 const SAPL = 'https://sapl.campinas.sp.leg.br';
+const urlSapl = u => !u ? u : /^https?:\/\//i.test(u) ? u : SAPL + (u.startsWith('/') ? '' : '/') + u;
 const HOJE = D.hoje;
 const app = document.getElementById('app');
 const V = {}; D.V.forEach(v => V[v.id] = v);
@@ -2097,7 +2100,7 @@ function viewSessao(id){
     <div class="fact"><b>${vs.filter(v => NOM[v.id]).length}</b><span>com voto de cada parlamentar</span></div>
     <div class="fact"><b>${pres ? pres.size : '–'}</b><span>parlamentares presentes</span></div>
   </div>
-  ${(s.pauta || s.ata) ? `<div class="docs">${s.pauta ? `<a class="btn ghost" href="${esc(s.pauta)}" target="_blank" rel="noopener">Pauta (PDF)</a>` : ''}${s.ata ? `<a class="btn ghost" href="${esc(s.ata)}" target="_blank" rel="noopener">Ata (PDF)</a>` : ''}</div>` : ''}`;
+  ${(s.pauta || s.ata) ? `<div class="docs">${s.pauta ? `<a class="btn ghost" href="${esc(urlSapl(s.pauta))}" target="_blank" rel="noopener">Pauta (PDF)</a>` : ''}${s.ata ? `<a class="btn ghost" href="${esc(urlSapl(s.ata))}" target="_blank" rel="noopener">Ata (PDF)</a>` : ''}</div>` : ''}`;
   if (vs.length && vs.every(v => v.res === 3)) h += `<div class="callout" style="margin-top:1.5rem"><p>Nenhum item da pauta foi votado nesta sessão. O sistema da Câmara não informa o motivo, que pode ser falta de quórum, pedido de adiamento ou encerramento antecipado.</p></div>`;
   if (!vs.length) h += `<div class="section"><div class="empty">${s.t === 'Solene' ? 'Sessões solenes são homenagens e não têm votações nem lista de presença.' : 'Não há votações registradas para esta sessão.'}</div></div>`;
   else h += `<section class="section" aria-labelledby="h-vot"><h2 id="h-vot">Votações</h2>
@@ -2664,7 +2667,9 @@ const PROJ = (D.PROJ || []).map(r => { const m = D.MAT[r[0]] || [];
 /* situação: o resultado da última votação decisiva do próprio projeto em plenário (não sabe de arquivamento, retirada ou sanção) */
 { const ult = {}; VT.forEach(x => { if (!RESG.aprov.includes(x.res) && !RESG.nao.includes(x.res)) return; const d = (Sid[x.s] || {}).d || '';
     const u = ult[x.m]; if (!u || d > u.d || (d === u.d && x.id > u.id)) ult[x.m] = {d, id:x.id, res:x.res}; });
-  PROJ.forEach(p => { const u = ult[p.id]; p.st = !u ? 'pend' : RESG.aprov.includes(u.res) ? 'aprov' : 'nao'; p.nom = !!(u && NOM[u.id]); }); }
+  const apr = {}; VT.forEach(x => { if (RESG.aprov.includes(x.res) && Sid[x.s]) (apr[x.m] = apr[x.m] || new Set()).add(x.s); });
+  PROJ.forEach(p => { const u = ult[p.id]; p.st = !u ? 'pend' : RESG.aprov.includes(u.res) ? 'aprov' : 'nao'; p.nom = !!(u && NOM[u.id]); p.vid = u ? u.id : null;
+    p.sapr = p.st === 'aprov' ? [...(apr[p.id] || [])].sort((a, b) => (Sid[a].d || '').localeCompare(Sid[b].d || '')) : []; }); }
 const SIT_P = {aprov:['Aprovado','b1'], nao:['Rejeitado','b2'], pend:['Ainda não votado','bpend']};
 if (PROJ.length) { const t = document.getElementById('tabProj'); if (t) t.hidden = false; }
 const FPJ = {anos:[], area:'', tipo:'todos', st:'todos', tv:'todas', autor:'', q:'', aba:'area', n:'25', tema:false};
@@ -2681,6 +2686,8 @@ const rotProj = p => `${esc(TIPOS[p.sig] || p.sig)} nº ${p.n}/${p.ano}`;
 const itemProj = p => `<li><strong><a href="${SAPL}/materia/${p.id}" target="_blank" rel="noopener">${rotProj(p)}</a></strong>
   <span class="pmeta">${fmtData(p.d)}</span>
   <span class="ptags"><span class="badge b3">${esc(p.a)}</span><span class="badge ${SIT_P[p.st][1]}">${SIT_P[p.st][0]}</span></span>
+  ${p.nom && NOM[p.vid] ? barra(NOM[p.vid]) : ''}
+  ${p.sapr.length ? `<span class="psess">Aprovado ${p.sapr.length > 1 ? 'nas sessões' : 'na sessão'} de ${p.sapr.map(s => `<a href="#s-${s}">${fmtData(Sid[s].d)}</a>`).join(p.sapr.length > 2 ? ', ' : ' e ').replace(/, ([^,]*)$/, ' e $1')}</span>` : ''}
   <span class="pem clamp">${esc(p.em)}</span>
   <span class="paut">Autoria: ${p.aut.length ? p.aut.map(a => a.p && V[a.p] ? `<a href="#v-${a.p}">${esc(V[a.p].nome)}</a>` : esc(a.nome)).join(', ') : 'não informada'}</span></li>`;
 function viewProjetos(){
