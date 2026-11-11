@@ -896,6 +896,24 @@ tr.psel td{background:var(--accent-soft)}
 .leaflet-container .leaflet-marker-pane .efoto img{width:100%!important;height:100%!important;max-width:none;object-fit:cover;display:block}
 .efmark:hover .efoto{border-color:var(--accent)}
 .elist li .av{vertical-align:middle;margin-right:4px}
+/* orçamento: pizza */
+.opizza .opz-sombra{fill:var(--sh)}
+.opizza .opz-borda{fill:none;stroke:var(--bd);stroke-width:2}
+.opz-anos .chips{gap:.3rem}
+.opz-anos .chip{min-height:1.8rem;padding:.1rem .5rem;font-size:.78rem;box-shadow:2px 2px 0 var(--sh)}
+.opz-anos .chip[aria-pressed="true"]{box-shadow:none}
+.opizza{display:block;max-width:100%;height:auto;margin:.4rem auto 0;color:var(--ink);overflow:visible}
+.opizza .opz-fatias path,.opizza .opz-fatias circle{stroke:var(--bd);stroke-width:2;stroke-linejoin:round}
+.opizza .opz-fatias g:hover path{opacity:.85}
+.opizza .opz-p{font:700 14px var(--body);fill:var(--ink)}
+.opizza .opz-v{font:400 12px var(--body);fill:var(--muted)}
+#ograf{margin-top:.9rem}
+.opz-anos{margin:.7rem 0 .3rem}
+.ogsel{margin-top:.6rem}
+.oblk .opizza{margin-top:.6rem}
+.oblk:has(.opizza) .oblk-corpo{max-height:none}
+.oblk-mais[hidden]{display:none}
+@media (max-width:640px){.opizza .opz-p{font-size:13px}.opizza .opz-v{font-size:11px}}
 /* ano escolhido no gráfico Arrecadado e gasto: triângulo branco com borda, balançando de leve */
 .ocols{padding-top:1.9rem}
 .opilhas{position:relative}
@@ -1040,6 +1058,7 @@ btnTexto.addEventListener('click', () => { texto = (texto + 1) % 3; root.dataset
 document.getElementById('btnTema').addEventListener('click', () => {
   const atual = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const novo = atual === 'dark' ? 'light' : 'dark'; root.dataset.theme = novo; pref('pa-tema', novo);
+  if (window.__orcEvo && document.querySelector('#oevo .opizza')) window.__orcEvo();
 });
 
 /* ---------- celular: menu recolhido, topo que some ao rolar, filtros recolhidos, tabelas em cartões ---------- */
@@ -2771,7 +2790,7 @@ const ORC = D.ORC || null;
 if (ORC) { const t = document.getElementById('tabOrc'); if (t) t.hidden = false; }
 if (D.ELE && LEG.atual !== false) { const t = document.getElementById('tabEle'); if (t) t.hidden = false; }
 const ORC_ANOS = ORC ? Object.keys(ORC.anos).map(Number).sort((a, b) => a - b) : [];
-const FO = {ano: ORC_ANOS[ORC_ANOS.length - 1], infl: true, pc: false, modo: 'total', rec: 'imp', gasto: 'area', abertas: new Set()};
+const FO = {ano: ORC_ANOS[ORC_ANOS.length - 1], infl: true, pc: false, graf: 'pizza', recG: 'pizza', gastoG: 'pizza', modo: 'total', rec: 'imp', gasto: 'area', abertas: new Set()};
 // fator para levar valores de cada ano a reais de dezembro do último ano (IPCA acumulado nos anos seguintes)
 const orcFator = ano => { let f = 1; for (const a of ORC_ANOS) if (a > ano) { const r = ORC.ipca[a]; if (r == null) return null; f *= 1 + r / 100; } return f; };
 const ORC_FAT = {}; ORC_ANOS.forEach(a => { ORC_FAT[a] = orcFator(a); });
@@ -2856,7 +2875,8 @@ function viewOrcamento(){
   <p class="note obase" id="obase" aria-live="polite"></p>
   <section class="section ocard" aria-labelledby="h-oevo"><h2 id="h-oevo">Evolução de ${ORC_ANOS[0]} a ${ult}</h2>
     <div class="frow" id="omodo">${chips('O que mostrar', [['total','Arrecadado e gasto'],['area','Para onde foi'],['esf','De onde veio'],['tipo','Como foi gasto']], FO.modo)}</div>
-    <div id="oevo"></div><p class="note">Toque numa coluna para ver os detalhes desse ano abaixo.</p></section>
+    <div class="frow" id="ograf"${FO.modo === 'total' ? ' hidden' : ''}><span class="flabel">Gráfico</span>${chips('Tipo de gráfico', [['pizza','Pizza'],['evo','Evolução']], FO.graf)}</div>
+    <div id="oevo"></div><p class="note" id="oevonota">Toque numa coluna para ver os detalhes desse ano abaixo.</p></section>
   <div id="oano-sec"></div>
   <section class="section callout ocamara" aria-labelledby="h-ocam"><h2 id="h-ocam">O papel da Câmara</h2>
     <p>Todo ano a Prefeitura manda para a Câmara o projeto da Lei Orçamentária Anual, com a previsão de quanto vai arrecadar e quanto pode gastar em cada área. Parlamentares discutem, apresentam emendas e votam. Só depois de aprovado o orçamento pode ser executado.</p>
@@ -2870,7 +2890,8 @@ function viewOrcamento(){
     <p>O relatório não separa as despesas por secretaria e não traz o cálculo oficial dos mínimos constitucionais de saúde e educação.</p>`)}`;
   ligarToggle();
   ligarChips('#oano', k => { FO.ano = +k; desenhaAno(); desenhaEvo(); });
-  ligarChips('#omodo', k => { FO.modo = k; desenhaEvo(); });
+  ligarChips('#omodo', k => { FO.modo = k; document.getElementById('ograf').hidden = k === 'total'; desenhaEvo(); });
+  ligarChips('#ograf', k => { FO.graf = k; desenhaEvo(); });
   document.getElementById('oinfl').addEventListener('change', e => { FO.infl = e.target.checked; tudo(); });
   document.getElementById('opc').addEventListener('change', e => { FO.pc = e.target.checked; tudo(); });
   marcaFiltros('ofil', (FO.ano !== ult) + !FO.infl + FO.pc);
@@ -2889,8 +2910,69 @@ function viewOrcamento(){
     const ordem = FO.modo === 'area' ? [...ORC_TOP, 'Outras áreas'] : FO.modo === 'esf' ? ['cidade', 'estado', 'uniao', 'fundeb', 'misto', 'cred'] : Object.keys(TIPOC);
     return ordem.filter(k => S[k]).map(k => S[k]);
   };
+
+  // ----- pizza do ano escolhido: fatias com linhas puxando para o valor e a porcentagem
+  // pizza reutilizável: C = [{nome, cor, v}] (já na escala dos filtros), W = largura disponível
+  function pizzaHTML(C, W, rotulo){
+    C = C.filter(c => c.v > 0).sort((x, y) => y.v - x.v);
+    const tot = C.reduce((s, c) => s + c.v, 0) || 1;
+    W = Math.max(280, Math.min(W || 600, 720)); const estreito = W < 520;
+    const lab = estreito ? 70 : 110, r = Math.max(44, Math.min(estreito ? 80 : 130, (W - 2 * (lab + 30)) / 2));
+    const curto = v => estreito ? orcFmt(v).replace(/(\d{3}),\d+/, '$1') : orcFmt(v);
+    const GAP = estreito ? 30 : 34;
+    // posição de cada fatia, começando no alto e girando no sentido do relógio
+    let ang = -Math.PI / 2;
+    const ORD = []; for (let i = 0, j = C.length - 1; i <= j; i++, j--) { ORD.push(C[i]); if (i !== j) ORD.push(C[j]); }
+    const F = ORD.map(c => { const da = 2 * Math.PI * c.v / tot, m = ang + da / 2, f = {c, a0: ang, a1: ang + da, m, p: c.v / tot}; ang += da; return f; });
+    const lados = {d: F.filter(f => Math.cos(f.m) >= 0), e: F.filter(f => Math.cos(f.m) < 0)};
+    const precisa = Math.max(lados.d.length, lados.e.length) * GAP + 24;
+    const H = Math.max(2 * r + 60, precisa), cx = W / 2, cy = H / 2;
+    // rótulos de cada lado: na altura da fatia, sem se encostar
+    Object.entries(lados).forEach(([k, L]) => {
+      L.forEach(f => { f.ey = cy + (r + 14) * Math.sin(f.m); f.y = f.ey; });
+      L.sort((x, y) => x.y - y.y);
+      for (let i = 1; i < L.length; i++) if (L[i].y - L[i - 1].y < GAP) L[i].y = L[i - 1].y + GAP;
+      const excesso = L.length ? L[L.length - 1].y - (H - 16) : 0;
+      if (excesso > 0) { L.forEach(f => f.y -= excesso); for (let i = L.length - 2; i >= 0; i--) if (L[i + 1].y - L[i].y < GAP) L[i].y = L[i + 1].y - GAP; }
+      L.forEach(f => { f.lado = k; });
+      // as linhas dos rótulos das pontas (em cima e embaixo) ficam mais afastadas, para não se cruzarem nem se sobreporem
+      const meio = (L.length - 1) / 2; L.forEach((f, i) => { f.off = 8 + 5 * Math.round(Math.abs(i - meio)); });
+    });
+    const P = (rad, t) => [cx + rad * Math.cos(t), cy + rad * Math.sin(t)].map(n => n.toFixed(1));
+    // pizza no estilo dos gráficos de colunas: contorno escuro e sombra deslocada, sem suavizar demais
+    const PX = 6;
+    const fatia = f => { if (f.p > 0.9999) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${f.c.cor}"/>`;
+      const [x0, y0] = P(r, f.a0), [x1, y1] = P(r, f.a1); return `<path d="M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${f.a1 - f.a0 > Math.PI ? 1 : 0} 1 ${x1},${y1} Z" fill="${f.c.cor}"/>`; };
+    const q = n => (Math.round(n / 2) * 2).toFixed(0);
+    const rot = f => { const dir = f.lado === 'd' ? 1 : -1, [ex, ey] = P(r - PX, f.m), x0 = cx + dir * (r + f.off), lx = cx + dir * (r + Math.max(24, f.off + 10)), tx = lx + dir * 4;
+      return `<polyline points="${q(ex)},${q(ey)} ${q(x0)},${q(ey)} ${q(x0)},${q(f.y)} ${q(lx)},${q(f.y)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" shape-rendering="crispEdges"/>
+        <rect x="${(dir > 0 ? tx : tx - 10).toFixed(0)}" y="${(f.y - 12).toFixed(0)}" width="10" height="10" fill="${f.c.cor}" stroke="currentColor" stroke-width="2" shape-rendering="crispEdges"/>
+        <text x="${(tx + dir * 14).toFixed(1)}" y="${(f.y - 2).toFixed(1)}" text-anchor="${dir > 0 ? 'start' : 'end'}" class="opz-p">${orcPct(f.c.v, tot)}</text>
+        <text x="${tx.toFixed(1)}" y="${(f.y + 13).toFixed(1)}" text-anchor="${dir > 0 ? 'start' : 'end'}" class="opz-v">${curto(f.c.v)}</text>`; };
+    return `<svg class="opizza" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(rotulo || 'Pizza')}: ${esc(F.map(f => f.c.nome + ' ' + orcPct(f.c.v, tot)).join(', '))}">
+        <circle cx="${cx + 5}" cy="${cy + 5}" r="${r}" class="opz-sombra"/>
+        <g class="opz-fatias">${F.map(f => `<g><title>${esc(f.c.nome)}: ${orcFmt(f.c.v)} (${orcPct(f.c.v, tot)})</title>${fatia(f)}</g>`).join('')}</g>
+        <circle cx="${cx}" cy="${cy}" r="${r}" class="opz-borda"/>
+        <g class="opz-rot">${F.map(rot).join('')}</g></svg>
+      ${legendaCores(C.map(c => [c.nome, c.cor]))}`;
+  }
+  function desenhaPizza(el){
+    const a = FO.ano, C = serieCat().map(c => ({nome: c.nome, cor: c.cor, v: orcV(c.vals[a] || 0, a)})).filter(c => c.v > 0);
+    const tot = C.reduce((s, c) => s + c.v, 0) || 1, W = el.clientWidth || 600, estreito = W < 520;
+    const tipo = FO.modo === 'area' ? 'uma área' : FO.modo === 'esf' ? 'uma origem do dinheiro' : 'um tipo de gasto';
+    const anos = ORC_ANOS.slice().reverse();
+    el.innerHTML = `<div class="frow opz-anos" id="opzano"><span class="flabel">Ano</span>${estreito ? `<select id="opzsel" aria-label="Ano da pizza">${anos.map(x => `<option value="${x}"${x === a ? ' selected' : ''}>${x}</option>`).join('')}</select>` : chips('Ano da pizza', anos.map(x => [String(x), String(x)]), String(a))}</div>
+      <p class="oleitura"><strong>${a}</strong> · Total ${orcFmt(tot)}. Cada fatia é ${tipo}.</p>
+      ${pizzaHTML(C, W, 'Pizza de ' + a)}`;
+    el.querySelectorAll('#opzano .chip').forEach(b => b.addEventListener('click', () => escolheAno(+b.dataset.k)));
+    const sel = el.querySelector('#opzsel'); if (sel) sel.addEventListener('change', () => escolheAno(+sel.value));
+    window.__orcEvo = desenhaEvo;   // redesenha com as cores do tema quando o tema muda
+  }
   function desenhaEvo(){
     const el = document.getElementById('oevo'), ult = ORC_ANOS[ORC_ANOS.length - 1];
+    const nota = document.getElementById('oevonota');
+    if (nota) nota.textContent = FO.modo !== 'total' && FO.graf === 'pizza' ? 'Os detalhes do ano escolhido estão logo abaixo.' : 'Toque numa coluna para ver os detalhes desse ano abaixo.';
+    if (FO.modo !== 'total' && FO.graf === 'pizza') { desenhaPizza(el); return; }
     if (FO.modo === 'total') {
       const S = ORC_ANOS.map(a => ({a, r: orcV(ORC.anos[a].rec.real, a), g: orcV(ORC.anos[a].des.liq, a)}));
       const max = Math.max(...S.flatMap(s => [s.r, s.g])) || 1;
@@ -2931,7 +3013,26 @@ function viewOrcamento(){
     const R = orcV(d.rec.real, a), G = orcV(d.des.liq, a);
     const varia = (v, va) => va == null ? '' : `<div class="note">${v >= va ? '▲' : '▼'} ${orcPct(Math.abs(v - va), va)} em relação a ${a - 1}${FO.infl ? ', já descontada a inflação' : ''}</div>`;
     // de onde veio
+    // largura para as pizzas dos quadros (na janela "Ver tudo" fica maior)
+    let PZW = 0;
+    const larguraBloco = () => { if (PZW) return PZW; const g = document.getElementById('oano-sec') || app; const w = g.clientWidth || app.clientWidth; return celular.matches ? w - 36 : Math.min(720, (w - 24) / 2 - 44); };
+    const PAL = ['#7a4eb6', '#f4a50c', '#3a7bd5', '#1f8a5b', '#ef6fa8', '#f2c418', '#0f766e', '#c5fc1d', '#f32b0a', '#a16207', '#6d28d9', '#cfc8bd'];
+    const recPizza = () => {
+      if (FO.rec === 'imp') {
+        const pos = d.imp.filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]);
+        const prim = pos.slice(0, 9), resto = pos.slice(9);
+        const C = prim.map(([k, v], i) => ({nome: RECK[k][0], cor: PAL[i], v: orcV(v, a)}));
+        if (resto.length) C.push({nome: 'Outros (' + resto.length + ')', cor: '#cfc8bd', v: orcV(resto.reduce((s, x) => s + x[1], 0), a)});
+        return `${pizzaHTML(C, larguraBloco(), 'De onde veio o dinheiro em ' + a)}<p class="note">Impostos e repasses pelo valor cheio. A parte retida para o FUNDEB não entra na pizza; veja em Barras.</p>`;
+      }
+      const g = {}; d.esf.forEach(([k, v]) => { const e = ESFK[k]; g[e] = (g[e] || 0) + v; });
+      return pizzaHTML(Object.entries(g).map(([e, v]) => ({nome: ESF[e][0], cor: ESF[e][1], v: orcV(v, a)})), larguraBloco(), 'De onde veio o dinheiro em ' + a);
+    };
+    const gastoPizza = () => FO.gasto === 'area'
+      ? pizzaHTML([...top.map(f => ({nome: f[0], cor: areaCor(f[0]), v: orcV(f[1], a)})), ...(outras.length ? [{nome: 'Outras áreas', cor: '#cfc8bd', v: orcV(somaOut, a)}] : [])], larguraBloco(), 'Para onde foi em ' + a)
+      : pizzaHTML(T.map(t => ({nome: TIPOK[t[0]][0], cor: TIPOC[t[0]], v: orcV(t[1], a)})), larguraBloco(), 'Como foi gasto em ' + a);
     const recHtml = () => {
+      if (FO.recG === 'pizza') return recPizza();
       if (FO.rec === 'imp') {
         const pos = d.imp.filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]), neg = d.imp.filter(([, v]) => v < 0);
         const tb = pos.reduce((s, [, v]) => s + v, 0), mx = pos.length ? pos[0][1] : 1;
@@ -2952,7 +3053,7 @@ function viewOrcamento(){
     const linhaArea = (f, cor) => `<details class="oarea" data-n="${esc(f[0])}"${FO.abertas.has(f[0]) ? ' open' : ''}><summary>${barraO(f[0], AREAX[f[0]] ? esc(AREAX[f[0]]) : '', orcV(f[1], a), orcV(mxF, a), G, cor)}</summary>
       <div class="osub">${f[4].length ? f[4].slice().sort((x, y) => y[1] - x[1]).map(([n, v]) => barraO(n, '', orcV(v, a), orcV(f[4].reduce((m, s) => Math.max(m, s[1]), 0), a), orcV(f[1], a), cor)).join('') : '<p class="note">Sem subdivisões com gasto neste ano.</p>'}</div></details>`;
     const somaOut = outras.reduce((s, f) => s + f[1], 0);
-    const gastoHtml = () => FO.gasto === 'area' ? `<p class="note" style="margin-top:0">Toque numa área para ver as subdivisões.</p>
+    const gastoHtml = () => FO.gastoG === 'pizza' ? gastoPizza() : FO.gasto === 'area' ? `<p class="note" style="margin-top:0">Toque numa área para ver as subdivisões.</p>
       ${top.map(f => linhaArea(f, areaCor(f[0]))).join('')}
       ${outras.length ? `<details class="oarea"${FO.abertas.has('__outras') ? ' open' : ''} data-n="__outras"><summary>${barraO('Outras áreas', outras.length + ' áreas menores', orcV(somaOut, a), orcV(mxF, a), G, '#cfc8bd')}</summary><div class="osub">${outras.map(f => linhaArea(f, '#cfc8bd')).join('')}</div></details>` : ''}`
       : T.map(t => barraO(TIPOK[t[0]][0], esc(TIPOK[t[0]][1]) + ` <span class="orel">No relatório: ${esc(TIPOK[t[0]][2])}</span>`, orcV(t[1], a), orcV(mxT, a), G, TIPOC[t[0]])).join('');
@@ -2971,8 +3072,8 @@ function viewOrcamento(){
         <div class="stat"><h3>Diferença</h3><div class="big">${orcFmt(R - G)}</div><div class="note">${R >= G ? 'Entrou mais do que foi gasto' : 'Foi gasto mais do que entrou'}</div></div>
       </div></section>
     <div class="ogrid">
-    ${bloco('orecb', 'De onde veio o dinheiro', `<div class="frow" id="orecm">${chips('Como ver a receita', [['imp','Por imposto e repasse'],['esf','Por quem arrecada']], FO.rec)}</div><div id="orec">${recHtml()}</div>`)}
-    ${bloco('oareab', 'Para onde foi', `<div class="frow" id="ogastom">${chips('Como ver o gasto', [['area','Por área'],['tipo','Por tipo de gasto']], FO.gasto)}</div><div id="ogasto">${gastoHtml()}</div>`)}
+    ${bloco('orecb', 'De onde veio o dinheiro', `<div class="frow" id="orecm">${chips('Como ver a receita', [['imp','Por imposto e repasse'],['esf','Por quem arrecada']], FO.rec)}</div><div class="frow ogsel" id="orecg"><span class="flabel">Gráfico</span>${chips('Tipo de gráfico da receita', [['pizza','Pizza'],['barras','Barras']], FO.recG)}</div><div id="orec">${recHtml()}</div>`)}
+    ${bloco('oareab', 'Para onde foi', `<div class="frow" id="ogastom">${chips('Como ver o gasto', [['area','Por área'],['tipo','Por tipo de gasto']], FO.gasto)}</div><div class="frow ogsel" id="ogastog"><span class="flabel">Gráfico</span>${chips('Tipo de gráfico do gasto', [['pizza','Pizza'],['barras','Barras']], FO.gastoG)}</div><div id="ogasto">${gastoHtml()}</div>`)}
     </div>
     <section class="ocard oblk oplena" id="oplanb" aria-labelledby="h-oplanb"><h2 id="h-oplanb">Planejado e executado em ${a}</h2><div><p class="note" style="margin-top:0"><strong>Aprovado</strong> é o orçamento votado pela Câmara. <strong>Atualizado</strong> inclui as mudanças feitas ao longo do ano.</p>
       <h3 class="osubt">Receita</h3>${tr('Aprovado', orcV(d.rec.ini, a), orcV(mxP, a), '#d6c5ff')}${tr('Atualizado', orcV(d.rec.atu, a), orcV(mxP, a), '#b79bf0')}${tr('Arrecadado', R, orcV(mxP, a), '#7a4eb6')}
@@ -2987,11 +3088,12 @@ function viewOrcamento(){
     const JAN = {orecb: ['De onde veio o dinheiro em ' + a, 'rec', [['imp','Por imposto e repasse'],['esf','Por quem arrecada']], () => recHtml()],
                  oareab: ['Para onde foi em ' + a, 'gasto', [['area','Por área'],['tipo','Por tipo de gasto']], () => gastoHtml()]};
     const abreBloco = id => { const [tit, chave, ops, html] = JAN[id];
-      abreJanela(tit, `<div class="frow" id="mjchips">${chips('Como ver', ops, FO[chave])}</div><div id="mjcorpo" class="ojan">${html()}</div>`, () => {
+      PZW = Math.min(720, innerWidth - 70); const corpoJan = html(); PZW = 0;
+      abreJanela(tit, `<div class="frow" id="mjchips">${chips('Como ver', ops, FO[chave])}</div><div id="mjcorpo" class="ojan">${corpoJan}</div>`, () => {
         const corpo = document.getElementById('mjcorpo');
         const liga = () => corpo.querySelectorAll('details.oarea').forEach(dt => dt.addEventListener('toggle', e => { e.stopPropagation(); if (dt.open) FO.abertas.add(dt.dataset.n); else FO.abertas.delete(dt.dataset.n); }));
         liga();
-        ligarChips('#mjchips', k => { FO[chave] = k; corpo.innerHTML = html(); liga();
+        ligarChips('#mjchips', k => { FO[chave] = k; PZW = Math.min(720, innerWidth - 70); corpo.innerHTML = html(); PZW = 0; liga();
           // a página atrás acompanha a aba escolhida
           if (chave === 'rec') { document.getElementById('orec').innerHTML = recHtml(); app.querySelectorAll('#orecm .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === k)); }
           else { document.getElementById('ogasto').innerHTML = gastoHtml(); ligaAreas(); app.querySelectorAll('#ogastom .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === k)); }
@@ -3003,6 +3105,8 @@ function viewOrcamento(){
       bl._cabe = cabe; requestAnimationFrame(cabe); });
     ligarChips('#orecm', k => { FO.rec = k; document.getElementById('orec').innerHTML = recHtml(); ajusta(); });
     ligarChips('#ogastom', k => { FO.gasto = k; document.getElementById('ogasto').innerHTML = gastoHtml(); ligaAreas(); ajusta(); });
+    ligarChips('#ogastog', k => { FO.gastoG = k; document.getElementById('ogasto').innerHTML = gastoHtml(); ligaAreas(); ajusta(); });
+    ligarChips('#orecg', k => { FO.recG = k; document.getElementById('orec').innerHTML = recHtml(); ajusta(); });
     const ligaAreas = () => app.querySelectorAll('details.oarea').forEach(dt => dt.addEventListener('toggle', e => { e.stopPropagation(); if (dt.open) FO.abertas.add(dt.dataset.n); else FO.abertas.delete(dt.dataset.n); ajusta(); }));
     ligaAreas();
   }
