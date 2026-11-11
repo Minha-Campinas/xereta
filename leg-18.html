@@ -888,6 +888,14 @@ tr.psel td{background:var(--accent-soft)}
   header.top.aberto nav.tabs{max-height:calc(100vh - 4.6rem);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:1.2rem}
   @supports (height:100dvh){header.top.aberto nav.tabs{max-height:calc(100dvh - 4.6rem)}}
 }
+.efmark{background:none;border:0}
+.efmark .efpt{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--bd);border:2px solid #fff}
+.efmark .eflin{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.efmark .eflin line{stroke:#4d3f36;stroke-width:1.5}
+.efmark .efoto{position:absolute;left:0;top:0;border-radius:50%;overflow:hidden;border:2px solid #4d3f36;background:#f3ece3;box-shadow:2px 2px 0 rgba(0,0,0,.35);display:grid;place-items:center;font:700 12px var(--body);color:#4d3f36;cursor:pointer}
+.leaflet-container .leaflet-marker-pane .efoto img{width:100%!important;height:100%!important;max-width:none;object-fit:cover;display:block}
+.efmark:hover .efoto{border-color:var(--accent)}
+.elist li .av{vertical-align:middle;margin-right:4px}
 /* ano escolhido no gráfico Arrecadado e gasto: triângulo branco com borda, balançando de leve */
 .ocols{padding-top:1.9rem}
 .opilhas{position:relative}
@@ -3075,7 +3083,7 @@ function camadaVotos(c, norm, cor, vis, lim){
   return g;
 }
 const EM = {mapas:[], camadas:[], area:null};
-function limpaMapasE(){ EM.mapas.forEach(m => { try { m.remove(); } catch(e){} }); EM.mapas = []; EM.camadas = []; }
+function limpaMapasE(){ EM.mapas.forEach(m => { try { m.remove(); } catch(e){} }); EM.mapas = []; EM.camadas = []; EM.arruma = null; }
 const opcoesE = sel => [...EVIS()].sort((x, y) => enome(x).localeCompare(enome(y), 'pt-BR')).map(c => `<option value="${c.j}"${c.j === sel ? ' selected' : ''}>${esc(enome(c))}${epart(c) ? ' (' + esc(epart(c)) + ')' : ''}, ${num(c.tot)} votos</option>`).join('');
 const MODOS_E = [['um', 'Um parlamentar'], ['dois', 'Comparar dois'], ['dif', 'Diferença'], ['mais', 'Mais votado']];
 function viewEleicao(){
@@ -3099,7 +3107,7 @@ function viewEleicao(){
   <div id="erank"></div>
   ${comoFunciona(`<p>Os números são os votos de cada pessoa na eleição para vereador de ${ELE.ano}, somados por local de votação, como no arquivo de resultados por seção do TSE (Tribunal Superior Eleitoral). Entram as ${ECAND.length} pessoas que ocuparam uma cadeira nesta legislatura, mesmo que por um dia: quem foi eleito e quem assumiu depois. Quem passou pela Câmara mas não foi candidato em ${ELE.ano} não tem votos para mostrar. O mapa começa só com quem está em exercício hoje; em Filtros, marque “Incluir quem saiu ou foi suplente” para ver todo mundo. A posição ("1º lugar") compara com todos os ${num(ELE.n || ECAND.length)} candidatos da cidade. Votos de legenda, brancos e nulos não entram.</p>
   <p>O <strong>mapa de calor</strong> mostra onde os votos se concentram. Em <strong>pontos</strong>, cada círculo é um local de votação: quanto maior, mais votos. Locais sem nenhum voto ficam de fora. Em Filtros, a barra <strong>Esconder</strong> tira do mapa os locais com poucos votos (ou, na Diferença, com diferença pequena). O limite em votos acompanha a escala de quem está selecionado, e os rankings continuam com todos os locais. Para um local muito fora da curva não esconder o resto, a escala ignora os 2% de valores mais altos e mais baixos e nunca considera concentrado quem teve menos de 10 votos num local.</p>
-  <p>Em <strong>Comparar dois</strong>, os dois mapas usam a mesma escala e se movem juntos: um círculo do mesmo tamanho é a mesma quantidade de votos nos dois lados. Em <strong>Diferença</strong>, cada local mostra quem teve mais votos ali e por quanto. Em <strong>Mais votado</strong>, cada local tem a cor de quem teve mais votos ali, entre as pessoas desta legislatura.</p>
+  <p>Em <strong>Comparar dois</strong>, os dois mapas usam a mesma escala e se movem juntos: um círculo do mesmo tamanho é a mesma quantidade de votos nos dois lados. Em <strong>Diferença</strong>, cada local mostra quem teve mais votos ali e por quanto. Em <strong>Mais votado</strong>, cada foto fica no local de votação onde a pessoa teve mais votos.</p>
   <p>A posição de cada local vem do endereço informado pelo TSE. Círculos tracejados têm localização aproximada. ${nSem ? `${nSem} ${nSem === 1 ? 'local não tem' : 'locais não têm'} coordenada: ficam fora do mapa, mas entram nos totais e nos rankings, com a marca "fora do mapa".` : ''} Os nomes dos locais vêm do TSE, com os pontos das abreviações restaurados (o arquivo troca ponto por vírgula, como em "E,E," para "EE").</p>`)}`;
   ligarToggle();
   ligarChips('.emodos', k => { FEL.modo = k; montaSelE(); desenhaE(true); });
@@ -3115,6 +3123,7 @@ function viewEleicao(){
     setTimeout(() => { EM.mapas.forEach(m => m.invalidateSize()); desenhaE(); }, 80);   // o calor precisa ser redesenhado no tamanho novo
   });
   document.getElementById('earea').addEventListener('click', e => {
+    const vu = e.target.closest('[data-verum]'); if (vu) { FEL.modo = 'um'; FEL.a = +vu.dataset.verum; ajustaVisE(); app.querySelectorAll('.emodos .chip').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === 'um')); montaSelE(); desenhaE(true); return; }
     const b = e.target.closest('[data-nav]'); if (!b) return;
     const q = b.dataset.q, d = +b.dataset.nav, L = EVIS().map(c => c.j), n = L.length, outro = q === 'a' ? FEL.b : FEL.a, usaDois = FEL.modo !== 'um';
     let k = L.indexOf(FEL[q]); do { k = (k + d + n) % n; } while (usaDois && n > 1 && L[k] === outro);
@@ -3171,6 +3180,7 @@ function desenhaE(reenquadra){
   const ok = window.L && EM.mapas.length;
   if (ok) {
     EM.camadas.forEach((c, k) => { if (c) EM.mapas[k].removeLayer(c); }); EM.camadas = [null, null];
+    if (EM.arruma) { EM.mapas[0].off('zoomend', EM.arruma); EM.arruma = null; }
     // um mapa que estava escondido só tem tamanho depois de aparecer: ajusta o tamanho e desenha de novo
     if (mudou) setTimeout(() => { EM.mapas.forEach(m => m.invalidateSize()); if (dois) EM.mapas[1].setView(EM.mapas[0].getCenter(), EM.mapas[0].getZoom(), {animate:false}); desenhaE(); }, 60);
     else if (reenquadra) setTimeout(() => EM.mapas.forEach(m => m.invalidateSize()), 60);
@@ -3220,19 +3230,48 @@ function desenhaE(reenquadra){
       return `<section class="card erk"><h2>${tit}</h2>${t.length ? `<ol class="elist">${t.map(([r, d]) => `<li><span>${esc(r.n)}${fora(r)} <span class="note">(${num(A.v[r.i])} a ${num(B.v[r.i])})</span></span><b>${num(Math.abs(d))}</b></li>`).join('')}</ol>` : '<p class="note">Nenhum local.</p>'}</section>`; };
     rk.innerHTML = `<div class="cols2">${lado(1, `Onde ${esc(enome(A))} ficou mais à frente`)}${lado(-1, `Onde ${esc(enome(B))} ficou mais à frente`)}</div>`;
   } else {
-    // mais votado em cada local
-    const venc = ELOC.map(r => { const t = top5Local(r.i); return [r, t[0], t[1]]; }).filter(x => x[1]);
-    const cont = {}; venc.forEach(x => cont[x[1][0].j] = (cont[x[1][0].j] || 0) + 1);
-    const ordem = Object.keys(cont).map(Number).sort((a, b) => cont[b] - cont[a] || ECAND[b].tot - ECAND[a].tot);
-    const cor = {}; ordem.forEach((j, k) => cor[j] = EVENC[k] || '#8c7b6e');
+    // foto de cada parlamentar no local onde teve mais votos (entre os locais que estão no mapa)
+    const lista = EVIS().map(c => { let best = null; ELOCm.forEach(r => { if (!best || c.v[r.i] > c.v[best.i]) best = r; }); return {c, r: best, x: best ? c.v[best.i] : 0}; }).filter(o => o.r && o.x > 0);
+    lista.sort((a, b) => b.c.tot - a.c.tot);
     if (pode) {
-      const g = window.L.layerGroup();
-      venc.filter(x => x[0].la != null).forEach(([r, [c, x], seg]) => g.addLayer(circulo(r, cor[c.j], 0.45, 12, popLocal(r, ''), `${r.n}: ${enome(c)} (${num(x)})`)));
-      EM.camadas[0] = g.addTo(EM.mapas[0]);
+      const LF = window.L, g = LF.layerGroup(), mapa = EM.mapas[0], T = celular.matches ? 32 : 38;
+      const itens = lista.map(o => {
+        const v = o.c.id && V[o.c.id];
+        const foto = v && FOTOS[o.c.id] ? `<img src="${FOTOS[o.c.id]}" alt="">` : `<span>${esc(iniciais(enome(o.c)))}</span>`;
+        const m = LF.marker([o.r.la, o.r.lo], {icon: LF.divIcon({className: 'efmark', html: '', iconSize: [0, 0]}), riseOnHover: true, title: enome(o.c)});
+        m.bindTooltip(`${enome(o.c)}: ${num(o.x)} votos em ${o.r.n}`, {direction: 'top'});
+        m.bindPopup(popLocal(o.r, `<strong>${esc(enome(o.c))}</strong>: ${num(o.x)} votos aqui, o local onde teve mais votos<br><button type="button" class="btn sm" data-verum="${o.c.j}">Ver todos os votos</button>`), {maxWidth: 280});
+        g.addLayer(m);
+        return {o, m, foto};
+      });
+      // afasta as fotos que se encostam (na tela, a cada zoom); cada uma fica ligada ao seu local por uma linha fina
+      const arruma = () => {
+        const P = itens.map((it, k) => { const q = mapa.latLngToLayerPoint([it.o.r.la, it.o.r.lo]); return {it, ax: q.x, ay: q.y, x: q.x + Math.cos(k * 2.4) * 2, y: q.y + Math.sin(k * 2.4) * 2}; });
+        const D = T + 3;
+        for (let n = 0; n < 160; n++) {
+          for (let a = 0; a < P.length; a++) for (let b = a + 1; b < P.length; b++) {
+            const A = P[a], B = P[b]; let dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy);
+            if (d < D) { if (d < 0.01) { dx = 1; dy = 0; d = 1; } const e = (D - d) / 2; A.x -= dx / d * e; A.y -= dy / d * e; B.x += dx / d * e; B.y += dy / d * e; }
+          }
+          P.forEach(q => { q.x += (q.ax - q.x) * 0.04; q.y += (q.ay - q.y) * 0.04; });
+        }
+        P.forEach(q => {
+          const dx = Math.round(q.x - q.ax), dy = Math.round(q.y - q.ay), h = T / 2;
+          const lin = Math.hypot(dx, dy) > h ? `<svg class="eflin" width="1" height="1" aria-hidden="true"><line x1="0" y1="0" x2="${dx}" y2="${dy}"/></svg><i class="efpt"></i>` : '';
+          q.it.m.setIcon(LF.divIcon({className: 'efmark', iconSize: [0, 0], html: `${lin}<span class="efoto" style="width:${T}px;height:${T}px;transform:translate(${dx - h}px,${dy - h}px)">${q.it.foto}</span>`}));
+          q.it.m.getTooltip()?.options && (q.it.m.getTooltip().options.offset = [dx, dy - h]);
+          q.it.m.getPopup()?.options && (q.it.m.getPopup().options.offset = [dx, dy - h + 4]);
+        });
+      };
+      EM.camadas[0] = g.addTo(mapa);
+      if (EM.arruma) mapa.off('zoomend', EM.arruma);
+      EM.arruma = arruma; mapa.on('zoomend', arruma);
+      if (reenquadra && itens.length) mapa.fitBounds(LF.latLngBounds(itens.map(it => [it.o.r.la, it.o.r.lo])), {padding: [T, T]});
+      arruma();
     }
-    res.innerHTML = `Comparando só as ${EVIS().length} pessoas ${FEL.todos ? 'desta legislatura' : 'em exercício hoje'}: ${num(ordem.length)} delas foram as mais votadas em pelo menos um local.`;
-    leg.innerHTML = `<span class="elegc ecores">${ordem.slice(0, EVENC.length).map(j => `<span><i style="background:${cor[j]}"></i>${esc(enome(ECAND[j]))}</span>`).join('')}${ordem.length > EVENC.length ? `<span><i style="background:#8c7b6e"></i>Demais</span>` : ''}</span>`;
-    rk.innerHTML = `<section class="card erk"><h2>Em quantos locais cada pessoa foi a mais votada</h2><ol class="elist">${ordem.map(j => `<li><span><i class="edot" style="background:${cor[j]}"></i>${esc(enome(ECAND[j]))}</span><b>${num(cont[j])} ${cont[j] === 1 ? 'local' : 'locais'}</b></li>`).join('')}</ol></section>`;
+    res.innerHTML = `Cada foto está no local de votação onde a pessoa teve mais votos em ${ELE.ano}. ${FEL.todos ? 'Todas as pessoas desta legislatura' : 'Pessoas em exercício hoje'}: ${num(lista.length)}.`;
+    leg.innerHTML = `<span class="note">Quando duas ou mais pessoas tiveram mais votos no mesmo local, as fotos ficam em roda em volta dele. Toque numa foto para ver o local.</span>`;
+    rk.innerHTML = `<section class="card erk"><h2>Onde cada pessoa teve mais votos</h2><ol class="elist">${lista.map(o => `<li><span>${o.c.id ? av(o.c.id, 'sm') : ''} <strong>${esc(enome(o.c))}</strong> <span class="note">${esc(o.r.n)}</span></span><b>${num(o.x)}</b></li>`).join('')}</ol></section>`;
   }
 }
 /* bloco na página do parlamentar: mapa pequeno + 5 locais com mais votos */
