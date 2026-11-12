@@ -898,6 +898,11 @@ tr.psel td{background:var(--accent-soft)}
 .elist li .av{vertical-align:middle;margin-right:4px}
 .plist2 .vbar{margin:.1rem 0 .25rem;max-width:30rem}
 .plist2 .psess{font-size:.88rem}
+/* aviso de medição de uso */
+.gaaviso{position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:70;max-width:40rem;margin:0 auto;background:var(--surface);color:var(--ink);border:3px solid var(--bd);box-shadow:5px 5px 0 var(--sh);padding:.8rem 1rem;display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;font-size:.92rem}
+.gaaviso p{margin:0;flex:1 1 18rem}
+.gabtns{display:flex;gap:.5rem}
+@media (max-width:640px){.gaaviso{left:.5rem;right:.5rem;bottom:calc(var(--vb,0px) + 74px + env(safe-area-inset-bottom,0px));font-size:.88rem;padding:.7rem .8rem}}
 /* orçamento: pizza */
 .opizza .opz-sombra{fill:var(--sh)}
 .opizza .opz-borda{fill:none;stroke:var(--bd);stroke-width:2}
@@ -2644,6 +2649,8 @@ ${PROJ.length ? `  <h2>Como os projetos são separados por área</h2>
     <li><strong>Presença:</strong> conta as sessões ordinárias e extraordinárias com lista, só no período em que cada parlamentar esteve em exercício. Assim suplentes não são cobrados por sessões antes da posse. Sessões solenes não têm lista, e licenças e afastamentos ainda não são descontados.</li>
     <li><strong>Comissões:</strong> o sistema não tem um campo para reunião cancelada. O Xereta considera cancelada quando o nome ou a observação diz isso. O sistema também não registra quais projetos foram discutidos em cada reunião nem a presença nas comissões.</li>
   </ul>
+  <h2>Medição de uso</h2>
+  <p>Com a sua autorização, o Xereta usa o Google Analytics para contar visitas e entender quais seções e ferramentas são mais usadas: páginas abertas, botões e filtros escolhidos, documentos abertos e buscas. Não coletamos nome, e-mail nem qualquer dado que identifique você, e os recursos de publicidade do Google ficam desligados. Sem autorização, nada é medido. <button type="button" class="btn ghost sm" id="gamudar">Mudar minha escolha</button></p>
   <h2>Acessibilidade</h2>
   <p>Use o botão A+ no topo para aumentar o texto e o botão de lua para trocar entre tema claro e escuro. Todo o site funciona pelo teclado, e a primeira tecla Tab oferece um atalho para pular direto ao conteúdo.</p>
   <h2>Fonte</h2>
@@ -3420,6 +3427,7 @@ function rota(){
   else { const k = VIEWS[h] ? h : 'inicio'; VIEWS[k][0](); titulo = VIEWS[k][1]; tab = VIEWS[k][2]; }
   app.dataset.view = /^v-/.test(h) ? 'perfil' : /^s-/.test(h) ? 'sessao' : /^c-/.test(h) ? 'comissao' : (VIEWS[h] ? h : 'inicio');
   document.title = titulo + ' – Xereta';
+  if (typeof gaPagina === 'function') setTimeout(gaPagina, 0);
   document.querySelectorAll('nav.tabs a, #botnav a').forEach(a => { if (a.dataset.view === tab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   const bm = document.getElementById('botMais'); if (bm) bm.classList.toggle('ativo', !document.querySelector(`#botnav a[data-view="${tab}"]:not([hidden])`));
 }
@@ -3442,6 +3450,64 @@ function rota(){
   faixas.forEach(f => io.observe(f));
 })();
 window.addEventListener('hashchange', () => { const ac = document.querySelector('.abox.cheio'); if (ac) telaCheia(ac, false); if (document.body.classList.contains('mapa-cheio')) { document.body.classList.remove('mapa-cheio'); soltaPagina(); } fechaMenu(); topo.classList.remove('oculto'); if (janelaFecha) janelaFecha(); rota(); window.scrollTo(0,0); app.focus({preventScroll:true}); });
+
+/* ---------- medição de uso (Google Analytics), só com consentimento ---------- */
+const GA_ID = 'G-GQW7ZFZRHZ';
+let gaOk = false;
+const gaEvento = (nome, p) => { if (gaOk && window.gtag) window.gtag('event', nome, p || {}); };
+function gaPagina(){
+  if (!gaOk || !window.gtag) return;
+  const h = location.hash.replace('#', '') || 'inicio';
+  // cada seção conta como uma página: /votacoes, /emendas, /v-311 (parlamentar), /s-2374 (sessão)...
+  window.gtag('event', 'page_view', {page_location: location.origin + '/' + h, page_path: '/' + h, page_title: document.title, legislatura: (D.LEG && D.LEG.n) || ''});
+}
+function gaLiga(){
+  if (window.gtag && !gaOk && GA_ID) { gaOk = true; gaPagina(); return; }
+  if (gaOk || !GA_ID || /^file:/.test(location.protocol)) return;
+  gaOk = true;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', GA_ID, {send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false});
+  const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(s);
+  gaPagina();
+}
+function gaAviso(forcar){
+  const atual = pref('xereta-medicao');
+  if (atual === 'sim' && !forcar) { gaLiga(); return; }
+  if (atual === 'nao' && !forcar) return;
+  if (document.getElementById('gaaviso')) return;
+  document.body.insertAdjacentHTML('beforeend', `<div class="gaaviso" id="gaaviso" role="dialog" aria-live="polite" aria-label="Medição de uso">
+    <p>O Xereta usa o Google Analytics para contar visitas e saber quais partes do site são mais usadas. Nada do que você digita ou escolhe identifica você. <a href="#sobre" id="gasaiba">Saiba mais</a></p>
+    <div class="gabtns"><button type="button" class="btn sm" id="gasim">Aceitar</button><button type="button" class="btn ghost sm" id="ganao">Recusar</button></div></div>`);
+  const fecha = v => { pref('xereta-medicao', v); document.getElementById('gaaviso')?.remove(); if (v === 'sim') { window['ga-disable-' + GA_ID] = false; gaLiga(); } else { window['ga-disable-' + GA_ID] = true; gaOk = false; } };
+  document.getElementById('gasim').addEventListener('click', () => fecha('sim'));
+  document.getElementById('ganao').addEventListener('click', () => fecha('nao'));
+}
+gaAviso();
+// ações principais: botões de escolha (modos, filtros, anos), listas de seleção, documentos e setas do mapa
+document.addEventListener('click', e => {
+  if (e.target.closest('#gamudar')) { gaAviso(true); return; }
+  if (!gaOk) return;
+  const ch = e.target.closest('.chip'); if (ch) { const g = ch.closest('[role="group"]'); gaEvento('escolha', {secao: app.dataset.view || '', grupo: (g && g.getAttribute('aria-label')) || '', valor: ch.dataset.k || ch.textContent.trim()}); return; }
+  const doc = e.target.closest('a[href*="/media/"], a[href$=".pdf"]'); if (doc) { gaEvento('abrir_documento', {secao: app.dataset.view || '', tipo: /ata/i.test(doc.textContent) ? 'ata' : /pauta/i.test(doc.textContent) ? 'pauta' : 'documento'}); return; }
+  const nav = e.target.closest('[data-nav]'); if (nav) { gaEvento('mapa_setas', {direcao: nav.dataset.nav === '1' ? 'proximo' : 'anterior'}); return; }
+  const tc = e.target.closest('.acheio-b'); if (tc) { gaEvento('tela_cheia', {secao: app.dataset.view || ''}); return; }
+  const ext = e.target.closest('a[target="_blank"]'); if (ext) gaEvento('link_externo', {secao: app.dataset.view || '', destino: (ext.hostname || '')});
+}, true);
+document.addEventListener('change', e => {
+  if (!gaOk) return;
+  const el = e.target; if (!el.matches || !el.matches('select, input[type="checkbox"], input[type="range"]')) return;
+  const rot = el.getAttribute('aria-label') || (el.closest('label') && el.closest('label').textContent.trim().slice(0, 60)) || el.id;
+  gaEvento('filtro', {secao: app.dataset.view || '', campo: rot, valor: el.type === 'checkbox' ? String(el.checked) : String(el.value).slice(0, 60)});
+}, true);
+let gaBuscaT = null;
+document.addEventListener('input', e => {
+  if (!gaOk || !e.target.matches || !e.target.matches('input[type="search"]')) return;
+  clearTimeout(gaBuscaT); const v = e.target.value.trim();
+  gaBuscaT = setTimeout(() => { if (v.length >= 3) gaEvento('search', {search_term: v.slice(0, 60), secao: app.dataset.view || ''}); }, 1500);
+}, true);
+
 rota();
 })();
 </script>
