@@ -921,6 +921,9 @@ tr.psel td{background:var(--accent-soft)}
 .oblk:has(.opizza) .oblk-corpo{max-height:none}
 .oblk-mais[hidden]{display:none}
 @media (max-width:640px){.opizza .opz-p{font-size:13px}.opizza .opz-v{font-size:11px}}
+
+.enota{margin:.2rem 0 0;font-size:.9rem;color:var(--muted)}
+.filters input:disabled,.filters select:disabled{opacity:.5;cursor:not-allowed}
 /* ano escolhido no gráfico Arrecadado e gasto: triângulo branco com borda, balançando de leve */
 .ocols{padding-top:1.9rem}
 .opilhas{position:relative}
@@ -1346,7 +1349,7 @@ function viewInicio(){
     ${u ? `<div class="latest col"><div><div class="note">Última sessão com votações</div><strong style="font-size:1.2rem">${esc(tipoCurto(u))} de ${fmtData(u.d)}</strong><div class="note">${num(uv.length)} votações, ${num(apr)} aprovadas${PRES[u.id] ? `, ${PRES[u.id].size} parlamentares presentes` : ''}</div></div>
       <div class="linkrow"><a class="btn" href="#s-${u.id}">Ver a última sessão</a><a class="btn ghost" href="#busca">Buscar votações por período</a></div></div>` : ''}
     <nav class="paths ${(!!EME + !!D.ORC) === 1 ? 'three' : 'two'}" aria-label="Outras seções">
-      ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada parlamentar destinou e para quem o dinheiro foi pago. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
+      ${EME ? `<a class="path" href="#emendas"><span class="ico">${ICO.eme}</span><strong>Emendas</strong><span>Quanto cada parlamentar indicou, para quais áreas, e quais fornecedores mais receberam. ${brlMi(EME.total)} em pagamentos.</span></a>` : ''}
       ${D.ORC ? `<a class="path" href="#orcamento"><span class="ico">${ICO.orc}</span><strong>Orçamento</strong><span>De onde vem e para onde vai o dinheiro da Prefeitura, ano a ano.</span></a>` : ''}
       <a class="path" href="#presenca"><span class="ico">${ICO.pre}</span><strong>Presença</strong><span>Quem compareceu às sessões.</span></a>
       <a class="path" href="#comissoes"><span class="ico">${ICO.com}</span><strong>Comissões</strong><span>Quem analisa os projetos e as reuniões.</span></a>
@@ -2374,6 +2377,7 @@ function viewPerfil(id){
 
 /* ---------- Emendas parlamentares ---------- */
 const EME = D.EME || null;
+const EXPL_EME = 'Parlamentares indicam a emenda e a área onde o dinheiro deve ser usado. Quem escolhe e contrata o fornecedor é a Prefeitura. Por isso o Xereta não liga parlamentar a fornecedor.';
 if (EME) { const O = EME.o || ['']; EME.v.forEach(x => (x.r || []).forEach(r => { if (typeof r[4] === 'number') r[4] = O[r[4]] || ''; })); }
 const brl = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const brlMi = n => n >= 1e6 ? 'R$ ' + (n / 1e6).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' mi' : brl(n);
@@ -2409,7 +2413,9 @@ const nomeVer = n => { const id = IDV[chaveEme(n)]; return id ? V[id].nome : tc(
 const fotoVer = (n, cls) => { const id = IDV[chaveEme(n)]; return id ? av(id, cls) : `<span class="av ${cls}" aria-hidden="true">${esc(iniciais(tc(n)))}</span>`; };
 const linkVer = n => { const id = IDV[chaveEme(n)]; return id ? `<a href="#v-${id}">${esc(V[id].nome)}</a>` : `${esc(tc(n))} <span class="note">sem página nesta legislatura</span>`; };
 const obsCell = t => { if (!t) return '<td class="obs">—</td>'; if (t.length <= 140) return `<td class="obs">${esc(t)}</td>`; const curto = t.slice(0, 140).replace(/\s+\S*$/, '') + '…'; return `<td class="obs"><details><summary>${esc(curto)}</summary><p>${esc(t)}</p></details></td>`; };
-const tabelaPag = (rs, comVer) => `<div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Data do empenho</th>${comVer ? '<th scope="col">Parlamentar</th>' : ''}<th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td>${comVer ? `<td><span class="vcell">${fotoVer(r[4], 'sm')}<span>${linkVer(r[4])}</span></span></td>` : ''}<td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(comVer ? r[5] : r[4])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
+const tabelaPag = (rs, modo) => modo === 'ver'
+  ? `<div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Data do empenho</th><th scope="col">Área</th><th scope="col">Secretaria</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td><td>${esc(areaDe(r[3]))}</td><td>${esc(secTxt(r[3]))}</td><td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`
+  : `<div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Data do empenho</th><th scope="col">Fornecedor</th><th scope="col">Secretaria</th><th scope="col">Observação do empenho</th><th scope="col" class="ev">Pago</th></tr></thead><tbody>${rs.map(r => `<tr><td>${dataCurta(r[0])}</td><td>${esc(limpaForn(r[1]))}</td><td>${esc(secTxt(r[3]))}</td>${obsCell(r[5])}<td class="ev">${brl(r[2])}</td></tr>`).join('')}</tbody></table></div>`;
 const barraForn = (nome, val, total, max, outros) => `<div class="efor"><div class="eh"><span>${esc(limpaForn(nome))}</span><span>${brl(val)} · ${(100 * val / total).toLocaleString('pt-BR', {maximumFractionDigits:1})}%</span></div><div class="ebar${outros ? ' outros' : ''}" aria-hidden="true"><i style="width:${Math.min(100, 100 * val / max)}%"></i></div></div>`;
 const aviso = () => EME && EME.parcial ? `<p class="note"><strong>Prévia:</strong> a lista de pagamentos está carregada só para parte das pessoas.</p>` : '';
 
@@ -2442,6 +2448,7 @@ function viewEmendas(){
       <div class="frow"><label class="f">Parlamentar <select id="eve"><option value="todos">Todas as pessoas</option>${vers.map(x => `<option value="${esc(chaveEme(x.n))}">${esc(nomeVer(x.n))}</option>`).join('')}</select></label>
         ${selAreaOrgao('eorg', L0.map(r => r[3]), FE.org)}</div>
       <div class="frow">${campoTexto('efor', 'Buscar fornecedor', FE.forn)}</div>
+      <p class="enota" id="enota">Os filtros de parlamentar e de fornecedor não funcionam juntos. ${EXPL_EME}</p>
       <div class="frow"><label class="f">Valor mínimo (R$) <input id="emin" type="search" inputmode="decimal" placeholder="0" style="width:8rem" value="${esc(FE.min)}"></label>
         <label class="f">Valor máximo (R$) <input id="emax" type="search" inputmode="decimal" placeholder="sem limite" style="width:8rem" value="${esc(FE.max)}"></label>
         ${seletorQtd('eqtd', FE.n, 'Mostrar até')}
@@ -2451,26 +2458,34 @@ function viewEmendas(){
   <div id="estats" aria-live="polite"></div>
   <div class="pasta" role="tablist" aria-label="Como ver as emendas">${ABAS_EME.map(([k, n]) => `<button type="button" role="tab" id="aba-${k}" data-aba="${k}" aria-controls="epanel" aria-selected="${FE.aba === k}" tabindex="${FE.aba === k ? 0 : -1}">${n}</button>`).join('')}</div>
   <div class="painel-pasta" role="tabpanel" id="epanel" tabindex="0"></div>
-  ${comoFunciona(`<p>Quanto cada parlamentar destinou por emendas e para quem o dinheiro foi pago, segundo a planilha de execução do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>${EME.atualizado ? ', consultada em ' + fmtData(EME.atualizado) : ''}. Só entram pagamentos já efetivados. Veja de onde vêm os dados em <a href="#sobre">Sobre os dados</a>.</p>`)}`;
+  ${comoFunciona(`<p>Quanto cada parlamentar indicou em emendas, para quais áreas, e quais fornecedores mais receberam, segundo a planilha de execução do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>${EME.atualizado ? ', consultada em ' + fmtData(EME.atualizado) : ''}. Só entram pagamentos já efetivados. Veja de onde vêm os dados em <a href="#sobre">Sobre os dados</a>.</p>
+  <p><strong>Parlamentar não escolhe fornecedor.</strong> ${EXPL_EME}</p>
+  <p>Assim, a página mostra duas coisas separadas: quanto cada parlamentar indicou e para quais áreas e órgãos; e quais fornecedores mais receberam dinheiro de emendas, somando todas as indicações. Por isso a busca de fornecedor e a escolha de parlamentar não funcionam juntas, e a lista de pagamentos de cada parlamentar não mostra o fornecedor.</p>`)}`;
   ligarToggle();
   const render = () => {
     const min = numBR(FE.min), max = numBR(FE.max);
     const f = {anos:FE.anos, forn:FE.forn, min, max};
     marcaFiltros('efil', FE.anos.length + (FE.ver !== 'todos') + !!FE.org + !!FE.forn + !!FE.min + !!FE.max);
-    const R = L0.filter(r => (FE.ver === 'todos' || chaveEme(r[4]) === FE.ver) && passaOrg(r[3], FE.org) && passaF(r, f));
+    const eveEl = document.getElementById('eve'), eforEl = document.getElementById('efor');
+    eveEl.disabled = !!FE.forn.trim(); eforEl.disabled = FE.ver !== 'todos';
+    eveEl.title = eveEl.disabled ? 'Apague a busca de fornecedor para escolher parlamentar' : ''; eforEl.title = eforEl.disabled ? 'Volte para “Todas as pessoas” para buscar fornecedor' : '';
+    const Rb = L0.filter(r => passaOrg(r[3], FE.org) && passaF(r, {anos:f.anos, forn:'', min, max}));
+    const Rv = Rb.filter(r => FE.ver === 'todos' || chaveEme(r[4]) === FE.ver);
+    const Rf = Rb.filter(r => !FE.forn || passaF(r, {forn:FE.forn}));
+    const R = FE.ver !== 'todos' ? Rv : Rf;
     const semFiltro = !FE.anos.length && FE.ver === 'todos' && !FE.org && !FE.forn && min == null && max == null;
     const resumo = !!EME.parcial && semFiltro;
     const q = qtdDe(FE.n);
     /* por vereador */
     let G = {};
     if (resumo) EME.v.forEach(x => { G[x.n] = {n:x.n, pago:x.pago, forn:x.forn}; });
-    else R.forEach(r => { const g = G[r[4]] || (G[r[4]] = {n:r[4], pago:0, fs:new Set()}); g.pago += r[2]; g.fs.add(limpaForn(r[1])); });
-    const GL = Object.values(G).map(g => ({n:g.n, pago:g.pago, forn:g.fs ? g.fs.size : g.forn})).sort(FE.ord === 'nome' ? (a, b) => nomeVer(a.n).localeCompare(nomeVer(b.n), 'pt-BR') : (a, b) => b.pago - a.pago);
+    else Rv.forEach(r => { const g = G[r[4]] || (G[r[4]] = {n:r[4], pago:0, np:0}); g.pago += r[2]; g.np++; });
+    const GL = Object.values(G).map(g => ({n:g.n, pago:g.pago, np:g.np})).sort(FE.ord === 'nome' ? (a, b) => nomeVer(a.n).localeCompare(nomeVer(b.n), 'pt-BR') : (a, b) => b.pago - a.pago);
     const total = resumo ? EME.total : somaR(R);
     const nForn = new Set(R.map(r => limpaForn(r[1]))).size;
     document.getElementById('estats').innerHTML = `<div class="stats"><div class="stat stat-total"><h3>Total pago</h3><div class="big">${brlMi(total)}</div></div>
-        <div class="stat"><h3>Parlamentares</h3><div class="big">${GL.length}</div></div>
-        ${resumo ? '' : `<div class="stat"><h3>Pagamentos</h3><div class="big">${num(R.length)}</div><div class="note">${num(nForn)} fornecedores</div></div>`}</div>
+        ${FE.forn ? '' : `<div class="stat"><h3>Parlamentares</h3><div class="big">${GL.length}</div></div>`}
+        ${resumo ? '' : `<div class="stat"><h3>Pagamentos</h3><div class="big">${num(R.length)}</div>${FE.ver === 'todos' ? `<div class="note">${num(nForn)} ${nForn === 1 ? 'fornecedor' : 'fornecedores'}</div>` : ''}</div>`}</div>
       ${!semFiltro && EME.parcial ? `<p class="note"><strong>Prévia:</strong> com filtros, só entram os pagamentos carregados (${num(L0.length)}).</p>` : aviso()}`;
     document.querySelectorAll('.pasta [role="tab"]').forEach(b => { const on = b.dataset.aba === FE.aba; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
     const pn = document.getElementById('epanel'); pn.setAttribute('aria-labelledby', 'aba-' + FE.aba);
@@ -2478,20 +2493,22 @@ function viewEmendas(){
     if (FE.aba === 'ver') {
       const mx = GL.length ? Math.max(...GL.map(x => x.pago)) : 1;
       pn.innerHTML = `<div class="frow" id="eord"><span class="flabel">Ordenar por</span>${chips('Ordenar por', [['valor','Maior valor'],['nome','Nome']], FE.ord)}</div>
-        ${GL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Parlamentar</th><th scope="col" class="ev">Pago</th><th scope="col" class="ev">Fornecedores</th><th scope="col"><span class="sr">Comparação</span></th></tr></thead><tbody>${GL.map(x => `<tr><td><span class="vcell">${fotoVer(x.n, '')}<span>${linkVer(x.n)}</span></span></td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.forn)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
+        ${FE.forn ? '<p class="note">A busca de fornecedor não vale nesta aba.</p>' : ''}
+        ${GL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Parlamentar</th><th scope="col" class="ev">Pago</th>${resumo ? '' : '<th scope="col" class="ev">Pagamentos</th>'}<th scope="col"><span class="sr">Comparação</span></th></tr></thead><tbody>${GL.map(x => `<tr><td><span class="vcell">${fotoVer(x.n, '')}<span>${linkVer(x.n)}</span></span></td><td class="ev">${brl(x.pago)}</td>${resumo ? '' : `<td class="ev">${num(x.np)}</td>`}<td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
       ligarChips('#eord', k => { FE.ord = k; render(); });
     } else if (FE.aba === 'for') {
       const GF = {};
-      R.forEach(r => { const k = limpaForn(r[1]); const g = GF[k] || (GF[k] = {nome:k, pago:0, n:0, vs:new Set()}); g.pago += r[2]; g.n++; g.vs.add(chaveEme(r[4])); });
+      Rf.forEach(r => { const k = limpaForn(r[1]); const g = GF[k] || (GF[k] = {nome:k, pago:0, n:0}); g.pago += r[2]; g.n++; });
       const FL = Object.values(GF).sort(FE.ford === 'nome' ? (a, b) => a.nome.localeCompare(b.nome, 'pt-BR') : (a, b) => b.pago - a.pago);
       FLs = FL.slice(0, q);
       const mx = FL.length ? Math.max(...FL.map(x => x.pago)) : 1;
       pn.innerHTML = `<div class="frow" id="eford"><span class="flabel">Ordenar por</span>${chips('Ordenar fornecedores por', [['valor','Maior valor recebido'],['nome','Nome']], FE.ford)}</div>
         <p class="count">${num(FL.length)} ${FL.length === 1 ? 'fornecedor' : 'fornecedores'}${FL.length > q ? ', mostrando ' + (FE.ford === 'nome' ? 'os primeiros em ordem alfabética' : 'os que mais receberam') + ' (' + num(q) + ')' : ''}</p>
         ${aviso()}
-        ${FL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Fornecedor</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Parlamentares</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${FLs.map((x, i) => `<tr><td>${esc(x.nome)}</td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.n)}</td><td class="ev">${num(x.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td><td><button type="button" class="btn ghost sm" data-verpag="${i}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum fornecedor com esses filtros.</div>`}`;
+        <p class="note">${FE.ver !== 'todos' ? 'O filtro de parlamentar não vale nesta aba. ' : ''}${EXPL_EME}</p>
+        ${FL.length ? `<div class="tablewrap"><table class="t"><thead><tr><th scope="col">Fornecedor</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${FLs.map((x, i) => `<tr><td>${esc(x.nome)}</td><td class="ev">${brl(x.pago)}</td><td class="ev">${num(x.n)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * x.pago / mx}%"></i></div></td><td><button type="button" class="btn ghost sm" data-verpag="${i}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Nenhum fornecedor com esses filtros.</div>`}`;
       ligarChips('#eford', k => { FE.ford = k; render(); });
-      pn.querySelectorAll('[data-verpag]').forEach(b => b.addEventListener('click', () => { FE.forn = FLs[+b.dataset.verpag].nome; document.getElementById('efor').value = FE.forn; FE.aba = 'pag'; render(); document.getElementById('aba-pag').focus(); }));
+      pn.querySelectorAll('[data-verpag]').forEach(b => b.addEventListener('click', () => { FE.ver = 'todos'; document.getElementById('eve').value = 'todos'; FE.forn = FLs[+b.dataset.verpag].nome; document.getElementById('efor').value = FE.forn; FE.aba = 'pag'; render(); document.getElementById('aba-pag').focus(); }));
     } else if (FE.aba === 'org') {
       const GA = {};
       R.forEach(r => {
@@ -2508,7 +2525,7 @@ function viewEmendas(){
         ${aviso()}
         ${AL.length ? AL.map(a => { const OL = Object.values(a.os).sort((x, y) => y.pago - x.pago), mxO = OL[0].pago;
           return `<details class="area" data-a="${esc(a.nome)}"${FE.abertas.has(a.nome) ? ' open' : ''}><summary><span class="aname">${esc(a.nome)}</span><span class="aval">${brl(a.pago)}</span><span class="apct">${pct(a.pago)}</span><span class="ebar" aria-hidden="true"><i style="width:${100 * a.pago / mxA}%"></i></span></summary>
-          <div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th><th scope="col" class="ev">Parlamentares</th><th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td><td class="ev">${num(o.vs.size)}</td><td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
+          <div class="tablewrap"><table class="t tpag"><thead><tr><th scope="col">Órgão</th><th scope="col" class="ev">Recebeu</th><th scope="col" class="ev">Pagamentos</th>${FE.forn ? '' : '<th scope="col" class="ev">Parlamentares</th>'}<th scope="col"><span class="sr">Comparação</span></th><th scope="col"><span class="sr">Ação</span></th></tr></thead><tbody>${OL.map(o => `<tr><td>${esc(o.nome)}</td><td class="ev">${brl(o.pago)}</td><td class="ev">${num(o.n)}</td>${FE.forn ? '' : `<td class="ev">${num(o.vs.size)}</td>`}<td class="ecell"><div class="ebar" aria-hidden="true"><i style="width:${100 * o.pago / mxO}%"></i></div></td><td><button type="button" class="btn ghost sm" data-org="o:${esc(o.nome)}">Ver pagamentos</button></td></tr>`).join('')}</tbody></table>
           <p style="margin:.6rem 0 0"><button type="button" class="btn ghost sm" data-org="a:${esc(a.nome)}">Ver todos os pagamentos de ${esc(a.nome)}</button></p></div></details>`; }).join('') : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
       ligarChips('#esord', k => { FE.sord = k; render(); });
       pn.querySelectorAll('details.area').forEach(d => d.addEventListener('toggle', () => { if (d.open) FE.abertas.add(d.dataset.a); else FE.abertas.delete(d.dataset.a); }));
@@ -2517,7 +2534,8 @@ function viewEmendas(){
       const LP = [...R].sort(FE.lord === 'valor' ? (a, b) => b[2] - a[2] : (a, b) => b[0].localeCompare(a[0]));
       pn.innerHTML = `<div class="frow" id="elord"><span class="flabel">Ordenar por</span>${chips('Ordenar pagamentos por', [['valor','Maior valor'],['data','Mais recentes']], FE.lord)}</div>
         <p class="count">${num(R.length)} ${R.length === 1 ? 'pagamento' : 'pagamentos'}${R.length > q ? ', mostrando ' + (FE.lord === 'valor' ? 'os de maior valor' : 'os mais recentes') + ' (' + num(q) + ')' : ''}</p>
-        ${R.length ? tabelaPag(LP.slice(0, q), true) : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
+        ${FE.ver !== 'todos' ? `<p class="note">${EXPL_EME} Por isso, aqui a lista não mostra fornecedor.</p>` : ''}
+        ${R.length ? tabelaPag(LP.slice(0, q), FE.ver !== 'todos' ? 'ver' : 'forn') : `<div class="empty">Nenhum pagamento com esses filtros.</div>`}`;
       ligarChips('#elord', k => { FE.lord = k; render(); });
     }
   };
@@ -2532,7 +2550,7 @@ function viewEmendas(){
   ligaCaixasAno('eano', s => { FE.anos = s; render(); });
   document.getElementById('eve').addEventListener('change', e => { FE.ver = e.target.value; render(); });
   document.getElementById('eorg').addEventListener('change', e => { FE.org = e.target.value; render(); });
-  document.getElementById('efor').addEventListener('input', e => { FE.forn = e.target.value; render(); });
+  document.getElementById('efor').addEventListener('input', e => { FE.forn = e.target.value; if (FE.forn.trim()) FE.ver = 'todos'; render(); });
   document.getElementById('emin').addEventListener('input', e => { FE.min = e.target.value; render(); });
   document.getElementById('emax').addEventListener('input', e => { FE.max = e.target.value; render(); });
   document.getElementById('eqtd').addEventListener('change', e => { FE.n = e.target.value; render(); });
@@ -2550,19 +2568,15 @@ function secEmendas(v){
   if (!e) return cab + `<p class="note" style="margin-top:0">Não há emendas pagas registradas na planilha para este parlamentar.</p></section>`;
   const rows = e.r || [];
   const rank = EME.v.filter(x => x.pago > e.pago).length + 1;
-  const base = (EME.parcial || !rows.length) ? (e.f || []) : agrupaForn(rows);
-  const top = base.slice(0, 4);
-  const conc = top.length >= 3 && e.pago > 0 ? Math.round(100 * (top[0][1] + top[1][1] + top[2][1]) / e.pago) : null;
   const ga = {}; rows.forEach(r => { const a = areaDe(r[3]); ga[a] = (ga[a] || 0) + r[2]; });
   const gaL = Object.entries(ga).sort((a, b) => b[1] - a[1]).slice(0, 3), totR = somaR(rows);
   const areasCard = gaL.length ? `<h3 style="margin:1rem 0 .2rem">Em quais áreas</h3>${gaL.map(([n, p]) => barraForn(n, p, totR, gaL[0][1], false)).join('')}${EME.parcial ? '<p class="note" style="margin:.3rem 0 0">Prévia: só os pagamentos carregados.</p>' : ''}` : '';
   return cab + `<div class="stats">
       <div class="stat stat-total"><h3>Total pago</h3><div class="big">${brlMi(e.pago)}</div><div class="note">${rank}º de ${EME.v.length} no ranking</div></div>
-      <div class="stat"><h3>Fornecedores</h3><div class="big">${num(e.forn)}</div>${conc !== null ? `<div class="note">Os 3 maiores receberam ${conc}%.</div>` : ''}</div></div>
-    ${top.length ? `<h3 style="margin:1rem 0 .2rem">Para quem foi o dinheiro</h3>${top.map(([n, p]) => barraForn(n, p, e.pago, top[0][1], false)).join('')}` : ''}
+      ${rows.length ? `<div class="stat"><h3>Pagamentos</h3><div class="big">${num(rows.length)}</div></div>` : ''}</div>
     ${areasCard}
     ${rows.length ? '' : aviso()}
-    <div class="cfoot">${rows.length ? `<button type="button" class="btn" id="evabrir">Ver todos os pagamentos e filtrar</button>` : ''}<p class="note" style="margin:.7rem 0 0">A fonte informa o nome do fornecedor, não o CNPJ.</p></div></section>`;
+    <div class="cfoot">${rows.length ? `<button type="button" class="btn" id="evabrir">Ver todos os pagamentos e filtrar</button>` : ''}<p class="note" style="margin:.7rem 0 0">${EXPL_EME}</p></div></section>`;
 }
 function ligaEmendasV(v){
   if (!EME) return;
@@ -2573,31 +2587,29 @@ function ligaEmendasV(v){
   const corpo = () => `<div id="evstats"></div>
     ${btnFiltros('evfil')}<div class="filters${fechadoCel()}" id="evfil"><div class="frow">${caixasAno('evano', anos, FEV.anos)}</div>
       <div class="frow" id="evord"><span class="flabel">Ordenar</span>${chips('Ordenar pagamentos', [['valor','Maior valor'],['data','Mais recentes']], FEV.ord)}</div>
-      <div class="frow">${campoTexto('evfor', 'Buscar fornecedor', FEV.forn)}${selAreaOrgao('evorg', rows.map(r => r[3]), FEV.org)}${seletorQtd('evqtd', FEV.n, 'Mostrar pagamentos')}</div></div>
-    <div id="evgraf"></div><div id="evarea"></div><h3 style="margin:1.2rem 0 .3rem">Pagamentos</h3>${EME.parcial ? `<p class="note">Prévia: a lista traz só os pagamentos carregados (${num(rows.length)}).</p>` : ''}<div id="evlista"></div>`;
+      <div class="frow">${selAreaOrgao('evorg', rows.map(r => r[3]), FEV.org)}${seletorQtd('evqtd', FEV.n, 'Mostrar pagamentos')}</div></div>
+    <div id="evarea"></div><div id="evorgs"></div><h3 style="margin:1.2rem 0 .3rem">Pagamentos</h3><p class="note">${EXPL_EME}</p>${EME.parcial ? `<p class="note">Prévia: a lista traz só os pagamentos carregados (${num(rows.length)}).</p>` : ''}<div id="evlista"></div>`;
   const render = () => {
-    const filtrado = FEV.anos.length > 0 || !!FEV.forn || !!FEV.org;
-    const R = rows.filter(r => passaOrg(r[3], FEV.org) && passaF(r, {anos:FEV.anos, forn:FEV.forn, min:null, max:null}));
+    const filtrado = FEV.anos.length > 0 || !!FEV.org;
+    const R = rows.filter(r => passaOrg(r[3], FEV.org) && passaF(r, {anos:FEV.anos, forn:'', min:null, max:null}));
     const usaResumo = !!EME.parcial && !filtrado;
     const pago = usaResumo ? e.pago : somaR(R);
-    const nforn = usaResumo ? e.forn : new Set(R.map(r => limpaForn(r[1]))).size;
-    const lista = usaResumo ? (e.f || []) : agrupaForn(R);
-    const top = lista.slice(0, 8), resto = pago - top.reduce((a, x) => a + x[1], 0);
     document.getElementById('evstats').innerHTML = `<div class="stats">
       <div class="stat stat-total"><h3>Total pago${filtrado ? ' (filtro)' : ''}</h3><div class="big">${brlMi(pago)}</div></div>
-      <div class="stat"><h3>Fornecedores</h3><div class="big">${num(nforn)}</div><div class="note">${usaResumo ? '' : num(R.length) + ' ' + (R.length === 1 ? 'pagamento' : 'pagamentos')}</div></div></div>`;
-    document.getElementById('evgraf').innerHTML = top.length ? `<h3 style="margin:1.1rem 0 .3rem">Para quem foi o dinheiro</h3>${top.map(([n, p]) => barraForn(n, p, pago, top[0][1], false)).join('')}${resto > 1 && nforn > top.length ? barraForn('Outros ' + (nforn - top.length) + ' fornecedores', resto, pago, top[0][1], true) : ''}` : '';
+      ${usaResumo ? '' : `<div class="stat"><h3>Pagamentos</h3><div class="big">${num(R.length)}</div></div>`}</div>`;
     const gm = {}; R.forEach(r => { const a = areaDe(r[3]); gm[a] = (gm[a] || 0) + r[2]; });
     const gl = Object.entries(gm).sort((a, b) => b[1] - a[1]), totA = somaR(R);
     document.getElementById('evarea').innerHTML = gl.length ? `<h3 style="margin:1.1rem 0 .3rem">Em quais áreas</h3>${gl.map(([n, p]) => barraForn(n, p, totA, gl[0][1], false)).join('')}` : '';
+    const om = {}; R.forEach(r => { const o = secTxt(r[3]); om[o] = (om[o] || 0) + r[2]; });
+    const ol = Object.entries(om).sort((a, b) => b[1] - a[1]), tOl = ol.slice(0, 8), restoO = totA - tOl.reduce((a, x) => a + x[1], 0);
+    document.getElementById('evorgs').innerHTML = ol.length ? `<h3 style="margin:1.1rem 0 .3rem">Quais órgãos executaram</h3>${tOl.map(([n, p]) => barraForn(n, p, totA, tOl[0][1], false)).join('')}${ol.length > tOl.length && restoO > 1 ? barraForn('Outros ' + (ol.length - tOl.length) + ' órgãos', restoO, totA, tOl[0][1], true) : ''}` : '';
     const LP = [...R].sort(FEV.ord === 'valor' ? (a, b) => b[2] - a[2] : (a, b) => b[0].localeCompare(a[0]));
-    document.getElementById('evlista').innerHTML = R.length ? `<p class="count">${num(R.length)} ${R.length === 1 ? 'pagamento' : 'pagamentos'}${R.length > qtdDe(FEV.n) ? ', mostrando os ' + num(qtdDe(FEV.n)) + (FEV.ord === 'valor' ? ' de maior valor' : ' mais recentes') : ''}</p>` + tabelaPag(LP.slice(0, qtdDe(FEV.n)), false) : `<div class="empty">Nenhum pagamento com esses filtros.</div>`;
+    document.getElementById('evlista').innerHTML = R.length ? `<p class="count">${num(R.length)} ${R.length === 1 ? 'pagamento' : 'pagamentos'}${R.length > qtdDe(FEV.n) ? ', mostrando os ' + num(qtdDe(FEV.n)) + (FEV.ord === 'valor' ? ' de maior valor' : ' mais recentes') : ''}</p>` + tabelaPag(LP.slice(0, qtdDe(FEV.n)), 'ver') : `<div class="empty">Nenhum pagamento com esses filtros.</div>`;
   };
   bt.addEventListener('click', () => { abreJanela('Emendas de ' + v.nome, corpo(), () => {
     ligarToggle();
     ligaCaixasAno('evano', s => { FEV.anos = s; render(); });
     ligarChips('#evord', k => { FEV.ord = k; render(); });
-    document.getElementById('evfor').addEventListener('input', ev => { FEV.forn = ev.target.value; render(); });
     document.getElementById('evqtd').addEventListener('change', ev => { FEV.n = ev.target.value; render(); });
     document.getElementById('evorg').addEventListener('change', ev => { FEV.org = ev.target.value; render(); });
     render();
@@ -2615,7 +2627,7 @@ function viewSobre(){
   <p>A ideia é simples: facilitar para qualquer pessoa acompanhar o que parlamentares votam, quem comparece às sessões e como cada parlamentar atua nas comissões, usando apenas dados públicos. O Xereta é independente. Não é um canal oficial da Câmara Municipal e não tem ligação com partidos.</p>
   ${EME ? `<h2>De onde vêm os dados das emendas</h2>
   <p>As emendas não vêm do SAPL. Os dados vêm do <a href="https://emendas.campinas.sp.gov.br" target="_blank" rel="noopener">site de emendas da Prefeitura de Campinas</a>, de onde se baixa a planilha de execução das emendas parlamentares. Cada linha é um empenho, com a autoria parlamentar, o fornecedor, a secretaria responsável e os valores empenhados, liquidados e pagos. A planilha foi consultada pela última vez em ${fmtData(EME.atualizado)}.${EME.fonte ? ' Fonte: ' + esc(EME.fonte) + '.' : ''}</p>
-  <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL. As áreas, como Saúde e Cultura e Turismo, são um agrupamento feito pelo Xereta a partir do órgão que executa cada emenda. Veja abaixo, em “Como o Xereta apresenta os textos”, o que muda nos nomes dos órgãos.</p>` : ''}
+  <p>O Xereta mostra só o valor pago, ou seja, pagamentos já feitos. Empenhos ainda sem pagamento não entram nos totais. A planilha informa o nome do fornecedor, não o CNPJ. Quando o fornecedor é pessoa física, o CPF que aparece junto do nome na fonte é omitido aqui. ${EXPL_EME} O Xereta mostra quanto cada parlamentar indicou e para quais áreas e órgãos, e, separadamente, quais fornecedores mais receberam. Os dados de emendas são atualizados em ritmo próprio, que pode ser diferente do SAPL. As áreas, como Saúde e Cultura e Turismo, são um agrupamento feito pelo Xereta a partir do órgão que executa cada emenda. Veja abaixo, em “Como o Xereta apresenta os textos”, o que muda nos nomes dos órgãos.</p>` : ''}
   ${D.ORC ? `<h2>De onde vêm os dados do orçamento</h2>
   <p>A página Orçamento usa o Relatório Resumido da Execução Orçamentária (RREO), que toda prefeitura é obrigada a publicar a cada dois meses pela Lei de Responsabilidade Fiscal. O Xereta usa o relatório do 6º bimestre de cada ano, de ${ORC_ANOS[0]} a ${ORC_ANOS[ORC_ANOS.length - 1]}, que fecha o ano. Os arquivos são os que a Prefeitura de Campinas entregou ao <a href="https://siconfi.tesouro.gov.br" target="_blank" rel="noopener">Siconfi</a>, o Sistema de Informações Contábeis e Fiscais do Setor Público Brasileiro, mantido pelo Tesouro Nacional.</p>
   <p>Do relatório saem três tabelas: o balanço orçamentário (receitas por origem e despesas por tipo, com o previsto e o executado), as despesas por função e subfunção (as áreas, como Saúde e Educação) e o demonstrativo da receita corrente líquida, que separa os impostos, como IPTU, ISS e ICMS. Os valores e os nomes das linhas são os do relatório. Ficam de fora as receitas e despesas intra-orçamentárias, que são dinheiro passando de um órgão da Prefeitura para outro.</p>
